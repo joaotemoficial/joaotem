@@ -1,0 +1,186 @@
+import type { Database } from "~/database.types";
+import type { Supabase } from "~/lib/storage.server";
+import { error, success } from "~/types";
+
+type Status = Database["public"]["Enums"]["business_status"];
+
+const ADMIN_BUSINESS_FIELDS = `
+  id, user_id, handle, name, short_description, whatsapp, instagram,
+  offers_delivery, logo_path, cover_path, status, rejection_reason,
+  reviewed_at, reviewed_by, created_at, updated_at,
+  category:business_categories(id, name, slug),
+  city:cities(id, name, state, slug),
+  neighborhood:neighborhoods(id, name, slug)
+`;
+
+async function attachOwners<T extends { user_id: string }>(
+	supabase: Supabase,
+	rows: T[],
+) {
+	if (rows.length === 0) return rows.map((r) => ({ ...r, owner: null }));
+	const userIds = Array.from(new Set(rows.map((r) => r.user_id)));
+	const { data: owners } = await supabase
+		.from("profiles")
+		.select("id, email, full_name")
+		.in("id", userIds);
+	const byId = new Map((owners ?? []).map((o) => [o.id, o]));
+	return rows.map((r) => ({
+		...r,
+		owner: byId.get(r.user_id) ?? null,
+	}));
+}
+
+export async function listBusinesses({
+	supabase,
+	status,
+	cityId,
+}: {
+	supabase: Supabase;
+	status?: Status | "all";
+	cityId?: string;
+}) {
+	let query = supabase
+		.from("businesses")
+		.select(ADMIN_BUSINESS_FIELDS)
+		.is("deleted_at", null);
+	if (status && status !== "all") query = query.eq("status", status);
+	if (cityId) query = query.eq("city_id", cityId);
+	const { data, error: queryError } = await query.order("created_at", {
+		ascending: false,
+	});
+	if (queryError) return error(queryError.message);
+	return success(await attachOwners(supabase, data ?? []));
+}
+
+export async function getBusinessById({
+	supabase,
+	id,
+}: {
+	supabase: Supabase;
+	id: string;
+}) {
+	const { data, error: queryError } = await supabase
+		.from("businesses")
+		.select(ADMIN_BUSINESS_FIELDS)
+		.eq("id", id)
+		.is("deleted_at", null)
+		.maybeSingle();
+	if (queryError) return error(queryError.message);
+	if (!data) return success(null);
+	const [withOwner] = await attachOwners(supabase, [data]);
+	return success(withOwner);
+}
+
+export async function approveBusiness({
+	supabase,
+	id,
+	reviewerId,
+}: {
+	supabase: Supabase;
+	id: string;
+	reviewerId: string;
+}) {
+	const { error: queryError } = await supabase
+		.from("businesses")
+		.update({
+			status: "approved",
+			rejection_reason: null,
+			reviewed_at: new Date().toISOString(),
+			reviewed_by: reviewerId,
+		})
+		.eq("id", id);
+	if (queryError) return error(queryError.message);
+	return success(true);
+}
+
+export async function rejectBusiness({
+	supabase,
+	id,
+	reviewerId,
+	reason,
+}: {
+	supabase: Supabase;
+	id: string;
+	reviewerId: string;
+	reason: string;
+}) {
+	const { error: queryError } = await supabase
+		.from("businesses")
+		.update({
+			status: "rejected",
+			rejection_reason: reason,
+			reviewed_at: new Date().toISOString(),
+			reviewed_by: reviewerId,
+		})
+		.eq("id", id);
+	if (queryError) return error(queryError.message);
+	return success(true);
+}
+
+export async function suspendBusiness({
+	supabase,
+	id,
+	reviewerId,
+	reason,
+}: {
+	supabase: Supabase;
+	id: string;
+	reviewerId: string;
+	reason: string;
+}) {
+	const { error: queryError } = await supabase
+		.from("businesses")
+		.update({
+			status: "suspended",
+			rejection_reason: reason,
+			reviewed_at: new Date().toISOString(),
+			reviewed_by: reviewerId,
+		})
+		.eq("id", id);
+	if (queryError) return error(queryError.message);
+	return success(true);
+}
+
+export async function reinstateBusiness({
+	supabase,
+	id,
+	reviewerId,
+}: {
+	supabase: Supabase;
+	id: string;
+	reviewerId: string;
+}) {
+	const { error: queryError } = await supabase
+		.from("businesses")
+		.update({
+			status: "approved",
+			rejection_reason: null,
+			reviewed_at: new Date().toISOString(),
+			reviewed_by: reviewerId,
+		})
+		.eq("id", id);
+	if (queryError) return error(queryError.message);
+	return success(true);
+}
+
+export async function reopenBusiness({
+	supabase,
+	id,
+	reviewerId,
+}: {
+	supabase: Supabase;
+	id: string;
+	reviewerId: string;
+}) {
+	const { error: queryError } = await supabase
+		.from("businesses")
+		.update({
+			status: "pending",
+			rejection_reason: null,
+			reviewed_at: new Date().toISOString(),
+			reviewed_by: reviewerId,
+		})
+		.eq("id", id);
+	if (queryError) return error(queryError.message);
+	return success(true);
+}
