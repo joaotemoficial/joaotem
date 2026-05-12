@@ -48,6 +48,8 @@ export default [
 	layout("routes/admin/layout.tsx", [
 		route("admin", "routes/admin/index.tsx"),
 		route("admin/businesses", "routes/admin/businesses-index.tsx"),
+		route("admin/businesses/new", "routes/admin/business-new.tsx"),
 		route("admin/businesses/:id", "routes/admin/business-detail.tsx"),
+		route("admin/reclaims", "routes/admin/reclaims.tsx"),
 	]),
 ] satisfies RouteConfig;

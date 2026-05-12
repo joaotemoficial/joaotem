@@ -27,6 +27,18 @@ export default function AdminLayout() {
 					>
 						Todos os negócios
 					</Link>
+					<Link
+						to="/admin/businesses/new"
+						className="text-muted-foreground hover:text-foreground"
+					>
+						Novo negócio
+					</Link>
+					<Link
+						to="/admin/reclaims"
+						className="text-muted-foreground hover:text-foreground"
+					>
+						Reivindicações
+					</Link>
 				</nav>
 			</div>
 			<Outlet />

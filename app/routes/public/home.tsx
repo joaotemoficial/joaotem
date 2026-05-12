@@ -39,7 +39,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 				categoryId: categoryId || undefined,
 				neighborhoodId: neighborhoodId || undefined,
 				q: q || undefined,
-				limit: 36,
+				limit: 6,
+				random: true,
 			}),
 			categoriesRepo.listActive({ supabase: ctx.supabase }),
 			citiesRepo.listActive({ supabase: ctx.supabase }),
@@ -49,11 +50,22 @@ export async function loader({ request }: Route.LoaderArgs) {
 				limit: 12,
 			}),
 		]);
-	if (isError(businesses)) throw new Response(businesses.error, { status: 500 });
-	if (isError(categories)) throw new Response(categories.error, { status: 500 });
-	if (isError(cities)) throw new Response(cities.error, { status: 500 });
-	if (isError(neighborhoods))
+	if (isError(businesses)) {
+		console.error("[home.loader] businesses:", businesses.error);
+		throw new Response(businesses.error, { status: 500 });
+	}
+	if (isError(categories)) {
+		console.error("[home.loader] categories:", categories.error);
+		throw new Response(categories.error, { status: 500 });
+	}
+	if (isError(cities)) {
+		console.error("[home.loader] cities:", cities.error);
+		throw new Response(cities.error, { status: 500 });
+	}
+	if (isError(neighborhoods)) {
+		console.error("[home.loader] neighborhoods:", neighborhoods.error);
 		throw new Response(neighborhoods.error, { status: 500 });
+	}
 	const promotionsList = isError(promotions) ? [] : promotions.success;
 
 	return {

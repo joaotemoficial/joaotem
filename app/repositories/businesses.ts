@@ -1,5 +1,6 @@
 import type { Database } from "~/database.types";
 import type { Supabase } from "~/lib/storage.server";
+import { SYSTEM_USER_ID } from "~/lib/system-user";
 import { error, success } from "~/types";
 
 export type BusinessInsert = Database["public"]["Tables"]["businesses"]["Insert"];
@@ -49,6 +50,7 @@ export async function listPublic({
 	q,
 	limit = 24,
 	offset = 0,
+	random = false,
 }: {
 	supabase: Supabase;
 	cityId?: string;
@@ -57,6 +59,7 @@ export async function listPublic({
 	q?: string;
 	limit?: number;
 	offset?: number;
+	random?: boolean;
 }) {
 	let query = supabase
 		.from("businesses")
@@ -69,6 +72,22 @@ export async function listPublic({
 	if (neighborhoodId) query = query.eq("neighborhood_id", neighborhoodId);
 	if (q && q.trim().length > 0) {
 		query = query.ilike("name", `%${q.trim()}%`);
+	}
+
+	if (random) {
+		// biome-ignore lint/suspicious/noExplicitAny: rpc not in generated Database types
+		const { data, error: rpcError } = (await (supabase.rpc as any)(
+			"random_businesses",
+			{
+				p_limit: limit,
+				p_city_id: cityId ?? null,
+				p_category_id: categoryId ?? null,
+				p_neighborhood_id: neighborhoodId ?? null,
+				p_q: q && q.trim().length > 0 ? q.trim() : null,
+			},
+		).select(PUBLIC_BUSINESS_FIELDS)) as Awaited<typeof query>;
+		if (rpcError) return error(rpcError.message);
+		return success(data ?? []);
 	}
 
 	const { data, error: queryError } = await query
@@ -111,6 +130,23 @@ export async function getByIdForOwner({
 		.select(OWNER_BUSINESS_FIELDS)
 		.eq("id", id)
 		.eq("user_id", userId)
+		.is("deleted_at", null)
+		.maybeSingle();
+	if (queryError) return error(queryError.message);
+	return success(data);
+}
+
+export async function getOwnerIdByHandle({
+	supabase,
+	handle,
+}: {
+	supabase: Supabase;
+	handle: string;
+}) {
+	const { data, error: queryError } = await supabase
+		.from("businesses")
+		.select("id, user_id")
+		.ilike("handle", handle.toLowerCase())
 		.is("deleted_at", null)
 		.maybeSingle();
 	if (queryError) return error(queryError.message);
@@ -172,6 +208,36 @@ export async function update({
 		.single();
 	if (queryError) return error(queryError.message);
 	return success(data);
+}
+
+export async function adminUpdate({
+	supabase,
+	id,
+	values,
+}: {
+	supabase: Supabase;
+	id: string;
+	values: BusinessUpdate;
+}) {
+	const { data, error: queryError } = await supabase
+		.from("businesses")
+		.update(values)
+		.eq("id", id)
+		.select("id, handle")
+		.single();
+	if (queryError) return error(queryError.message);
+	return success(data);
+}
+
+export async function listSystemOwned({ supabase }: { supabase: Supabase }) {
+	const { data, error: queryError } = await supabase
+		.from("businesses")
+		.select(OWNER_BUSINESS_FIELDS)
+		.eq("user_id", SYSTEM_USER_ID)
+		.is("deleted_at", null)
+		.order("created_at", { ascending: false });
+	if (queryError) return error(queryError.message);
+	return success(data ?? []);
 }
 
 export async function softDelete({

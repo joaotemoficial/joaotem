@@ -163,6 +163,40 @@ export async function reinstateBusiness({
 	return success(true);
 }
 
+export async function findProfileByEmail({
+	supabase,
+	email,
+}: {
+	supabase: Supabase;
+	email: string;
+}) {
+	const { data, error: queryError } = await supabase
+		.from("profiles")
+		.select("id, email, full_name")
+		.ilike("email", email.trim())
+		.limit(1)
+		.maybeSingle();
+	if (queryError) return error(queryError.message);
+	return success(data);
+}
+
+export async function reassignBusinessOwner({
+	supabase,
+	id,
+	newUserId,
+}: {
+	supabase: Supabase;
+	id: string;
+	newUserId: string;
+}) {
+	const { error: queryError } = await supabase
+		.from("businesses")
+		.update({ user_id: newUserId })
+		.eq("id", id);
+	if (queryError) return error(queryError.message);
+	return success(true);
+}
+
 export async function reopenBusiness({
 	supabase,
 	id,
