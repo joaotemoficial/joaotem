@@ -17,6 +17,7 @@ export default [
 
 	layout("routes/dashboard/layout.tsx", [
 		route("dashboard", "routes/dashboard/index.tsx"),
+		route("dashboard/upgrade", "routes/dashboard/upgrade.tsx"),
 		route("dashboard/businesses/new", "routes/dashboard/business-new.tsx"),
 		route("dashboard/businesses/:id", "routes/dashboard/business-edit.tsx"),
 		route(
@@ -51,5 +52,6 @@ export default [
 		route("admin/businesses/new", "routes/admin/business-new.tsx"),
 		route("admin/businesses/:id", "routes/admin/business-detail.tsx"),
 		route("admin/reclaims", "routes/admin/reclaims.tsx"),
+		route("admin/feature-flags", "routes/admin/feature-flags.tsx"),
 	]),
 ] satisfies RouteConfig;

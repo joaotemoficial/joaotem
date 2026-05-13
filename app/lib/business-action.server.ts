@@ -6,7 +6,9 @@ import {
 	type Supabase,
 } from "~/lib/storage.server";
 import { businessFormSchema } from "~/lib/validation/business";
+import { planSelectionSchema } from "~/lib/validation/plan";
 import * as businesses from "~/repositories/businesses";
+import * as planUpgradeRepo from "~/repositories/plan-upgrade-requests";
 import { isError } from "~/types";
 
 export type BusinessActionResult =
@@ -27,6 +29,22 @@ export async function handleBusinessSubmission({
 	const submission = parseWithZod(formData, { schema: businessFormSchema });
 	if (submission.status !== "success") {
 		return { ok: false, submission: submission.reply() };
+	}
+
+	// On create, the owner must also pick a plan tier — the business won't
+	// appear on the site until the admin approves the resulting upgrade
+	// request. On edit (businessId provided), plan fields are not part of
+	// the form.
+	const isCreate = !businessId;
+	const planSubmission = isCreate
+		? parseWithZod(formData, { schema: planSelectionSchema })
+		: null;
+	if (planSubmission && planSubmission.status !== "success") {
+		const fieldErrors: Record<string, string[]> = {};
+		for (const [key, errs] of Object.entries(planSubmission.error ?? {})) {
+			if (Array.isArray(errs) && errs.length > 0) fieldErrors[key] = errs;
+		}
+		return { ok: false, submission: submission.reply({ fieldErrors }) };
 	}
 
 	const v = submission.value;
@@ -142,6 +160,21 @@ export async function handleBusinessSubmission({
 			id: resultId,
 			userId,
 			values: patchValues,
+		});
+	}
+
+	// On create, queue the upgrade request the owner picked in the form.
+	// Best-effort: if the request insert fails, the business is still created
+	// and admin will see it under "Sem plano ativo" on /admin.
+	if (isCreate && planSubmission && planSubmission.status === "success") {
+		await planUpgradeRepo.create({
+			supabase,
+			values: {
+				business_id: resultId,
+				requested_by: userId,
+				requested_plan: planSubmission.value.requested_plan,
+				message: planSubmission.value.plan_message,
+			},
 		});
 	}
 

@@ -1,8 +1,13 @@
 import { Link, data, useLoaderData } from "react-router";
+import { PlanBadge } from "~/components/business/plan-badge";
 import { Badge } from "~/components/ui/badge";
 import { buttonVariants } from "~/components/ui/button";
 import { requireUser } from "~/lib/auth.server";
 import { BUSINESS_STATUS_LABELS } from "~/lib/constants";
+import {
+	daysUntilExpiry,
+	effectivePlanTier,
+} from "~/lib/plan";
 import { getPublicUrl } from "~/lib/storage.server";
 import * as businesses from "~/repositories/businesses";
 import { unwrap } from "~/types";
@@ -22,6 +27,11 @@ export async function loader({ request }: Route.LoaderArgs) {
 	const items = (Array.isArray(list) ? list : []).map((b) => ({
 		...b,
 		logo_url: getPublicUrl(ctx.supabase, "business-logos", b.logo_path),
+		effective_tier: effectivePlanTier({
+			plan_tier: b.plan_tier,
+			plan_expires_at: b.plan_expires_at,
+		}),
+		days_until_expiry: daysUntilExpiry(b.plan_expires_at),
 	}));
 	return data({ items }, { headers: ctx.headers });
 }
@@ -91,10 +101,31 @@ export default function DashboardHome() {
 										@{b.handle}
 									</p>
 								</div>
-								<Badge variant={STATUS_VARIANT[b.status] ?? "secondary"}>
-									{BUSINESS_STATUS_LABELS[b.status]}
-								</Badge>
+								<div className="flex flex-col items-end gap-1">
+									<Badge variant={STATUS_VARIANT[b.status] ?? "secondary"}>
+										{BUSINESS_STATUS_LABELS[b.status]}
+									</Badge>
+									<PlanBadge tier={b.effective_tier} />
+								</div>
 							</div>
+							{b.effective_tier === null ? (
+								<div className="rounded-md bg-destructive/10 px-2.5 py-2 text-xs">
+									<p className="font-semibold text-destructive">
+										Plano inativo — seu negócio está oculto do site.
+									</p>
+									<p className="text-destructive/80">
+										Solicite uma renovação para voltar a aparecer nas buscas.
+									</p>
+								</div>
+							) : b.days_until_expiry != null && b.days_until_expiry <= 7 ? (
+								<p className="text-xs text-amber-700">
+									Expira em {b.days_until_expiry} dia(s) — considere renovar.
+								</p>
+							) : b.days_until_expiry != null ? (
+								<p className="text-xs text-muted-foreground">
+									Expira em {b.days_until_expiry} dia(s).
+								</p>
+							) : null}
 							{b.status === "rejected" && b.rejection_reason ? (
 								<p className="rounded-md bg-destructive/10 px-2 py-1.5 text-xs text-destructive">
 									Motivo: {b.rejection_reason}
@@ -105,7 +136,7 @@ export default function DashboardHome() {
 									Suspenso: {b.rejection_reason}
 								</p>
 							) : null}
-							<div className="flex items-center gap-2">
+							<div className="flex flex-wrap items-center gap-2">
 								<Link
 									to={`/dashboard/businesses/${b.id}`}
 									className={buttonVariants({ variant: "outline", size: "sm" })}
@@ -118,7 +149,17 @@ export default function DashboardHome() {
 								>
 									Produtos
 								</Link>
-								{b.status === "approved" ? (
+								<Link
+									to={`/dashboard/upgrade?business=${b.id}`}
+									className={buttonVariants({ variant: "ghost", size: "sm" })}
+								>
+									{b.effective_tier === null
+										? "Renovar plano"
+										: b.effective_tier === "basico"
+											? "Upgrade Ouro"
+											: "Renovar"}
+								</Link>
+								{b.status === "approved" && b.effective_tier !== null ? (
 									<Link
 										to={`/negocio/${b.handle}`}
 										className={buttonVariants({ variant: "ghost", size: "sm" })}

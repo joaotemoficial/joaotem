@@ -61,6 +61,51 @@ export type Database = {
         }
         Relationships: []
       }
+      business_feature_overrides: {
+        Row: {
+          business_id: string
+          created_at: string
+          enabled: boolean | null
+          feature_key: string
+          limit_override: number | null
+          notes: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          enabled?: boolean | null
+          feature_key: string
+          limit_override?: number | null
+          notes?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          enabled?: boolean | null
+          feature_key?: string
+          limit_override?: number | null
+          notes?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_feature_overrides_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_feature_overrides_feature_key_fkey"
+            columns: ["feature_key"]
+            isOneToOne: false
+            referencedRelation: "feature_flags"
+            referencedColumns: ["key"]
+          },
+        ]
+      }
       business_product_images: {
         Row: {
           alt_text: string | null
@@ -237,6 +282,53 @@ export type Database = {
           },
         ]
       }
+      business_reclaim_requests: {
+        Row: {
+          business_id: string
+          created_at: string
+          decision_note: string | null
+          id: string
+          message: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["reclaim_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          decision_note?: string | null
+          id?: string
+          message?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["reclaim_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          decision_note?: string | null
+          id?: string
+          message?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["reclaim_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_reclaim_requests_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       businesses: {
         Row: {
           category_id: string
@@ -251,6 +343,10 @@ export type Database = {
           name: string
           neighborhood_id: string
           offers_delivery: boolean
+          plan_expires_at: string | null
+          plan_notes: string | null
+          plan_started_at: string | null
+          plan_tier: Database["public"]["Enums"]["plan_tier"] | null
           rejection_reason: string | null
           reviewed_at: string | null
           reviewed_by: string | null
@@ -274,6 +370,10 @@ export type Database = {
           name: string
           neighborhood_id: string
           offers_delivery?: boolean
+          plan_expires_at?: string | null
+          plan_notes?: string | null
+          plan_started_at?: string | null
+          plan_tier?: Database["public"]["Enums"]["plan_tier"] | null
           rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -297,6 +397,10 @@ export type Database = {
           name?: string
           neighborhood_id?: string
           offers_delivery?: boolean
+          plan_expires_at?: string | null
+          plan_notes?: string | null
+          plan_started_at?: string | null
+          plan_tier?: Database["public"]["Enums"]["plan_tier"] | null
           rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -361,6 +465,51 @@ export type Database = {
         }
         Relationships: []
       }
+      feature_flags: {
+        Row: {
+          basico_enabled: boolean
+          basico_limit: number | null
+          created_at: string
+          description: string | null
+          enabled: boolean
+          flag_type: string
+          key: string
+          label: string
+          ouro_enabled: boolean
+          ouro_limit: number | null
+          sort_order: number
+          updated_at: string | null
+        }
+        Insert: {
+          basico_enabled?: boolean
+          basico_limit?: number | null
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          flag_type: string
+          key: string
+          label: string
+          ouro_enabled?: boolean
+          ouro_limit?: number | null
+          sort_order?: number
+          updated_at?: string | null
+        }
+        Update: {
+          basico_enabled?: boolean
+          basico_limit?: number | null
+          created_at?: string
+          description?: string | null
+          enabled?: boolean
+          flag_type?: string
+          key?: string
+          label?: string
+          ouro_enabled?: boolean
+          ouro_limit?: number | null
+          sort_order?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       neighborhoods: {
         Row: {
           city_id: string
@@ -399,6 +548,62 @@ export type Database = {
           },
         ]
       }
+      plan_upgrade_requests: {
+        Row: {
+          business_id: string
+          created_at: string
+          granted_expires_at: string | null
+          granted_starts_at: string | null
+          id: string
+          message: string | null
+          requested_by: string
+          requested_plan: Database["public"]["Enums"]["plan_tier"]
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["plan_upgrade_status"]
+          updated_at: string | null
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          granted_expires_at?: string | null
+          granted_starts_at?: string | null
+          id?: string
+          message?: string | null
+          requested_by: string
+          requested_plan: Database["public"]["Enums"]["plan_tier"]
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["plan_upgrade_status"]
+          updated_at?: string | null
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          granted_expires_at?: string | null
+          granted_starts_at?: string | null
+          id?: string
+          message?: string | null
+          requested_by?: string
+          requested_plan?: Database["public"]["Enums"]["plan_tier"]
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["plan_upgrade_status"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_upgrade_requests_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -431,11 +636,164 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_business_reclaim: {
+        Args: { reclaim_id: string; reviewer_id: string }
+        Returns: undefined
+      }
+      approve_plan_upgrade_request: {
+        Args: {
+          p_expires_at: string
+          p_notes?: string
+          p_request_id: string
+          p_reviewer_id: string
+          p_starts_at: string
+        }
+        Returns: undefined
+      }
+      effective_plan_tier: {
+        Args: {
+          expires_at: string
+          plan: Database["public"]["Enums"]["plan_tier"]
+        }
+        Returns: Database["public"]["Enums"]["plan_tier"]
+      }
       is_admin: { Args: never; Returns: boolean }
       is_business_public: { Args: { b_id: string }; Returns: boolean }
+      list_businesses_gold_first: {
+        Args: {
+          p_category_id?: string
+          p_city_id?: string
+          p_limit?: number
+          p_neighborhood_id?: string
+        }
+        Returns: {
+          category_id: string
+          city_id: string
+          cover_path: string | null
+          created_at: string
+          deleted_at: string | null
+          handle: string
+          id: string
+          instagram: string | null
+          logo_path: string | null
+          name: string
+          neighborhood_id: string
+          offers_delivery: boolean
+          plan_expires_at: string | null
+          plan_notes: string | null
+          plan_started_at: string | null
+          plan_tier: Database["public"]["Enums"]["plan_tier"] | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          search_tsv: unknown
+          short_description: string | null
+          status: Database["public"]["Enums"]["business_status"]
+          updated_at: string | null
+          user_id: string
+          whatsapp: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "businesses"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      random_featured_businesses: {
+        Args: {
+          p_category_id?: string
+          p_city_id?: string
+          p_limit?: number
+          p_neighborhood_id?: string
+          p_q?: string
+        }
+        Returns: {
+          category_id: string
+          city_id: string
+          cover_path: string | null
+          created_at: string
+          deleted_at: string | null
+          handle: string
+          id: string
+          instagram: string | null
+          logo_path: string | null
+          name: string
+          neighborhood_id: string
+          offers_delivery: boolean
+          plan_expires_at: string | null
+          plan_notes: string | null
+          plan_started_at: string | null
+          plan_tier: Database["public"]["Enums"]["plan_tier"] | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          search_tsv: unknown
+          short_description: string | null
+          status: Database["public"]["Enums"]["business_status"]
+          updated_at: string | null
+          user_id: string
+          whatsapp: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "businesses"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      reject_plan_upgrade_request: {
+        Args: { p_notes?: string; p_request_id: string; p_reviewer_id: string }
+        Returns: undefined
+      }
+      search_businesses_ranked: {
+        Args: {
+          p_category_id?: string
+          p_city_id?: string
+          p_limit?: number
+          p_neighborhood_id?: string
+          p_q?: string
+        }
+        Returns: {
+          category_id: string
+          city_id: string
+          cover_path: string | null
+          created_at: string
+          deleted_at: string | null
+          handle: string
+          id: string
+          instagram: string | null
+          logo_path: string | null
+          name: string
+          neighborhood_id: string
+          offers_delivery: boolean
+          plan_expires_at: string | null
+          plan_notes: string | null
+          plan_started_at: string | null
+          plan_tier: Database["public"]["Enums"]["plan_tier"] | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          search_tsv: unknown
+          short_description: string | null
+          status: Database["public"]["Enums"]["business_status"]
+          updated_at: string | null
+          user_id: string
+          whatsapp: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "businesses"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
     }
     Enums: {
       business_status: "pending" | "approved" | "rejected" | "suspended"
+      plan_tier: "basico" | "ouro"
+      plan_upgrade_status: "pending" | "approved" | "rejected" | "canceled"
+      reclaim_status: "pending" | "approved" | "rejected"
       user_role: "user" | "admin"
     }
     CompositeTypes: {
@@ -568,6 +926,9 @@ export const Constants = {
   public: {
     Enums: {
       business_status: ["pending", "approved", "rejected", "suspended"],
+      plan_tier: ["basico", "ouro"],
+      plan_upgrade_status: ["pending", "approved", "rejected", "canceled"],
+      reclaim_status: ["pending", "approved", "rejected"],
       user_role: ["user", "admin"],
     },
   },

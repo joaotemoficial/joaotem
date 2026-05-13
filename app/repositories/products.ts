@@ -48,6 +48,24 @@ export async function listPublicByBusiness({
 	return success(data ?? []);
 }
 
+// Number of non-deleted products on a business. Used by the owner dashboard
+// to enforce the per-plan quota for "Vitrine de produtos" (feature_flags).
+export async function countByBusiness({
+	supabase,
+	businessId,
+}: {
+	supabase: Supabase;
+	businessId: string;
+}) {
+	const { count, error: queryError } = await supabase
+		.from("business_products")
+		.select("id", { head: true, count: "exact" })
+		.eq("business_id", businessId)
+		.is("deleted_at", null);
+	if (queryError) return error(queryError.message);
+	return success(count ?? 0);
+}
+
 export async function getByIdForOwner({
 	supabase,
 	id,

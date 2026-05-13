@@ -1,6 +1,7 @@
-import { ImageOff, MapPin, Truck } from "lucide-react";
+import { Crown, ImageOff, MapPin, Truck } from "lucide-react";
 import { Link } from "react-router";
 import { Badge } from "~/components/ui/badge";
+import type { PlanTier } from "~/lib/plan";
 
 type BusinessCardData = {
   handle: string;
@@ -9,6 +10,8 @@ type BusinessCardData = {
   logo_path: string | null;
   cover_path: string | null;
   offers_delivery: boolean;
+  plan_tier?: PlanTier | null;
+  plan_expires_at?: string | null;
   category: { name: string; slug: string } | null;
   city: { name: string; state: string; slug: string } | null;
   neighborhood: { name: string; slug: string } | null;
@@ -50,6 +53,12 @@ export function BusinessCard({
             <Truck className="size-3.5" />
             Entrega
           </Badge>
+        ) : null}
+        {business.plan_tier === "ouro" ? (
+          <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-md bg-amber-400 px-2 py-1 text-[11px] font-semibold text-amber-950 shadow-sm">
+            <Crown className="size-3.5" />
+            Ouro
+          </span>
         ) : null}
       </div>
 

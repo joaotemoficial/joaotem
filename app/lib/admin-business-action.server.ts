@@ -7,6 +7,7 @@ import {
 } from "~/lib/storage.server";
 import { SYSTEM_USER_ID } from "~/lib/system-user";
 import { businessFormSchema } from "~/lib/validation/business";
+import { planAtCreateSchema } from "~/lib/validation/plan";
 import * as businesses from "~/repositories/businesses";
 import { isError } from "~/types";
 
@@ -28,7 +29,22 @@ export async function handleAdminBusinessCreate({
 		return { ok: false, submission: submission.reply() };
 	}
 
+	const planSubmission = parseWithZod(formData, { schema: planAtCreateSchema });
+	if (planSubmission.status !== "success") {
+		// Replay plan-field errors on the same submission object so the form
+		// renders them next to the business-form fields.
+		const fieldErrors: Record<string, string[]> = {};
+		for (const [key, errs] of Object.entries(planSubmission.error ?? {})) {
+			if (Array.isArray(errs) && errs.length > 0) fieldErrors[key] = errs;
+		}
+		return {
+			ok: false,
+			submission: submission.reply({ fieldErrors }),
+		};
+	}
+
 	const v = submission.value;
+	const plan = planSubmission.value;
 
 	const handleAvailability = await businesses.checkHandleAvailable({
 		supabase,
@@ -65,6 +81,10 @@ export async function handleAdminBusinessCreate({
 			status: "approved",
 			reviewed_at: new Date().toISOString(),
 			reviewed_by: reviewerId,
+			plan_tier: plan.plan_tier,
+			plan_started_at: new Date().toISOString(),
+			plan_expires_at: plan.plan_expires_at,
+			plan_notes: plan.plan_notes,
 		},
 	});
 	if (isError(createResult)) {

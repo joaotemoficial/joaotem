@@ -33,17 +33,32 @@ export async function loader({ request }: Route.LoaderArgs) {
   const neighborhoodId = url.searchParams.get("neighborhood") ?? undefined;
   const q = url.searchParams.get("q") ?? undefined;
 
-  const [businesses, categories, cities, neighborhoods, promotions] =
-    await Promise.all([
-      businessesRepo.listPublic({
+  const hasQuery = !!(q && q.trim().length > 0);
+  // No query → landing-page rotation (only 6 random Ouro businesses).
+  // Has query → search results with Ouro first, then Básico (the only place
+  // Básico businesses become visible).
+  const businessesPromise = hasQuery
+    ? businessesRepo.listPublicForSearch({
+        supabase: ctx.supabase,
+        q,
+        cityId: cityId || undefined,
+        categoryId: categoryId || undefined,
+        neighborhoodId: neighborhoodId || undefined,
+        limit: 24,
+      })
+    : businessesRepo.listPublic({
         supabase: ctx.supabase,
         cityId: cityId || undefined,
         categoryId: categoryId || undefined,
         neighborhoodId: neighborhoodId || undefined,
-        q: q || undefined,
         limit: 6,
         random: true,
-      }),
+        planFilter: "ouro",
+      });
+
+  const [businesses, categories, cities, neighborhoods, promotions] =
+    await Promise.all([
+      businessesPromise,
       categoriesRepo.listActive({ supabase: ctx.supabase }),
       citiesRepo.listActive({ supabase: ctx.supabase }),
       neighborhoodsRepo.listAll({ supabase: ctx.supabase }),

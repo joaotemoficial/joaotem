@@ -19,6 +19,12 @@ import { Textarea } from "~/components/ui/textarea";
 import { requireUser } from "~/lib/auth.server";
 import { DAY_LABELS } from "~/lib/constants";
 import {
+	featureLimit,
+	hasFeature,
+	resolveFlagsForBusiness,
+} from "~/lib/feature-flags.server";
+import { effectivePlanTier } from "~/lib/plan";
+import {
 	daysToMask,
 	promotionFormSchema,
 } from "~/lib/validation/business";
@@ -60,11 +66,45 @@ export async function action({ params, request }: Route.ActionArgs) {
 	if (isError(businessResult) || !businessResult.success) {
 		return submission.reply({ formErrors: ["Negócio não encontrado"] });
 	}
+	const business = businessResult.success;
+
+	// Defense in depth: enforce the per-plan quota server-side as well.
+	const effTier = effectivePlanTier({
+		plan_tier: business.plan_tier,
+		plan_expires_at: business.plan_expires_at,
+	});
+	const flags = await resolveFlagsForBusiness({
+		supabase: ctx.supabase,
+		businessId: business.id,
+		planTier: effTier,
+	});
+	if (!hasFeature(flags, "promocoes_semana")) {
+		return submission.reply({
+			formErrors: [
+				"Seu plano atual não permite cadastrar promoções. Faça upgrade para Ouro.",
+			],
+		});
+	}
+	const limit = featureLimit(flags, "promocoes_semana");
+	if (limit !== null) {
+		const countResult = await promotionsRepo.countByBusiness({
+			supabase: ctx.supabase,
+			businessId: business.id,
+		});
+		const current = !isError(countResult) ? countResult.success : 0;
+		if (current >= limit) {
+			return submission.reply({
+				formErrors: [
+					`Você atingiu o limite de ${limit} promoções no seu plano.`,
+				],
+			});
+		}
+	}
 
 	const created = await promotionsRepo.create({
 		supabase: ctx.supabase,
 		values: {
-			business_id: businessResult.success.id,
+			business_id: business.id,
 			title: submission.value.title,
 			description: submission.value.description?.trim() || null,
 			schedule_note: submission.value.schedule_note?.trim() || null,

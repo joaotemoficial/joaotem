@@ -81,9 +81,11 @@ export async function listPublicActiveToday({
 	return success((data ?? []).filter(isActiveToday));
 }
 
-// Today's active promotions across all approved businesses (homepage feed).
-// Explicit filters at the query and application layer — RLS alone is not
-// sufficient here because owner/admin policies bypass the day-of-week filter.
+// Today's active promotions across all approved Ouro businesses (homepage feed).
+// Promoções da semana is an Ouro-only feature, so the inner join filters on
+// plan_tier = 'ouro' AND an active (non-expired) subscription. Explicit
+// filters at the query and application layer — RLS alone is not sufficient
+// here because owner/admin policies bypass the day-of-week filter.
 export async function listPublicTodayFeed({
 	supabase,
 	limit = 24,
@@ -97,7 +99,7 @@ export async function listPublicTodayFeed({
 			`
 				id, title, description, schedule_note,
 				recurrence_days, starts_at, ends_at, is_active, deleted_at,
-				business:businesses!inner(id, handle, name, logo_path, status, deleted_at, city_id, neighborhood_id, city:cities(name, state), neighborhood:neighborhoods(name)),
+				business:businesses!inner(id, handle, name, logo_path, status, deleted_at, plan_tier, plan_expires_at, city_id, neighborhood_id, city:cities(name, state), neighborhood:neighborhoods(name)),
 				images:business_promotion_images(id, storage_path, alt_text, sort_order)
 			`,
 		)
@@ -105,11 +107,32 @@ export async function listPublicTodayFeed({
 		.is("deleted_at", null)
 		.eq("business.status", "approved")
 		.is("business.deleted_at", null)
+		.eq("business.plan_tier", "ouro")
+		.or("plan_expires_at.is.null,plan_expires_at.gt.now()", {
+			foreignTable: "business",
+		})
 		.order("sort_order", { ascending: true })
 		.order("created_at", { ascending: false })
 		.limit(limit * 4); // over-fetch to keep `limit` rows after JS filter
 	if (queryError) return error(queryError.message);
 	return success((data ?? []).filter(isActiveToday).slice(0, limit));
+}
+
+// Number of non-deleted promotions on a business — for owner-side quota.
+export async function countByBusiness({
+	supabase,
+	businessId,
+}: {
+	supabase: Supabase;
+	businessId: string;
+}) {
+	const { count, error: queryError } = await supabase
+		.from("business_promotions")
+		.select("id", { head: true, count: "exact" })
+		.eq("business_id", businessId)
+		.is("deleted_at", null);
+	if (queryError) return error(queryError.message);
+	return success(count ?? 0);
 }
 
 export async function getByIdForOwner({

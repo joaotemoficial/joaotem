@@ -30,7 +30,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 	if (!result.success)
 		throw new Response("Bairro não encontrado", { status: 404 });
 
-	const businesses = await businessesRepo.listPublic({
+	const businesses = await businessesRepo.listPublicGoldFirstThenBasico({
 		supabase: ctx.supabase,
 		neighborhoodId: result.success.id,
 		limit: 60,

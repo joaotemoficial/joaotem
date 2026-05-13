@@ -1,9 +1,15 @@
 import { Form, Link, useLoaderData } from "react-router";
+import { PlanBadge } from "~/components/business/plan-badge";
 import { SiteHeader } from "~/components/nav/site-header";
 import { Badge } from "~/components/ui/badge";
 import { Button, buttonVariants } from "~/components/ui/button";
 import { Textarea } from "~/components/ui/textarea";
 import { getSessionAndProfile } from "~/lib/auth.server";
+import {
+	hasFeature,
+	resolveFlagsForBusiness,
+} from "~/lib/feature-flags.server";
+import { effectivePlanTier } from "~/lib/plan";
 import {
 	PRODUCT_IMAGE_BUCKET,
 	PROMOTION_IMAGE_BUCKET,
@@ -50,15 +56,29 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 		!isError(ownerResult) &&
 		ownerResult.success?.user_id === SYSTEM_USER_ID;
 
+	const effTier = effectivePlanTier(business);
+	const flags = await resolveFlagsForBusiness({
+		supabase: ctx.supabase,
+		businessId: business.id,
+		planTier: effTier,
+	});
+	const showProducts = hasFeature(flags, "vitrine_produtos");
+	const showPromotions = hasFeature(flags, "promocoes_semana");
+	const showSeloOuro = hasFeature(flags, "selo_ouro");
+
 	const [productsResult, promotionsResult] = await Promise.all([
-		productsRepo.listPublicByBusiness({
-			supabase: ctx.supabase,
-			businessId: business.id,
-		}),
-		promotionsRepo.listPublicActiveToday({
-			supabase: ctx.supabase,
-			businessId: business.id,
-		}),
+		showProducts
+			? productsRepo.listPublicByBusiness({
+					supabase: ctx.supabase,
+					businessId: business.id,
+				})
+			: Promise.resolve({ success: [] as never[] }),
+		showPromotions
+			? promotionsRepo.listPublicActiveToday({
+					supabase: ctx.supabase,
+					businessId: business.id,
+				})
+			: Promise.resolve({ success: [] as never[] }),
 	]);
 	const products = isError(productsResult) ? [] : productsResult.success;
 	const promotions = isError(promotionsResult) ? [] : promotionsResult.success;
@@ -82,6 +102,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 		profile: ctx.profile,
 		isSystemOwned,
 		alreadyRequested,
+		showSeloOuro,
 		business: {
 			...business,
 			logo_url: getPublicUrl(ctx.supabase, "business-logos", business.logo_path),
@@ -165,6 +186,7 @@ export default function BusinessDetail({
 		promotions,
 		isSystemOwned,
 		alreadyRequested,
+		showSeloOuro,
 	} = useLoaderData<typeof loader>();
 
 	const whatsappLink = `https://wa.me/55${business.whatsapp}`;
@@ -207,6 +229,7 @@ export default function BusinessDetail({
 							{business.city?.name} - {business.city?.state}
 						</p>
 						<div className="mt-2 flex flex-wrap items-center gap-2">
+							{showSeloOuro ? <PlanBadge tier="ouro" variant="solid" /> : null}
 							{business.offers_delivery ? (
 								<Badge variant="secondary">Faz entrega</Badge>
 							) : null}
