@@ -1,5 +1,5 @@
 import { Crown } from "lucide-react";
-import type { PlanTier } from "~/lib/plan.server";
+import type { PlanTier } from "~/lib/plan";
 
 type Variant = "pill" | "solid" | "inactive";
 

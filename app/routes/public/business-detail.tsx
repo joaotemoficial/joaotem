@@ -9,7 +9,7 @@ import {
 	hasFeature,
 	resolveFlagsForBusiness,
 } from "~/lib/feature-flags.server";
-import { effectivePlanTier } from "~/lib/plan.server";
+import { effectivePlanTier } from "~/lib/plan";
 import {
 	PRODUCT_IMAGE_BUCKET,
 	PROMOTION_IMAGE_BUCKET,

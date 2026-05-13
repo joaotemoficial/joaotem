@@ -1,5 +1,5 @@
 import type { Supabase } from "~/lib/storage.server";
-import type { PlanTier } from "~/lib/plan.server";
+import type { PlanTier } from "~/lib/plan";
 import * as featureFlagsRepo from "~/repositories/feature-flags";
 import { isError } from "~/types";
 

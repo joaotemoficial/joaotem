@@ -1,7 +1,7 @@
 import { Crown, ImageOff, MapPin, Truck } from "lucide-react";
 import { Link } from "react-router";
 import { Badge } from "~/components/ui/badge";
-import type { PlanTier } from "~/lib/plan.server";
+import type { PlanTier } from "~/lib/plan";
 
 type BusinessCardData = {
   handle: string;

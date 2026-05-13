@@ -2,6 +2,12 @@ import { Link, useLoaderData } from "react-router";
 import { Badge } from "~/components/ui/badge";
 import { Button, buttonVariants } from "~/components/ui/button";
 import { requireUser } from "~/lib/auth.server";
+import {
+	featureLimit,
+	hasFeature,
+	resolveFlagsForBusiness,
+} from "~/lib/feature-flags.server";
+import { effectivePlanTier } from "~/lib/plan";
 import { PRODUCT_IMAGE_BUCKET, getPublicUrl } from "~/lib/storage.server";
 import { formatBRL } from "~/lib/validation/business";
 import * as businessesRepo from "~/repositories/businesses";
@@ -41,8 +47,26 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 		images: { id: string; storage_path: string; sort_order: number }[];
 	}>;
 
+	const effTier = effectivePlanTier({
+		plan_tier: business.plan_tier,
+		plan_expires_at: business.plan_expires_at,
+	});
+	const flags = await resolveFlagsForBusiness({
+		supabase: ctx.supabase,
+		businessId: business.id,
+		planTier: effTier,
+	});
+	const canUseProducts = hasFeature(flags, "vitrine_produtos");
+	const productLimit = featureLimit(flags, "vitrine_produtos");
+	const currentCount = products.length;
+	const atLimit = productLimit !== null && currentCount >= productLimit;
+
 	return {
 		business: { id: business.id, name: business.name, handle: business.handle },
+		canUseProducts,
+		productLimit,
+		currentCount,
+		atLimit,
 		products: products.map((p) => {
 			const firstImage = [...(p.images ?? [])].sort(
 				(a, b) => a.sort_order - b.sort_order,
@@ -69,7 +93,15 @@ export async function action({ params, request }: Route.ActionArgs) {
 }
 
 export default function ProductsIndex() {
-	const { business, products } = useLoaderData<typeof loader>();
+	const {
+		business,
+		products,
+		canUseProducts,
+		productLimit,
+		currentCount,
+		atLimit,
+	} = useLoaderData<typeof loader>();
+	const newProductDisabled = !canUseProducts || atLimit;
 	return (
 		<main className="mx-auto max-w-5xl px-4 py-8">
 			<div className="flex flex-col gap-2 pb-6 sm:flex-row sm:items-center sm:justify-between">
@@ -79,6 +111,9 @@ export default function ProductsIndex() {
 					</h1>
 					<p className="text-sm text-muted-foreground">
 						Adicione produtos para que apareçam na sua página.
+						{productLimit !== null
+							? ` (${currentCount}/${productLimit})`
+							: null}
 					</p>
 				</div>
 				<div className="flex items-center gap-2">
@@ -88,19 +123,52 @@ export default function ProductsIndex() {
 					>
 						Voltar ao negócio
 					</Link>
-					<Link
-						to={`/dashboard/businesses/${business.id}/products/new`}
-						className={buttonVariants({ variant: "default", size: "default" })}
-					>
-						Novo produto
-					</Link>
+					{newProductDisabled ? (
+						<span
+							className={buttonVariants({
+								variant: "default",
+								size: "default",
+								className: "pointer-events-none opacity-50",
+							})}
+							aria-disabled
+						>
+							Novo produto
+						</span>
+					) : (
+						<Link
+							to={`/dashboard/businesses/${business.id}/products/new`}
+							className={buttonVariants({ variant: "default", size: "default" })}
+						>
+							Novo produto
+						</Link>
+					)}
 				</div>
 			</div>
+
+			{!canUseProducts ? (
+				<UpgradeBanner
+					businessId={business.id}
+					title="Vitrine de produtos é um recurso Ouro"
+					message="Faça upgrade para o plano Ouro para começar a publicar produtos na sua página."
+				/>
+			) : atLimit ? (
+				<UpgradeBanner
+					businessId={business.id}
+					title={`Você atingiu o limite de ${productLimit} produtos`}
+					message="Atualize seu plano para cadastrar mais produtos."
+				/>
+			) : null}
 
 			{products.length === 0 ? (
 				<div className="rounded-2xl border border-dashed border-border/70 px-6 py-12 text-center">
 					<p className="text-sm text-muted-foreground">
 						Você ainda não cadastrou nenhum produto.
+					</p>
+				</div>
+			) : !canUseProducts ? (
+				<div className="rounded-2xl border border-dashed border-border/70 px-6 py-12 text-center">
+					<p className="text-sm text-muted-foreground">
+						Apenas negócios no plano Ouro podem cadastrar produtos.
 					</p>
 				</div>
 			) : (
@@ -157,5 +225,30 @@ export default function ProductsIndex() {
 				</ul>
 			)}
 		</main>
+	);
+}
+
+function UpgradeBanner({
+	businessId,
+	title,
+	message,
+}: {
+	businessId: string;
+	title: string;
+	message: string;
+}) {
+	return (
+		<div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3">
+			<div>
+				<p className="text-sm font-semibold text-amber-900">{title}</p>
+				<p className="text-xs text-amber-800">{message}</p>
+			</div>
+			<Link
+				to={`/dashboard/upgrade?business=${businessId}`}
+				className={buttonVariants({ variant: "default", size: "sm" })}
+			>
+				Solicitar upgrade
+			</Link>
+		</div>
 	);
 }

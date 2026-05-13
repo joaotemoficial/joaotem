@@ -8,6 +8,7 @@ const ADMIN_BUSINESS_FIELDS = `
   id, user_id, handle, name, short_description, whatsapp, instagram,
   offers_delivery, logo_path, cover_path, status, rejection_reason,
   reviewed_at, reviewed_by, created_at, updated_at,
+  plan_tier, plan_started_at, plan_expires_at, plan_notes,
   category:business_categories(id, name, slug),
   city:cities(id, name, state, slug),
   neighborhood:neighborhoods(id, name, slug)

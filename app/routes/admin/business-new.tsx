@@ -151,7 +151,15 @@ export default function AdminBusinessNew({
 
 	// Plan-field errors come back in the same submission.error map (the admin
 	// action calls planAtCreateSchema separately and merges errors).
-	const planErrors = pickPlanErrors(submissionFromAction);
+	const submissionErrors =
+		(submissionFromAction as { error?: Record<string, string[]> } | null)
+			?.error ?? {};
+	const planErrors = {
+		plan_tier: submissionErrors.plan_tier,
+		plan_expires_at: submissionErrors.plan_expires_at,
+		plan_started_at: submissionErrors.plan_started_at,
+		plan_notes: submissionErrors.plan_notes,
+	};
 
 	const reassignError =
 		actionData && "reassign" in actionData ? actionData.reassign : null;
@@ -190,6 +198,16 @@ export default function AdminBusinessNew({
 					defaults={{}}
 					submitting={submitting}
 					submitLabel="Criar negócio"
+					extra={
+						<>
+							<h2 className="text-base font-semibold">Assinatura</h2>
+							<p className="pb-3 text-xs text-muted-foreground">
+								Atribua um plano e a data de expiração. Negócios sem plano
+								ativo não aparecem no site.
+							</p>
+							<PlanFormFields errors={planErrors} idPrefix="create-plan" />
+						</>
+					}
 				/>
 			</section>
 

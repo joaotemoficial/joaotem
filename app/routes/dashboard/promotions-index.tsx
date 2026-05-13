@@ -3,6 +3,12 @@ import { Badge } from "~/components/ui/badge";
 import { Button, buttonVariants } from "~/components/ui/button";
 import { requireUser } from "~/lib/auth.server";
 import { DAY_SHORT_LABELS } from "~/lib/constants";
+import {
+	featureLimit,
+	hasFeature,
+	resolveFlagsForBusiness,
+} from "~/lib/feature-flags.server";
+import { effectivePlanTier } from "~/lib/plan";
 import { PROMOTION_IMAGE_BUCKET, getPublicUrl } from "~/lib/storage.server";
 import { maskToDays } from "~/lib/validation/business";
 import * as businessesRepo from "~/repositories/businesses";
@@ -43,8 +49,26 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 		images: { id: string; storage_path: string; sort_order: number }[];
 	}>;
 
+	const effTier = effectivePlanTier({
+		plan_tier: business.plan_tier,
+		plan_expires_at: business.plan_expires_at,
+	});
+	const flags = await resolveFlagsForBusiness({
+		supabase: ctx.supabase,
+		businessId: business.id,
+		planTier: effTier,
+	});
+	const canUsePromotions = hasFeature(flags, "promocoes_semana");
+	const promotionLimit = featureLimit(flags, "promocoes_semana");
+	const currentCount = promotions.length;
+	const atLimit = promotionLimit !== null && currentCount >= promotionLimit;
+
 	return {
 		business: { id: business.id, name: business.name, handle: business.handle },
+		canUsePromotions,
+		promotionLimit,
+		currentCount,
+		atLimit,
 		promotions: promotions.map((p) => {
 			const cover = [...(p.images ?? [])].sort(
 				(a, b) => a.sort_order - b.sort_order,
@@ -85,7 +109,15 @@ function formatDateRange(starts: string | null, ends: string | null): string | n
 }
 
 export default function PromotionsIndex() {
-	const { business, promotions } = useLoaderData<typeof loader>();
+	const {
+		business,
+		promotions,
+		canUsePromotions,
+		promotionLimit,
+		currentCount,
+		atLimit,
+	} = useLoaderData<typeof loader>();
+	const newPromotionDisabled = !canUsePromotions || atLimit;
 	return (
 		<main className="mx-auto max-w-5xl px-4 py-8">
 			<div className="flex flex-col gap-2 pb-6 sm:flex-row sm:items-center sm:justify-between">
@@ -95,6 +127,9 @@ export default function PromotionsIndex() {
 					</h1>
 					<p className="text-sm text-muted-foreground">
 						Promoções aparecem na página pública apenas nos dias selecionados.
+						{promotionLimit !== null
+							? ` (${currentCount}/${promotionLimit})`
+							: null}
 					</p>
 				</div>
 				<div className="flex items-center gap-2">
@@ -104,14 +139,63 @@ export default function PromotionsIndex() {
 					>
 						Voltar ao negócio
 					</Link>
-					<Link
-						to={`/dashboard/businesses/${business.id}/promotions/new`}
-						className={buttonVariants({ variant: "default", size: "default" })}
-					>
-						Nova promoção
-					</Link>
+					{newPromotionDisabled ? (
+						<span
+							className={buttonVariants({
+								variant: "default",
+								size: "default",
+								className: "pointer-events-none opacity-50",
+							})}
+							aria-disabled
+						>
+							Nova promoção
+						</span>
+					) : (
+						<Link
+							to={`/dashboard/businesses/${business.id}/promotions/new`}
+							className={buttonVariants({ variant: "default", size: "default" })}
+						>
+							Nova promoção
+						</Link>
+					)}
 				</div>
 			</div>
+
+			{!canUsePromotions ? (
+				<div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3">
+					<div>
+						<p className="text-sm font-semibold text-amber-900">
+							Promoções da semana é um recurso Ouro
+						</p>
+						<p className="text-xs text-amber-800">
+							Faça upgrade para o plano Ouro para divulgar promoções.
+						</p>
+					</div>
+					<Link
+						to={`/dashboard/upgrade?business=${business.id}`}
+						className={buttonVariants({ variant: "default", size: "sm" })}
+					>
+						Solicitar upgrade
+					</Link>
+				</div>
+			) : atLimit ? (
+				<div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3">
+					<div>
+						<p className="text-sm font-semibold text-amber-900">
+							Você atingiu o limite de {promotionLimit} promoções
+						</p>
+						<p className="text-xs text-amber-800">
+							Atualize seu plano para divulgar mais promoções.
+						</p>
+					</div>
+					<Link
+						to={`/dashboard/upgrade?business=${business.id}`}
+						className={buttonVariants({ variant: "default", size: "sm" })}
+					>
+						Solicitar upgrade
+					</Link>
+				</div>
+			) : null}
 
 			{promotions.length === 0 ? (
 				<div className="rounded-2xl border border-dashed border-border/70 px-6 py-12 text-center">

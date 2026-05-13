@@ -1,3 +1,4 @@
+import { parseWithZod } from "@conform-to/zod";
 import {
 	Form,
 	Link,
@@ -5,14 +6,23 @@ import {
 	useLoaderData,
 	useNavigation,
 } from "react-router";
+import { PlanFormFields } from "~/components/admin/plan-form";
+import { PlanBadge } from "~/components/business/plan-badge";
 import { Badge } from "~/components/ui/badge";
 import { Button, buttonVariants } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { Textarea } from "~/components/ui/textarea";
 import { requireAdmin } from "~/lib/auth.server";
 import { BUSINESS_STATUS_LABELS } from "~/lib/constants";
+import {
+	daysUntilExpiry,
+	effectivePlanTier,
+	planLabel,
+} from "~/lib/plan";
 import { getPublicUrl } from "~/lib/storage.server";
+import { planUpdateSchema } from "~/lib/validation/plan";
 import * as adminRepo from "~/repositories/admin";
+import * as businessesRepo from "~/repositories/businesses";
 import { isError } from "~/types";
 import type { Route } from "./+types/business-detail";
 
@@ -42,6 +52,11 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 			logo_url: getPublicUrl(ctx.supabase, "business-logos", b.logo_path),
 			cover_url: getPublicUrl(ctx.supabase, "business-covers", b.cover_path),
 		},
+		effectiveTier: effectivePlanTier({
+			plan_tier: b.plan_tier,
+			plan_expires_at: b.plan_expires_at,
+		}),
+		daysUntilExpiry: daysUntilExpiry(b.plan_expires_at),
 	};
 }
 
@@ -53,6 +68,27 @@ export async function action({ params, request }: Route.ActionArgs) {
 
 	let result;
 	switch (intent) {
+		case "update-plan": {
+			const submission = parseWithZod(formData, { schema: planUpdateSchema });
+			if (submission.status !== "success") {
+				return Response.json(
+					{ planError: submission.error },
+					{ status: 400 },
+				);
+			}
+			const v = submission.value;
+			result = await businessesRepo.updateBusinessPlan({
+				supabase: ctx.supabase,
+				id: params.id,
+				planTier: v.plan_tier,
+				startedAt:
+					v.plan_started_at ??
+					(v.plan_tier !== null ? new Date().toISOString() : null),
+				expiresAt: v.plan_expires_at,
+				notes: v.plan_notes,
+			});
+			break;
+		}
 		case "approve":
 			result = await adminRepo.approveBusiness({
 				supabase: ctx.supabase,
@@ -114,9 +150,17 @@ export async function action({ params, request }: Route.ActionArgs) {
 }
 
 export default function AdminBusinessDetail() {
-	const { business } = useLoaderData<typeof loader>();
+	const { business, effectiveTier, daysUntilExpiry } =
+		useLoaderData<typeof loader>();
 	const navigation = useNavigation();
 	const submitting = navigation.state !== "idle";
+
+	const expiryLabel =
+		daysUntilExpiry == null
+			? "—"
+			: daysUntilExpiry < 0
+				? `Expirou há ${Math.abs(daysUntilExpiry)} dia(s)`
+				: `Em ${daysUntilExpiry} dia(s)`;
 
 	return (
 		<main className="mx-auto max-w-3xl px-4 py-8">
@@ -198,6 +242,39 @@ export default function AdminBusinessDetail() {
 					</div>
 				) : null}
 			</dl>
+
+			<section className="mt-6 rounded-2xl border border-border/70 bg-card p-5">
+				<div className="flex flex-wrap items-center justify-between gap-3 pb-3">
+					<div className="flex items-center gap-2">
+						<h2 className="text-base font-semibold">Plano</h2>
+						<PlanBadge tier={effectiveTier} />
+						<span className="text-xs text-muted-foreground">
+							{planLabel(business.plan_tier)}
+						</span>
+					</div>
+					<span className="text-xs text-muted-foreground">
+						Expira: {expiryLabel}
+					</span>
+				</div>
+				<Form method="post" className="flex flex-col gap-3">
+					<input type="hidden" name="intent" value="update-plan" />
+					<PlanFormFields
+						allowNullTier
+						defaults={{
+							plan_tier: business.plan_tier,
+							plan_started_at: business.plan_started_at,
+							plan_expires_at: business.plan_expires_at,
+							plan_notes: business.plan_notes,
+						}}
+						idPrefix="edit-plan"
+					/>
+					<div>
+						<Button type="submit" disabled={submitting} className="self-start">
+							Salvar plano
+						</Button>
+					</div>
+				</Form>
+			</section>
 
 			<section className="mt-6 rounded-2xl border border-border/70 bg-card p-5">
 				<h2 className="pb-3 text-base font-semibold">Ações</h2>
