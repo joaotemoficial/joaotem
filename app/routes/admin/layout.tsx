@@ -39,6 +39,18 @@ export default function AdminLayout() {
 					>
 						Reivindicações
 					</Link>
+					<Link
+						to="/admin/upgrade-requests"
+						className="text-muted-foreground hover:text-foreground"
+					>
+						Solicitações de plano
+					</Link>
+					<Link
+						to="/admin/feature-flags"
+						className="text-muted-foreground hover:text-foreground"
+					>
+						Recursos
+					</Link>
 				</nav>
 			</div>
 			<Outlet />

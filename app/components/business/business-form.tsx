@@ -44,6 +44,7 @@ export function BusinessForm({
 	defaults,
 	submitting,
 	submitLabel = "Salvar",
+	extra,
 }: {
 	// biome-ignore lint/suspicious/noExplicitAny: Conform form metadata is generic
 	form: FormMetadata<any>;
@@ -66,6 +67,10 @@ export function BusinessForm({
 	defaults: Defaults;
 	submitting?: boolean;
 	submitLabel?: string;
+	// Optional slot for callers that need to inject extra fields into the
+	// same <Form>. Rendered just before the submit button — used by the
+	// admin business-create flow to embed the plan picker.
+	extra?: React.ReactNode;
 }) {
 	const initialCity =
 		(fields.city_id.initialValue as string | undefined) ??
@@ -242,6 +247,12 @@ export function BusinessForm({
 					error={fields.cover.errors?.[0]}
 				/>
 			</section>
+
+			{extra ? (
+				<section className="rounded-2xl border border-border/70 bg-card p-5">
+					{extra}
+				</section>
+			) : null}
 
 			{form.errors ? (
 				<p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">

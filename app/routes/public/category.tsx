@@ -24,7 +24,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 	if (!categoryResult.success)
 		throw new Response("Categoria não encontrada", { status: 404 });
 
-	const businesses = await businessesRepo.listPublic({
+	const businesses = await businessesRepo.listPublicGoldFirstThenBasico({
 		supabase: ctx.supabase,
 		categoryId: categoryResult.success.id,
 		limit: 60,

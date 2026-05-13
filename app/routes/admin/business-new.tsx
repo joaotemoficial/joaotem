@@ -2,6 +2,7 @@ import { useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
 import { Form, redirect, useLoaderData, useNavigation } from "react-router";
 import { BusinessForm } from "~/components/business/business-form";
+import { PlanFormFields } from "~/components/admin/plan-form";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -138,13 +139,19 @@ export default function AdminBusinessNew({
 	const navigation = useNavigation();
 	const submitting = navigation.state !== "idle";
 
+	const submissionFromAction =
+		actionData && "submission" in actionData ? actionData.submission : null;
 	const [form, fields] = useForm({
-		lastResult: actionData && "submission" in actionData ? actionData.submission : null,
+		lastResult: submissionFromAction,
 		shouldRevalidate: "onBlur",
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: businessFormSchema });
 		},
 	});
+
+	// Plan-field errors come back in the same submission.error map (the admin
+	// action calls planAtCreateSchema separately and merges errors).
+	const planErrors = pickPlanErrors(submissionFromAction);
 
 	const reassignError =
 		actionData && "reassign" in actionData ? actionData.reassign : null;
