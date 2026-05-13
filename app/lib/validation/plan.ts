@@ -60,6 +60,22 @@ export const planAtCreateSchema = z.object({
 		.transform((v) => (v ? v : null)),
 });
 
+// Used inline with the owner's "create business" form. The owner picks a
+// desired plan at the moment of creation, which automatically queues an
+// upgrade request for the admin to approve.
+export const planSelectionSchema = z.object({
+	requested_plan: z.enum(PLAN_TIERS, {
+		errorMap: () => ({ message: "Selecione um plano" }),
+	}),
+	plan_message: z
+		.string()
+		.trim()
+		.max(500, "Máximo 500 caracteres")
+		.optional()
+		.or(z.literal(""))
+		.transform((v) => (v ? v : null)),
+});
+
 // Used by the owner's dashboard "request upgrade" form.
 export const planUpgradeRequestSchema = z.object({
 	business_id: z.string().uuid("Selecione um negócio"),

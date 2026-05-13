@@ -53,6 +53,23 @@ export async function listBusinesses({
 	return success(await attachOwners(supabase, data ?? []));
 }
 
+// Approved businesses whose subscription is either missing or expired.
+// Surfaced on the admin Pagamentos dashboard so admins can proactively
+// assign a plan without waiting for the owner to submit an upgrade request.
+export async function listBusinessesWithoutActivePlan({
+	supabase,
+}: { supabase: Supabase }) {
+	const { data, error: queryError } = await supabase
+		.from("businesses")
+		.select(ADMIN_BUSINESS_FIELDS)
+		.eq("status", "approved")
+		.is("deleted_at", null)
+		.or("plan_tier.is.null,plan_expires_at.lt.now()")
+		.order("created_at", { ascending: false });
+	if (queryError) return error(queryError.message);
+	return success(await attachOwners(supabase, data ?? []));
+}
+
 export async function getBusinessById({
 	supabase,
 	id,

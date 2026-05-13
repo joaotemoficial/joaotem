@@ -19,7 +19,7 @@ export default function AdminLayout() {
 			<div className="border-b bg-muted/30">
 				<nav className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-2 text-sm">
 					<Link to="/admin" className="text-muted-foreground hover:text-foreground">
-						Pendentes
+						Pagamentos
 					</Link>
 					<Link
 						to="/admin/businesses"
@@ -38,12 +38,6 @@ export default function AdminLayout() {
 						className="text-muted-foreground hover:text-foreground"
 					>
 						Reivindicações
-					</Link>
-					<Link
-						to="/admin/upgrade-requests"
-						className="text-muted-foreground hover:text-foreground"
-					>
-						Solicitações de plano
 					</Link>
 					<Link
 						to="/admin/feature-flags"
