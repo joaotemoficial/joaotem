@@ -11,8 +11,39 @@ import * as neighborhoodsRepo from "~/repositories/neighborhoods";
 import * as promotionsRepo from "~/repositories/promotions";
 import { isError } from "~/types";
 import type { Route } from "./+types/home";
-import { Building2, Mail, MapPin, MessageCircle, Search } from "lucide-react";
+import {
+  Building2,
+  Camera,
+  Frown,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Search,
+  Store,
+  ThumbsUp,
+} from "lucide-react";
 import { CategoriesCarousel } from "~/components/categories/categories-carousel";
+
+const HOW_IT_WORKS_STEPS = [
+  {
+    n: 1,
+    Icon: Search,
+    title: "Encontre o que precisa",
+    desc: "Pesquise empresas, produtos e serviços em Orós.",
+  },
+  {
+    n: 2,
+    Icon: Store,
+    title: "Escolha uma empresa",
+    desc: "Veja informações das empresas e os serviços que elas oferecem.",
+  },
+  {
+    n: 3,
+    Icon: MessageCircle,
+    title: "Entre em contato",
+    desc: "Fale com as empresas pelos contatos disponíveis.",
+  },
+] as const;
 
 export const meta: Route.MetaFunction = () => [
   {
@@ -183,7 +214,7 @@ export default function Home() {
 
         <div className="relative mx-auto max-w-6xl px-4 py-20 sm:py-24 lg:py-32">
           <div className="max-w-2xl space-y-6">
-            <h1 className="text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
+            <h1 className="text-4xl font-bold text-slate-700 leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
               Encontre tudo em{" "}
               <span className="relative inline-block">
                 <span className="relative z-10 text-primary">Orós</span>
@@ -235,8 +266,8 @@ export default function Home() {
                     className: "h-11 gap-2 px-5",
                   })}
                 >
-                  <Search />
-                  Buscar agora
+                  <Building2 />
+                  Cadastrar negócio
                 </button>
                 <Link
                   to="/signup"
@@ -246,8 +277,8 @@ export default function Home() {
                     className: "h-11 gap-2 px-5",
                   })}
                 >
-                  <Building2 />
-                  Cadastrar negócio
+                  <Search />
+                  Buscar agora
                 </Link>
               </div>
             </Form>
@@ -256,7 +287,7 @@ export default function Home() {
       </section>
 
       <section id="categorias" className="mx-auto max-w-6xl px-4 py-8">
-        <h2 className="text-lg font-semibold tracking-tight pb-3">
+        <h2 className="text-lg  text-slate-700 font-semibold tracking-tight pb-3">
           Categorias
         </h2>
         <CategoriesCarousel categories={categories} />
@@ -266,7 +297,7 @@ export default function Home() {
         id="empresas-em-destaque"
         className="mx-auto max-w-6xl px-4 py-8"
       >
-        <h2 className="text-lg font-semibold tracking-tight pb-3">
+        <h2 className="text-lg text-slate-700 font-semibold tracking-tight pb-3">
           Empresas em Destaque
         </h2>
 
@@ -327,6 +358,10 @@ export default function Home() {
         <div className="pt-6">
           {businesses.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-border/70 px-6 py-12 text-center">
+              <span className="flex gap-2 text-muted-foreground items-center justify-center font-medium">
+                OOPS! <Frown />
+              </span>
+
               <p className="text-sm text-muted-foreground">
                 Nenhum negócio encontrado para os filtros selecionados.
               </p>
@@ -424,7 +459,73 @@ export default function Home() {
         </section>
       ) : null}
 
-      <footer className="mt-12 border-t border-border/60 bg-card/40">
+      <section id="como-funciona" className="mx-auto max-w-6xl px-4 py-16">
+        <div className="mx-auto max-w-2xl text-center">
+          <span className="inline-flex items-center rounded-full border border-border bg-muted/50 px-3 py-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+            Passo a passo
+          </span>
+          <h2 className="mt-4 text-slate-700 text-3xl font-bold tracking-tight sm:text-4xl">
+            Como funciona?
+          </h2>
+          <p className="mt-3 text-sm text-muted-foreground sm:text-base">
+            Em três passos simples você encontra o que precisa em Orós.
+          </p>
+        </div>
+
+        <div className="relative mt-12 grid gap-10 sm:grid-cols-3 sm:gap-8">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute top-8 left-[16.67%] right-[16.67%] hidden border-t-2 border-dashed border-border sm:block"
+          />
+
+          {HOW_IT_WORKS_STEPS.map(({ n, Icon, title, desc }) => (
+            <div
+              key={n}
+              className="group relative flex flex-col items-center rounded-2xl border border-transparent bg-card/40 p-6 text-center transition-all hover:border-border hover:bg-card hover:shadow-sm"
+            >
+              <div className="relative z-10 grid size-16 place-items-center rounded-full bg-primary text-primary-foreground shadow-lg ring-8 ring-background transition-transform group-hover:scale-105">
+                <Icon className="size-7" />
+                <span className="absolute -top-2 -right-2 grid size-7 place-items-center rounded-full border-2 border-background bg-sky-600 text-xs font-bold text-background">
+                  {n}
+                </span>
+              </div>
+              <h3 className="mt-5 text-slate-700 text-base font-semibold tracking-tight sm:text-lg">
+                {title}
+              </h3>
+              <p className="mt-2 max-w-xs text-sm leading-relaxed text-muted-foreground">
+                {desc}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section aria-labelledby="cta-cadastro" className="mt-12">
+        <div className="mx-auto max-w-6xl px-4">
+          <div className="flex flex-col items-start justify-between gap-4 rounded-2xl bg-linear-to-t from-sky-600 to-indigo-600 px-6 py-5 text-primary-foreground sm:flex-row sm:items-center sm:px-8">
+            <div className="space-y-1">
+              <h2
+                id="cta-cadastro"
+                className="text-lg font-semibold tracking-tight sm:text-xl"
+              >
+                Cadastre sua empresa no João Tem
+              </h2>
+              <p className="text-sm text-primary-foreground/85">
+                Apareça para clientes de Orós e venda mais todos os dias.
+              </p>
+            </div>
+            <Link
+              to="/signup"
+              className="text-primary inline-flex h-11 shrink-0 items-center gap-2 rounded-lg bg-background px-5 text-sm font-semibold shadow-sm transition-colors hover:bg-background/90"
+            >
+              <Store className="size-4" />
+              Quero cadastrar minha empresa
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <footer className="mt-12 bg-blue-950 text-white">
         <div className="mx-auto max-w-6xl px-4 py-12">
           <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-3 sm:col-span-2 lg:col-span-1">
@@ -432,12 +533,12 @@ export default function Home() {
                 to="/"
                 className="inline-flex items-center gap-2 text-lg font-bold tracking-tight"
               >
-                <span className="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground">
+                <span className="grid size-8 place-items-center">
                   <Building2 className="size-4" />
                 </span>
                 JoaoTem
               </Link>
-              <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
+              <p className="max-w-xs text-sm leading-relaxed text-blue-50/90">
                 O guia comercial online de Orós - CE. Encontre empresas,
                 produtos e promoções perto de você.
               </p>
@@ -447,19 +548,16 @@ export default function Home() {
               <h3 className="mb-4 text-sm font-semibold tracking-tight">
                 Navegação
               </h3>
-              <ul className="space-y-2.5 text-sm text-muted-foreground">
+              <ul className="space-y-2.5 text-sm text-blue-50/90">
                 <li>
-                  <Link
-                    to="/"
-                    className="transition-colors hover:text-foreground"
-                  >
+                  <Link to="/" className="transition-colors hover:text-white">
                     Início
                   </Link>
                 </li>
                 <li>
                   <Link
                     to="/#categorias"
-                    className="transition-colors hover:text-foreground"
+                    className="transition-colors hover:text-white"
                   >
                     Categorias
                   </Link>
@@ -467,7 +565,7 @@ export default function Home() {
                 <li>
                   <Link
                     to="/#empresas-em-destaque"
-                    className="transition-colors hover:text-foreground"
+                    className="transition-colors hover:text-white"
                   >
                     Empresas
                   </Link>
@@ -475,7 +573,7 @@ export default function Home() {
                 <li>
                   <Link
                     to="/signup"
-                    className="transition-colors hover:text-foreground"
+                    className="transition-colors hover:text-white"
                   >
                     Cadastrar negócio
                   </Link>
@@ -487,22 +585,22 @@ export default function Home() {
               <h3 className="mb-4 text-sm font-semibold tracking-tight">
                 Contato
               </h3>
-              <ul className="space-y-2.5 text-sm text-muted-foreground">
+              <ul className="space-y-2.5 text-sm text-blue-50/90">
                 <li>
                   <a
                     href="https://wa.me/55"
                     target="_blank"
                     rel="noreferrer noopener"
-                    className="inline-flex items-center gap-2 transition-colors hover:text-foreground"
+                    className="inline-flex items-center gap-2 transition-colors hover:text-white"
                   >
-                    <MessageCircle className="size-4 text-green-600" />
+                    <MessageCircle className="size-4" />
                     WhatsApp
                   </a>
                 </li>
                 <li>
                   <a
                     href="mailto:contato@joaotem.com.br"
-                    className="inline-flex items-center gap-2 transition-colors hover:text-foreground"
+                    className="inline-flex items-center gap-2 transition-colors hover:text-white"
                   >
                     <Mail className="size-4" />
                     contato@joaotem.com.br
@@ -516,68 +614,44 @@ export default function Home() {
                 Siga-nos
               </h3>
               <div className="flex items-center gap-2">
-                <a
-                  href="#"
+                <Link
+                  to="#"
                   aria-label="Instagram"
-                  className="grid size-9 place-items-center rounded-lg border border-border bg-background text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+                  className="grid size-9 place-items-center rounded-lg border border-white/30 bg-white/10 text-white transition-colors hover:bg-white hover:text-blue-600"
                 >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="size-4"
-                    aria-hidden
-                  >
-                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-                  </svg>
-                </a>
-                <a
-                  href="#"
+                  <Camera className="size-4" />
+                </Link>
+                <Link
+                  to="#"
                   aria-label="Facebook"
-                  className="grid size-9 place-items-center rounded-lg border border-border bg-background text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+                  className="grid size-9 place-items-center rounded-lg border border-white/30 bg-white/10 text-white transition-colors hover:bg-white hover:text-blue-600"
                 >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="size-4"
-                    aria-hidden
-                  >
-                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-                  </svg>
-                </a>
-                <a
-                  href="https://wa.me/55"
+                  <ThumbsUp className="size-4" />
+                </Link>
+                <Link
+                  to="https://wa.me/55"
                   target="_blank"
                   rel="noreferrer noopener"
                   aria-label="WhatsApp"
-                  className="grid size-9 place-items-center rounded-lg border border-border bg-background text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+                  className="grid size-9 place-items-center rounded-lg border border-white/30 bg-white/10 text-white transition-colors hover:bg-white hover:text-blue-600"
                 >
                   <MessageCircle className="size-4" />
-                </a>
+                </Link>
               </div>
             </div>
           </div>
 
-          <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-border/60 pt-6 sm:flex-row">
-            <p className="text-xs text-muted-foreground">
+          <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-white/20 pt-6 sm:flex-row">
+            <p className="text-xs text-blue-50/80">
               © {new Date().getFullYear()} JoaoTem. Todos os direitos
               reservados.
             </p>
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <Link to="#" className="transition-colors hover:text-foreground">
+            <div className="flex items-center gap-4 text-xs text-blue-50/80">
+              <Link to="#" className="transition-colors hover:text-white">
                 Termos de uso
               </Link>
-              <span className="h-3 w-px bg-border" />
-              <Link to="#" className="transition-colors hover:text-foreground">
+              <span className="h-3 w-px bg-white/30" />
+              <Link to="#" className="transition-colors hover:text-white">
                 Privacidade
               </Link>
             </div>
