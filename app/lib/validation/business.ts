@@ -71,6 +71,25 @@ export const businessFormSchema = z.object({
 
 export type BusinessFormValues = z.infer<typeof businessFormSchema>;
 
+export const optionValueSchema = z.object({
+	value: z.string().trim().max(60).optional().or(z.literal("")),
+	price: z
+		.string()
+		.trim()
+		.optional()
+		.or(z.literal(""))
+		.refine(
+			(v) => !v || /^\d+([.,]\d{1,2})?$/.test(v),
+			"Preço inválido (use 0,00 ou 0.00)",
+		),
+});
+
+export const optionGroupSchema = z.object({
+	name: z.string().trim().max(60).optional().or(z.literal("")),
+	values: z.array(optionValueSchema).max(20).default([]),
+});
+export type OptionGroupFormValues = z.infer<typeof optionGroupSchema>;
+
 export const productFormSchema = z.object({
 	name: z.string().trim().min(2, "Informe o nome do produto").max(120),
 	description: z.string().trim().max(2000).optional().or(z.literal("")),
@@ -90,8 +109,11 @@ export const productFormSchema = z.object({
 		.union([z.literal("on"), z.literal("true"), z.literal("")])
 		.optional()
 		.transform((v) => v === "on" || v === "true"),
+	option_groups: z.array(optionGroupSchema).max(10).default([]),
 });
 export type ProductFormValues = z.infer<typeof productFormSchema>;
+// Conform sees the raw form payload (pre-transform), so the UI uses input.
+export type ProductFormInput = z.input<typeof productFormSchema>;
 
 export const productImageSchema = z.object({
 	image: z
@@ -145,6 +167,40 @@ export function formatBRL(cents: number): string {
 		style: "currency",
 		currency: "BRL",
 	}).format(cents / 100);
+}
+
+export type NormalizedOptionGroup = {
+	name: string;
+	sort_order: number;
+	values: { value: string; price_cents: number | null; sort_order: number }[];
+};
+
+// Drops blank groups/values and converts price strings to cents. A group is
+// kept only if it has a name and at least one non-empty value; values with no
+// text are silently filtered. This way an owner who clicked "+ adicionar" but
+// left the row empty doesn't see a validation error.
+export function normalizeProductOptionGroups(
+	groups: OptionGroupFormValues[],
+): NormalizedOptionGroup[] {
+	const out: NormalizedOptionGroup[] = [];
+	for (const group of groups) {
+		const name = group.name?.trim() || "";
+		if (name.length === 0) continue;
+		const values: NormalizedOptionGroup["values"] = [];
+		for (const val of group.values ?? []) {
+			const value = val.value?.trim() || "";
+			if (value.length === 0) continue;
+			const price = val.price?.trim() || "";
+			values.push({
+				value,
+				price_cents: price.length > 0 ? priceToCents(price) : null,
+				sort_order: values.length,
+			});
+		}
+		if (values.length === 0) continue;
+		out.push({ name, sort_order: out.length, values });
+	}
+	return out;
 }
 
 // 7-bit bitmask helpers. bit 0 = Sunday … bit 6 = Saturday.

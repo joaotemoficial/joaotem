@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Form, Link, useLoaderData } from "react-router";
 import { PlanBadge } from "~/components/business/plan-badge";
 import { SiteHeader } from "~/components/nav/site-header";
@@ -69,15 +70,15 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 	const [productsResult, promotionsResult] = await Promise.all([
 		showProducts
 			? productsRepo.listPublicByBusiness({
-					supabase: ctx.supabase,
-					businessId: business.id,
-				})
+				supabase: ctx.supabase,
+				businessId: business.id,
+			})
 			: Promise.resolve({ success: [] as never[] }),
 		showPromotions
 			? promotionsRepo.listPublicActiveToday({
-					supabase: ctx.supabase,
-					businessId: business.id,
-				})
+				supabase: ctx.supabase,
+				businessId: business.id,
+			})
 			: Promise.resolve({ success: [] as never[] }),
 	]);
 	const products = isError(productsResult) ? [] : productsResult.success;
@@ -126,7 +127,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 					: null,
 			};
 		}),
-		products: products.map((p) => ({
+		products: products?.map((p) => ({
 			...p,
 			images: (p.images ?? [])
 				.slice()
@@ -135,6 +136,21 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 					id: img.id,
 					url: getPublicUrl(ctx.supabase, PRODUCT_IMAGE_BUCKET, img.storage_path),
 					alt_text: img.alt_text,
+				})),
+			optionGroups: (p.option_groups ?? [])
+				.slice()
+				.sort((a, b) => a.sort_order - b.sort_order)
+				.map((group) => ({
+					id: group.id,
+					name: group.name,
+					values: (group.values ?? [])
+						.slice()
+						.sort((a, b) => a.sort_order - b.sort_order)
+						.map((val) => ({
+							id: val.id,
+							value: val.value,
+							price_cents: val.price_cents,
+						})),
 				})),
 		})),
 	};
@@ -327,55 +343,13 @@ export default function BusinessDetail({
 						</div>
 					) : (
 						<ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-							{products.map((p) => {
-								const cover = p.images[0];
-								return (
-									<li
-										key={p.id}
-										className="overflow-hidden rounded-2xl border border-border/70 bg-card"
-									>
-										<div className="aspect-square w-full overflow-hidden bg-muted">
-											{cover?.url ? (
-												<img
-													src={cover.url}
-													alt={cover.alt_text ?? p.name}
-													className="h-full w-full object-cover"
-													loading="lazy"
-												/>
-											) : (
-												<div className="grid h-full w-full place-items-center text-xs text-muted-foreground">
-													sem imagem
-												</div>
-											)}
-										</div>
-										<div className="space-y-1 p-3">
-											<p className="truncate text-sm font-semibold">{p.name}</p>
-											<p className="text-sm text-muted-foreground">
-												{formatBRL(p.price_cents)}
-											</p>
-											{p.description ? (
-												<p className="line-clamp-2 text-xs text-muted-foreground">
-													{p.description}
-												</p>
-											) : null}
-											{p.images.length > 1 ? (
-												<div className="flex gap-1.5 pt-1">
-													{p.images.slice(1, 4).map((img) =>
-														img.url ? (
-															<img
-																key={img.id}
-																src={img.url}
-																alt={img.alt_text ?? ""}
-																className="size-8 rounded-md border border-border object-cover"
-															/>
-														) : null,
-													)}
-												</div>
-											) : null}
-										</div>
-									</li>
-								);
-							})}
+							{products?.map((p) => (
+								<ProductCard
+									key={p.id}
+									product={p}
+									whatsappPhone={business.whatsapp}
+								/>
+							))}
 						</ul>
 					)}
 				</section>
@@ -393,6 +367,201 @@ export default function BusinessDetail({
 	);
 }
 
+type OptionValue = {
+	id: string;
+	value: string;
+	price_cents: number | null;
+};
+
+type OptionGroup = {
+	id: string;
+	name: string;
+	values: OptionValue[];
+};
+
+type PublicProduct = {
+	id: string;
+	name: string;
+	description: string | null;
+	price_cents: number;
+	images: {
+		id: string;
+		url: string | null;
+		alt_text: string | null;
+	}[];
+	optionGroups: OptionGroup[];
+};
+
+// A value's contribution to the running price: nulls cost nothing.
+function valuePrice(value: OptionValue): number {
+	return value.price_cents ?? 0;
+}
+
+// The cheapest value of a group — used to seed the default selection.
+function cheapestValue(group: OptionGroup): OptionValue {
+	return group.values.reduce(
+		(min, v) => (valuePrice(v) < valuePrice(min) ? v : min),
+		group.values[0],
+	);
+}
+
+function ProductCard({
+	product,
+	whatsappPhone,
+}: {
+	product: PublicProduct;
+	whatsappPhone: string;
+}) {
+	const cover = product.images[0];
+
+	// A group with a single value is a static attribute (Validade: 6 meses);
+	// with two or more it is a picker the customer chooses one value from.
+	const staticGroups = product.optionGroups.filter(
+		(g) => g.values.length === 1,
+	);
+	const selectableGroups = product.optionGroups.filter(
+		(g) => g.values.length >= 2,
+	);
+	const anyPriced = product.optionGroups.some((g) =>
+		g.values.some((v) => v.price_cents !== null),
+	);
+
+	const [selected, setSelected] = useState<Record<string, string>>(() => {
+		const init: Record<string, string> = {};
+		for (const g of selectableGroups) init[g.id] = cheapestValue(g).id;
+		return init;
+	});
+
+	const selectedValue = (group: OptionGroup): OptionValue =>
+		group.values.find((v) => v.id === selected[group.id]) ?? group.values[0];
+
+	// Additive: each selected value's price contributes to the total. Static
+	// groups always contribute their single value. When nothing is priced at
+	// all, fall back to the product's base price.
+	const optionsTotal =
+		selectableGroups.reduce((sum, g) => sum + valuePrice(selectedValue(g)), 0) +
+		staticGroups.reduce((sum, g) => sum + valuePrice(g.values[0]), 0);
+	const effectivePrice = anyPriced ? optionsTotal : product.price_cents;
+
+	const selectionParts = selectableGroups.map(
+		(g) => `${g.name}: ${selectedValue(g).value}`,
+	);
+	const message =
+		selectionParts.length > 0
+			? `Olá! Tenho interesse no produto "${product.name}" — ${selectionParts.join(", ")} (${formatBRL(effectivePrice)}).`
+			: `Olá! Tenho interesse no produto "${product.name}" (${formatBRL(effectivePrice)}).`;
+	const whatsappHref = `https://wa.me/55${whatsappPhone}?text=${encodeURIComponent(message)}`;
+
+	return (
+		<li className="overflow-hidden rounded-2xl border border-border/70 bg-card">
+			<div className="aspect-square w-full overflow-hidden bg-muted">
+				{cover?.url ? (
+					<img
+						src={cover.url}
+						alt={cover.alt_text ?? product.name}
+						className="h-full w-full object-cover"
+						loading="lazy"
+					/>
+				) : (
+					<div className="grid h-full w-full place-items-center text-xs text-muted-foreground">
+						sem imagem
+					</div>
+				)}
+			</div>
+			<div className="space-y-2 p-3">
+				<p className="truncate text-sm font-semibold">{product.name}</p>
+				<p className="text-sm text-muted-foreground">
+					<span className="font-medium text-foreground">
+						{formatBRL(effectivePrice)}
+					</span>
+				</p>
+				{product.description ? (
+					<p className="line-clamp-2 text-xs text-muted-foreground">
+						{product.description}
+					</p>
+				) : null}
+
+				{staticGroups.length > 0 ? (
+					<dl className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 pt-1 text-xs text-muted-foreground">
+						{staticGroups.map((group) => (
+							<div key={group.id} className="contents">
+								<dt className="font-medium">{group.name}:</dt>
+								<dd>{group.values[0].value}</dd>
+							</div>
+						))}
+					</dl>
+				) : null}
+
+				{selectableGroups.map((group) => (
+					<fieldset key={group.id} className="pt-1">
+						<legend className="pb-1 text-xs font-medium">{group.name}</legend>
+						<div className="flex flex-wrap gap-1.5">
+							{group.values.map((value) => {
+								const checked = value.id === selected[group.id];
+								return (
+									<label
+										key={value.id}
+										className={`cursor-pointer rounded-full border px-2.5 py-1 text-xs transition ${
+											checked
+												? "border-foreground bg-foreground text-background"
+												: "border-border bg-background text-foreground hover:bg-muted"
+										}`}
+									>
+										<input
+											type="radio"
+											name={`group-${group.id}`}
+											value={value.id}
+											checked={checked}
+											onChange={() =>
+												setSelected((prev) => ({
+													...prev,
+													[group.id]: value.id,
+												}))
+											}
+											className="sr-only"
+										/>
+										{value.value}
+										{value.price_cents !== null ? (
+											<span className="font-medium">
+												{" "}
+												— {formatBRL(value.price_cents)}
+											</span>
+										) : null}
+									</label>
+								);
+							})}
+						</div>
+					</fieldset>
+				))}
+
+				{product.images.length > 1 ? (
+					<div className="flex gap-1.5 pt-1">
+						{product.images.slice(1, 4).map((img) =>
+							img.url ? (
+								<img
+									key={img.id}
+									src={img.url}
+									alt={img.alt_text ?? ""}
+									className="size-8 rounded-md border border-border object-cover"
+								/>
+							) : null,
+						)}
+					</div>
+				) : null}
+
+				<a
+					href={whatsappHref}
+					target="_blank"
+					rel="noreferrer"
+					className={`${buttonVariants({ variant: "default", size: "sm" })} mt-2 w-full`}
+				>
+					Pedir no WhatsApp
+				</a>
+			</div>
+		</li>
+	);
+}
+
 function ReclaimSection({
 	handle,
 	loggedIn,
@@ -403,8 +572,8 @@ function ReclaimSection({
 	loggedIn: boolean;
 	alreadyRequested: boolean;
 	actionData:
-		| { reclaimOk?: boolean; reclaimError?: string }
-		| undefined;
+	| { reclaimOk?: boolean; reclaimError?: string }
+	| undefined;
 }) {
 	if (!loggedIn) {
 		return (

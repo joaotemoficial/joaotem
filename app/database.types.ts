@@ -141,6 +141,73 @@ export type Database = {
           },
         ]
       }
+      business_product_option_groups: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          product_id: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          product_id: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          product_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_product_option_groups_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "business_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      business_product_option_values: {
+        Row: {
+          created_at: string
+          group_id: string
+          id: string
+          price_cents: number | null
+          sort_order: number
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          group_id: string
+          id?: string
+          price_cents?: number | null
+          sort_order?: number
+          value: string
+        }
+        Update: {
+          created_at?: string
+          group_id?: string
+          id?: string
+          price_cents?: number | null
+          sort_order?: number
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_product_option_values_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "business_product_option_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       business_products: {
         Row: {
           business_id: string

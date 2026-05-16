@@ -67,7 +67,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 		productLimit,
 		currentCount,
 		atLimit,
-		products: products.map((p) => {
+		products: products?.map((p) => {
 			const firstImage = [...(p.images ?? [])].sort(
 				(a, b) => a.sort_order - b.sort_order,
 			)[0];

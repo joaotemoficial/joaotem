@@ -12,6 +12,7 @@ import {
 	useLoaderData,
 	useNavigation,
 } from "react-router";
+import { ProductOptionsFieldset } from "~/components/business/product-options-fieldset";
 import { Button, buttonVariants } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -26,6 +27,7 @@ import {
 } from "~/lib/storage.server";
 import {
 	centsToPrice,
+	normalizeProductOptionGroups,
 	priceToCents,
 	productFormSchema,
 } from "~/lib/validation/business";
@@ -72,6 +74,20 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 			url: getPublicUrl(ctx.supabase, PRODUCT_IMAGE_BUCKET, img.storage_path),
 		}));
 
+	const optionGroups = (product.option_groups ?? [])
+		.slice()
+		.sort((a, b) => a.sort_order - b.sort_order)
+		.map((group) => ({
+			name: group.name,
+			values: (group.values ?? [])
+				.slice()
+				.sort((a, b) => a.sort_order - b.sort_order)
+				.map((val) => ({
+					value: val.value,
+					price: val.price_cents !== null ? centsToPrice(val.price_cents) : "",
+				})),
+		}));
+
 	return {
 		business: { id: business.id, name: business.name },
 		product: {
@@ -82,6 +98,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 			stock_quantity: product.stock_quantity,
 			is_active: product.is_active,
 			images,
+			optionGroups,
 		},
 	};
 }
@@ -201,6 +218,15 @@ export async function action({ params, request }: Route.ActionArgs) {
 		return submission.reply({ formErrors: [update.error] });
 	}
 
+	const replace = await productsRepo.replaceOptionGroups({
+		supabase: ctx.supabase,
+		productId: params.productId,
+		groups: normalizeProductOptionGroups(submission.value.option_groups),
+	});
+	if (isError(replace)) {
+		return submission.reply({ formErrors: [replace.error] });
+	}
+
 	return submission.reply({ resetForm: false });
 }
 
@@ -215,6 +241,9 @@ export default function ProductEdit({ actionData }: Route.ComponentProps) {
 	const [form, fields] = useForm({
 		lastResult,
 		shouldRevalidate: "onBlur",
+		defaultValue: {
+			option_groups: product.optionGroups,
+		},
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: productFormSchema });
 		},
@@ -288,6 +317,8 @@ export default function ProductEdit({ actionData }: Route.ComponentProps) {
 					/>
 					<Label htmlFor={fields.is_active.id}>Produto ativo (visível ao público)</Label>
 				</div>
+
+				<ProductOptionsFieldset form={form} fields={fields} />
 
 				{form.errors ? (
 					<p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">

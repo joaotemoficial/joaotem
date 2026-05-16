@@ -12,6 +12,7 @@ import {
 	useLoaderData,
 	useNavigation,
 } from "react-router";
+import { ProductOptionsFieldset } from "~/components/business/product-options-fieldset";
 import { Button, buttonVariants } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -24,6 +25,7 @@ import {
 } from "~/lib/feature-flags.server";
 import { effectivePlanTier } from "~/lib/plan";
 import {
+	normalizeProductOptionGroups,
 	priceToCents,
 	productFormSchema,
 } from "~/lib/validation/business";
@@ -117,6 +119,20 @@ export async function action({ params, request }: Route.ActionArgs) {
 		return submission.reply({ formErrors: [created.error] });
 	}
 
+	const normalizedGroups = normalizeProductOptionGroups(
+		submission.value.option_groups,
+	);
+	if (normalizedGroups.length > 0) {
+		const optionsResult = await productsRepo.replaceOptionGroups({
+			supabase: ctx.supabase,
+			productId: created.success.id,
+			groups: normalizedGroups,
+		});
+		if (isError(optionsResult)) {
+			return submission.reply({ formErrors: [optionsResult.error] });
+		}
+	}
+
 	throw redirect(
 		`/dashboard/businesses/${params.id}/products/${created.success.id}`,
 		{ headers: ctx.headers },
@@ -207,6 +223,8 @@ export default function ProductNew({ actionData }: Route.ComponentProps) {
 					/>
 					<Label htmlFor={fields.is_active.id}>Produto ativo (visível ao público)</Label>
 				</div>
+
+				<ProductOptionsFieldset form={form} fields={fields} />
 
 				{form.errors ? (
 					<p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
