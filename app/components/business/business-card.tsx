@@ -1,7 +1,34 @@
-import { Crown, ImageOff, MapPin, Truck } from "lucide-react";
+import {
+  Crown,
+  Eye,
+  ImageOff,
+  MapPin,
+  MessageCircle,
+  Truck,
+} from "lucide-react";
 import { Link } from "react-router";
 import { Badge } from "~/components/ui/badge";
 import type { PlanTier } from "~/lib/plan";
+
+function InstagramIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+    </svg>
+  );
+}
 
 type BusinessCardData = {
   handle: string;
@@ -12,6 +39,8 @@ type BusinessCardData = {
   offers_delivery: boolean;
   plan_tier?: PlanTier | null;
   plan_expires_at?: string | null;
+  whatsapp?: string | null;
+  instagram?: string | null;
   category: { name: string; slug: string } | null;
   city: { name: string; state: string; slug: string } | null;
   neighborhood: { name: string; slug: string } | null;
@@ -26,94 +55,135 @@ export function BusinessCard({
   logoUrl: string | null;
   coverUrl: string | null;
 }) {
-  return (
-    <Link
-      to={`/negocio/${business.handle}`}
-      className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md focus-visible:outline-2 focus-visible:outline-ring"
-    >
-      <div className="relative aspect-video w-full overflow-hidden bg-muted">
-        {coverUrl ? (
-          <img
-            src={coverUrl}
-            alt=""
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-            loading="lazy"
-          />
-        ) : (
-          <div className="grid h-full w-full place-items-center gap-1 text-xs text-muted-foreground">
-            <ImageOff className="size-6 opacity-50" />
-            Sem capa
-          </div>
-        )}
-        {business.offers_delivery ? (
-          <Badge
-            className="absolute right-3 top-3 gap-1 border-transparent bg-background/95 px-2 py-1 text-foreground shadow-sm backdrop-blur"
-            variant="secondary"
-          >
-            <Truck className="size-3.5" />
-            Entrega
-          </Badge>
-        ) : null}
-        {business.plan_tier === "ouro" ? (
-          <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-md bg-amber-400 px-2 py-1 text-[11px] font-semibold text-amber-950 shadow-sm">
-            <Crown className="size-3.5" />
-            Ouro
-          </span>
-        ) : null}
-      </div>
+  const isOuro = business.plan_tier === "ouro";
+  const businessLink = `/negocio/${business.handle}`;
+  const whatsappLink = business.whatsapp
+    ? `https://wa.me/55${business.whatsapp}`
+    : null;
+  const instagramHandle = business.instagram?.replace(/^@/, "");
+  const instagramLink = instagramHandle
+    ? `https://instagram.com/${instagramHandle}`
+    : null;
 
-      <div className="relative px-4">
-        <div className="-mt-9 size-16 overflow-hidden rounded-2xl border-2 border-card bg-background shadow-sm ring-1 ring-border/60">
-          {logoUrl ? (
+  return (
+    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md">
+      <Link
+        to={businessLink}
+        className="flex flex-1 flex-col focus-visible:outline-2 focus-visible:outline-ring"
+      >
+        <div className="relative aspect-video w-full overflow-hidden bg-muted">
+          {coverUrl ? (
             <img
-              src={logoUrl}
+              src={coverUrl}
               alt=""
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
               loading="lazy"
             />
           ) : (
-            <div className="grid h-full w-full place-items-center text-sm font-medium text-muted-foreground">
-              {business.name.charAt(0).toUpperCase()}
+            <div className="grid h-full w-full place-items-center gap-1 text-xs text-muted-foreground">
+              <ImageOff className="size-6 opacity-50" />
+              Sem capa
             </div>
           )}
-        </div>
-      </div>
-
-      <div className="flex flex-1 flex-col gap-2 px-4 pt-2 pb-4">
-        <h3 className="line-clamp-1 text-base font-semibold tracking-tight">
-          {business.name}
-        </h3>
-
-        <div className="flex flex-wrap items-center gap-1.5">
-          {business.category?.name ? (
-            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
-              {business.category.name}
-            </span>
+          {business.offers_delivery ? (
+            <Badge
+              className="absolute right-3 top-3 gap-1 border-transparent bg-background/95 px-2 py-1 text-foreground shadow-sm backdrop-blur"
+              variant="secondary"
+            >
+              <Truck className="size-3.5" />
+              Entrega
+            </Badge>
           ) : null}
-          {business.neighborhood?.name ? (
-            <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-              {business.neighborhood.name}
+          {isOuro ? (
+            <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-md bg-amber-400 px-2 py-1 text-[11px] font-semibold text-amber-950 shadow-sm">
+              <Crown className="size-3.5" />
+              Ouro
             </span>
           ) : null}
         </div>
 
-        {business.short_description ? (
-          <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
-            {business.short_description}
-          </p>
-        ) : null}
+        <div className="relative px-4">
+          <div className="-mt-9 size-16 overflow-hidden rounded-2xl border-2 border-card bg-background shadow-sm ring-1 ring-border/60">
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt=""
+                className="h-full w-full object-cover"
+                loading="lazy"
+              />
+            ) : (
+              <div className="grid h-full w-full place-items-center text-sm font-medium text-muted-foreground">
+                {business.name.charAt(0).toUpperCase()}
+              </div>
+            )}
+          </div>
+        </div>
 
-        {business.city ? (
-          <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
-            <MapPin className="size-3.5 shrink-0" />
-            {business.city.name} - {business.city.state}
-          </p>
-        ) : null}
+        <div className="flex flex-1 flex-col gap-2 px-4 pt-2 pb-3">
+          <h3 className="line-clamp-1 text-base font-semibold tracking-tight">
+            {business.name}
+          </h3>
 
-        <span className="mt-auto inline-flex items-center justify-center rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors group-hover:bg-primary/90">
-          Ver empresa
-        </span>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {business.category?.name ? (
+              <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+                {business.category.name}
+              </span>
+            ) : null}
+            {business.neighborhood?.name ? (
+              <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                {business.neighborhood.name}
+              </span>
+            ) : null}
+          </div>
+
+          {business.short_description ? (
+            <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+              {business.short_description}
+            </p>
+          ) : null}
+
+          {business.city ? (
+            <p className="flex items-center gap-1 text-[11px] text-muted-foreground">
+              <MapPin className="size-3.5 shrink-0" />
+              {business.city.name} - {business.city.state}
+            </p>
+          ) : null}
+        </div>
+      </Link>
+
+      <div className="flex items-stretch gap-2 px-4 pb-4">
+        {whatsappLink ? (
+          <a
+            href={whatsappLink}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#25D366] px-3 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#1ebe5d]"
+          >
+            <MessageCircle className="size-4" />
+            WhatsApp
+          </a>
+        ) : null}
+        {isOuro ? (
+          <Link
+            to={businessLink}
+            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+          >
+            <Eye className="size-4" />
+            Ver vitrine
+          </Link>
+        ) : instagramLink ? (
+          <a
+            href={instagramLink}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] px-3 py-2 text-sm font-medium text-white shadow-sm transition-opacity hover:opacity-90"
+          >
+            <InstagramIcon className="size-4" />
+            Instagram
+          </a>
+        ) : null}
       </div>
-    </Link>
+    </article>
   );
 }
