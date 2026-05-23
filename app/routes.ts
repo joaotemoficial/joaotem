@@ -7,6 +7,8 @@ import {
 
 export default [
 	index("routes/public/home.tsx"),
+	route("negocios", "routes/public/businesses-index.tsx"),
+	route("promocoes", "routes/public/promotions-index.tsx"),
 	route("negocio/:handle", "routes/public/business-detail.tsx"),
 	route("categoria/:slug", "routes/public/category.tsx"),
 	route("bairro/:citySlug/:slug", "routes/public/neighborhood.tsx"),

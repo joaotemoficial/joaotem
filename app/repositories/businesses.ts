@@ -130,6 +130,50 @@ export async function listPublic({
 	return success(data ?? []);
 }
 
+// Paginated public listing with an exact total count, for the all-businesses
+// page. Same filters + active-subscription filter as listPublic, but returns
+// { items, total } so the page can render pagination controls. Ordered by
+// created_at desc (the gold-first RPC has no offset/count support).
+export async function listPublicPaginated({
+	supabase,
+	cityId,
+	categoryId,
+	neighborhoodId,
+	q,
+	limit = 20,
+	offset = 0,
+}: {
+	supabase: Supabase;
+	cityId?: string;
+	categoryId?: string;
+	neighborhoodId?: string;
+	q?: string;
+	limit?: number;
+	offset?: number;
+}) {
+	let query = supabase
+		.from("businesses")
+		.select(PUBLIC_BUSINESS_FIELDS, { count: "exact" })
+		.eq("status", "approved")
+		.is("deleted_at", null);
+
+	query = applyActiveSubscriptionFilter(query);
+
+	if (cityId) query = query.eq("city_id", cityId);
+	if (categoryId) query = query.eq("category_id", categoryId);
+	if (neighborhoodId) query = query.eq("neighborhood_id", neighborhoodId);
+	if (q && q.trim().length > 0) {
+		query = query.ilike("name", `%${q.trim()}%`);
+	}
+
+	const { data, count, error: queryError } = await query
+		.order("created_at", { ascending: false })
+		.range(offset, offset + limit - 1);
+
+	if (queryError) return error(queryError.message);
+	return success({ items: data ?? [], total: count ?? 0 });
+}
+
 // Search: Ouro businesses first (random order), then Básico (alphabetical).
 // Both tiers exclude inactive subscriptions. Powered by the
 // search_businesses_ranked() SQL RPC for atomic ordering.

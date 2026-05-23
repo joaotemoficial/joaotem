@@ -118,6 +118,45 @@ export async function listPublicTodayFeed({
 	return success((data ?? []).filter(isActiveToday).slice(0, limit));
 }
 
+// Full active-today feed (no cap slice) for the all-promotions page. Same
+// gating as listPublicTodayFeed; optional cityId filters at the DB level. The
+// route loader handles text search + pagination over the returned array.
+export async function listAllPublicTodayFeed({
+	supabase,
+	cityId,
+}: {
+	supabase: Supabase;
+	cityId?: string;
+}) {
+	let query = supabase
+		.from("business_promotions")
+		.select(
+			`
+				id, title, description, schedule_note,
+				recurrence_days, starts_at, ends_at, is_active, deleted_at,
+				business:businesses!inner(id, handle, name, logo_path, status, deleted_at, plan_tier, plan_expires_at, city_id, neighborhood_id, city:cities(name, state), neighborhood:neighborhoods(name)),
+				images:business_promotion_images(id, storage_path, alt_text, sort_order)
+			`,
+		)
+		.eq("is_active", true)
+		.is("deleted_at", null)
+		.eq("business.status", "approved")
+		.is("business.deleted_at", null)
+		.eq("business.plan_tier", "ouro")
+		.or("plan_expires_at.is.null,plan_expires_at.gt.now()", {
+			foreignTable: "business",
+		});
+
+	if (cityId) query = query.eq("business.city_id", cityId);
+
+	const { data, error: queryError } = await query
+		.order("sort_order", { ascending: true })
+		.order("created_at", { ascending: false })
+		.limit(500);
+	if (queryError) return error(queryError.message);
+	return success((data ?? []).filter(isActiveToday));
+}
+
 // Number of non-deleted promotions on a business — for owner-side quota.
 export async function countByBusiness({
 	supabase,

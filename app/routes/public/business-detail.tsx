@@ -35,7 +35,7 @@ function InstagramIcon({ className }: { className?: string }) {
   );
 }
 import { useEffect, useMemo, useState } from "react";
-import { Form, Link, useLoaderData } from "react-router";
+import { Form, Link, data, useFetcher, useLoaderData } from "react-router";
 import { PlanBadge } from "~/components/business/plan-badge";
 import { SiteFooter } from "~/components/nav/site-footer";
 import { SiteHeader } from "~/components/nav/site-header";
@@ -50,6 +50,11 @@ import {
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 import { getSessionAndProfile } from "~/lib/auth.server";
+import {
+  cartItemsSchema,
+  getBusinessCart,
+  setBusinessCart,
+} from "~/lib/cart.server";
 import {
   hasFeature,
   resolveFlagsForBusiness,
@@ -139,12 +144,30 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     }
   }
 
+  // Cart is persisted in the `jt_cart` cookie, keyed by business handle.
+  // Re-attach imageUrl from the freshly loaded products (not stored in the
+  // cookie to keep it small); items for other businesses are untouched.
+  const imgByProduct = new Map(
+    (products ?? []).map((p) => {
+      const img = (p.images ?? [])
+        .slice()
+        .sort((a, b) => a.sort_order - b.sort_order)[0];
+      return [p.id, getPublicUrl(ctx.supabase, PRODUCT_IMAGE_BUCKET, img?.storage_path ?? null)];
+    }),
+  );
+  const storedCart = await getBusinessCart(request, params.handle);
+  const initialCart = storedCart.map((item) => ({
+    ...item,
+    imageUrl: imgByProduct.get(item.productId) ?? null,
+  }));
+
   return {
     user: ctx.user ? { id: ctx.user.id, email: ctx.user.email ?? null } : null,
     profile: ctx.profile,
     isSystemOwned,
     alreadyRequested,
     showSeloOuro,
+    initialCart,
     business: {
       ...business,
       logo_url: getPublicUrl(
@@ -210,13 +233,29 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 }
 
 export async function action({ params, request }: Route.ActionArgs) {
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  // Cart persistence — no auth required (anonymous shoppers included).
+  if (intent === "cart") {
+    let raw: unknown = [];
+    try {
+      raw = JSON.parse(String(formData.get("cart") ?? "[]"));
+    } catch {
+      raw = [];
+    }
+    const parsed = cartItemsSchema.safeParse(raw);
+    const items = parsed.success ? parsed.data : [];
+    const setCookie = await setBusinessCart(request, params.handle, items);
+    return data({ cartOk: true }, { headers: { "Set-Cookie": setCookie } });
+  }
+
   const ctx = await getSessionAndProfile(request);
   if (!ctx.user) {
     return { reclaimError: "Faça login para reivindicar este negócio." };
   }
 
-  const formData = await request.formData();
-  if (formData.get("intent") !== "reclaim") {
+  if (intent !== "reclaim") {
     return { reclaimError: "Ação inválida." };
   }
 
@@ -344,6 +383,7 @@ export default function BusinessDetail({ actionData }: Route.ComponentProps) {
     isSystemOwned,
     alreadyRequested,
     showSeloOuro,
+    initialCart,
   } = useLoaderData<typeof loader>();
 
   const whatsappLink = `https://wa.me/55${business.whatsapp}`;
@@ -353,9 +393,19 @@ export default function BusinessDetail({ actionData }: Route.ComponentProps) {
     : null;
 
   const [openProduct, setOpenProduct] = useState<PublicProduct | null>(null);
-  const [cart, setCart] = useState<CartItem[]>([]);
+  const [cart, setCart] = useState<CartItem[]>(initialCart);
   const [cartOpen, setCartOpen] = useState(false);
   const [query, setQuery] = useState("");
+
+  // Persist cart changes to the `jt_cart` cookie via the route action.
+  // Local state stays the source of truth for instant UI; this just syncs.
+  const persistFetcher = useFetcher();
+  function persist(next: CartItem[]) {
+    persistFetcher.submit(
+      { intent: "cart", cart: JSON.stringify(next) },
+      { method: "post" },
+    );
+  }
 
   const filteredProducts = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -367,31 +417,36 @@ export default function BusinessDetail({ actionData }: Route.ComponentProps) {
   }, [query, products]);
 
   function addToCart(item: CartItem) {
-    setCart((prev) => {
-      const existing = prev.find((i) => i.key === item.key);
-      if (existing) {
-        return prev.map((i) =>
+    const existing = cart.find((i) => i.key === item.key);
+    const next = existing
+      ? cart.map((i) =>
           i.key === item.key
             ? { ...i, quantity: i.quantity + item.quantity }
             : i,
-        );
-      }
-      return [...prev, item];
-    });
+        )
+      : [...cart, item];
+    setCart(next);
+    persist(next);
   }
 
   function updateQty(key: string, delta: number) {
-    setCart((prev) =>
-      prev
-        .map((i) =>
-          i.key === key ? { ...i, quantity: i.quantity + delta } : i,
-        )
-        .filter((i) => i.quantity > 0),
-    );
+    const next = cart
+      .map((i) => (i.key === key ? { ...i, quantity: i.quantity + delta } : i))
+      .filter((i) => i.quantity > 0);
+    setCart(next);
+    persist(next);
   }
 
   function removeFromCart(key: string) {
-    setCart((prev) => prev.filter((i) => i.key !== key));
+    const next = cart.filter((i) => i.key !== key);
+    setCart(next);
+    persist(next);
+  }
+
+  function clearCart() {
+    setCart([]);
+    persist([]);
+    setCartOpen(false);
   }
 
   const itemCount = cart.reduce((s, i) => s + i.quantity, 0);
@@ -648,6 +703,7 @@ export default function BusinessDetail({ actionData }: Route.ComponentProps) {
           onIncrement={(k) => updateQty(k, +1)}
           onDecrement={(k) => updateQty(k, -1)}
           onRemove={removeFromCart}
+          onCheckout={clearCart}
           onClose={() => setCartOpen(false)}
         />
       </Dialog>
@@ -1049,6 +1105,7 @@ function CartModal({
   onIncrement,
   onDecrement,
   onRemove,
+  onCheckout,
   onClose,
 }: {
   items: CartItem[];
@@ -1059,6 +1116,7 @@ function CartModal({
   onIncrement: (key: string) => void;
   onDecrement: (key: string) => void;
   onRemove: (key: string) => void;
+  onCheckout: () => void;
   onClose: () => void;
 }) {
   const [customerName, setCustomerName] = useState("");
@@ -1104,6 +1162,7 @@ function CartModal({
       lines.join("\n"),
     )}`;
     window.open(url, "_blank", "noopener");
+    onCheckout();
   }
 
   return (
@@ -1322,7 +1381,9 @@ function ReclaimSection({
   handle: string;
   loggedIn: boolean;
   alreadyRequested: boolean;
-  actionData: { reclaimOk?: boolean; reclaimError?: string } | undefined;
+  actionData:
+    | { reclaimOk?: boolean; reclaimError?: string; cartOk?: boolean }
+    | undefined;
 }) {
   if (!loggedIn) {
     return (

@@ -2,13 +2,13 @@ import { Form, Link, useLoaderData } from "react-router";
 import { BusinessCard } from "~/components/business/business-card";
 import { SiteFooter } from "~/components/nav/site-footer";
 import { SiteHeader } from "~/components/nav/site-header";
+import { PromotionCard } from "~/components/promotions/promotion-card";
 import { buttonVariants } from "~/components/ui/button";
 import { getSessionAndProfile } from "~/lib/auth.server";
 import { PROMOTION_IMAGE_BUCKET, getPublicUrl } from "~/lib/storage.server";
 import * as businessesRepo from "~/repositories/businesses";
 import * as categoriesRepo from "~/repositories/categories";
 import * as citiesRepo from "~/repositories/cities";
-import * as neighborhoodsRepo from "~/repositories/neighborhoods";
 import * as promotionsRepo from "~/repositories/promotions";
 import { isError } from "~/types";
 import type { Route } from "./+types/home";
@@ -56,46 +56,23 @@ export const meta: Route.MetaFunction = () => [
 
 export async function loader({ request }: Route.LoaderArgs) {
   const ctx = await getSessionAndProfile(request);
-  const url = new URL(request.url);
-  const cityId = url.searchParams.get("city") ?? undefined;
-  const categoryId = url.searchParams.get("category") ?? undefined;
-  const neighborhoodId = url.searchParams.get("neighborhood") ?? undefined;
-  const q = url.searchParams.get("q") ?? undefined;
 
-  const hasQuery = !!(q && q.trim().length > 0);
-  // No query → landing-page rotation (only 6 random Ouro businesses).
-  // Has query → search results with Ouro first, then Básico (the only place
-  // Básico businesses become visible).
-  const businessesPromise = hasQuery
-    ? businessesRepo.listPublicForSearch({
-        supabase: ctx.supabase,
-        q,
-        cityId: cityId || undefined,
-        categoryId: categoryId || undefined,
-        neighborhoodId: neighborhoodId || undefined,
-        limit: 24,
-      })
-    : businessesRepo.listPublic({
-        supabase: ctx.supabase,
-        cityId: cityId || undefined,
-        categoryId: categoryId || undefined,
-        neighborhoodId: neighborhoodId || undefined,
-        limit: 6,
-        random: true,
-        planFilter: "ouro",
-      });
-
-  const [businesses, categories, cities, neighborhoods, promotions] =
-    await Promise.all([
-      businessesPromise,
-      categoriesRepo.listActive({ supabase: ctx.supabase }),
-      citiesRepo.listActive({ supabase: ctx.supabase }),
-      neighborhoodsRepo.listAll({ supabase: ctx.supabase }),
-      promotionsRepo.listPublicTodayFeed({
-        supabase: ctx.supabase,
-        limit: 12,
-      }),
-    ]);
+  // Landing page: 6 random Ouro businesses + today's promotions feed.
+  // Search/filtering lives on /negocios and /promocoes.
+  const [businesses, categories, cities, promotions] = await Promise.all([
+    businessesRepo.listPublic({
+      supabase: ctx.supabase,
+      limit: 6,
+      random: true,
+      planFilter: "ouro",
+    }),
+    categoriesRepo.listActive({ supabase: ctx.supabase }),
+    citiesRepo.listActive({ supabase: ctx.supabase }),
+    promotionsRepo.listPublicTodayFeed({
+      supabase: ctx.supabase,
+      limit: 12,
+    }),
+  ]);
   if (isError(businesses)) {
     console.error("[home.loader] businesses:", businesses.error);
     throw new Response(businesses.error, { status: 500 });
@@ -107,10 +84,6 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (isError(cities)) {
     console.error("[home.loader] cities:", cities.error);
     throw new Response(cities.error, { status: 500 });
-  }
-  if (isError(neighborhoods)) {
-    console.error("[home.loader] neighborhoods:", neighborhoods.error);
-    throw new Response(neighborhoods.error, { status: 500 });
   }
   const promotionsList = isError(promotions) ? [] : promotions.success;
 
@@ -144,53 +117,34 @@ export async function loader({ request }: Route.LoaderArgs) {
         schedule_note: p.schedule_note,
         cover_url: cover
           ? getPublicUrl(
-              ctx.supabase,
-              PROMOTION_IMAGE_BUCKET,
-              cover.storage_path,
-            )
+            ctx.supabase,
+            PROMOTION_IMAGE_BUCKET,
+            cover.storage_path,
+          )
           : null,
         business: biz
           ? {
-              handle: biz.handle,
-              name: biz.name,
-              logo_url: getPublicUrl(
-                ctx.supabase,
-                "business-logos",
-                biz.logo_path,
-              ),
-              city: bizCity,
-              neighborhood: bizNeighborhood,
-            }
+            handle: biz.handle,
+            name: biz.name,
+            logo_url: getPublicUrl(
+              ctx.supabase,
+              "business-logos",
+              biz.logo_path,
+            ),
+            city: bizCity,
+            neighborhood: bizNeighborhood,
+          }
           : null,
       };
     }),
     categories: categories.success,
     cities: cities.success,
-    neighborhoods: neighborhoods.success,
-    filters: {
-      cityId: cityId ?? "",
-      categoryId: categoryId ?? "",
-      neighborhoodId: neighborhoodId ?? "",
-      q: q ?? "",
-    },
   };
 }
 
 export default function Home() {
-  const {
-    user,
-    profile,
-    businesses,
-    promotions,
-    categories,
-    cities,
-    neighborhoods,
-    filters,
-  } = useLoaderData<typeof loader>();
-
-  const filteredNeighborhoods = filters.cityId
-    ? neighborhoods.filter((n) => n.city_id === filters.cityId)
-    : neighborhoods;
+  const { user, profile, businesses, promotions, categories, cities } =
+    useLoaderData<typeof loader>();
 
   const orosCity = cities.find((c) => c.name === "Orós" && c.state === "CE");
   const defaultHeroCityId = orosCity?.id ?? "";
@@ -210,8 +164,8 @@ export default function Home() {
         />
         <div aria-hidden className="absolute inset-0 " />
 
-        <div className="relative mx-auto max-w-6xl px-4 py-20 sm:py-24 lg:py-32">
-          <div className="max-w-2xl space-y-6">
+        <div className="relative flex items-center justify-center px-4 py-20 sm:py-24 lg:py-32">
+          <div className="max-w-5xl items-center justify-center space-y-6">
             <h1 className="text-4xl font-bold text-slate-700 leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
               Encontre tudo em{" "}
               <span className="relative inline-block">
@@ -226,10 +180,16 @@ export default function Home() {
 
             <Form
               method="get"
-              action="/#empresas-em-destaque"
+              action="/negocios"
               className="flex flex-wrap items-center gap-x-3 gap-y-4 pt-4"
             >
-              <div className="flex flex-1 flex-wrap items-center gap-1 rounded-xl border border-white/20 bg-white/95 p-1 shadow-lg backdrop-blur-md sm:flex-nowrap">
+              <div className="relative flex flex-1 flex-wrap items-center gap-1 rounded-xl border border-white/20 bg-white/95 p-1 shadow-lg backdrop-blur-md sm:flex-nowrap">
+                <img
+                  src="/Design%20sem%20nome%20(1).svg"
+                  alt=""
+                  aria-hidden
+                  className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-[-10px] w-24 -translate-x-1/2"
+                />
                 <div className="relative flex min-w-[200px] flex-1 items-center">
                   <Search className="pointer-events-none absolute left-3 size-4 text-muted-foreground" />
                   <input
@@ -295,63 +255,17 @@ export default function Home() {
         id="empresas-em-destaque"
         className="mx-auto max-w-6xl px-4 py-8"
       >
-        <h2 className="text-lg text-slate-700 font-semibold tracking-tight pb-3">
-          Empresas em Destaque
-        </h2>
-
-        <Form
-          method="get"
-          className="grid gap-3 rounded-2xl border border-border/70 bg-card p-4 sm:grid-cols-4"
-        >
-          <input
-            name="q"
-            defaultValue={filters.q}
-            placeholder="Buscar por nome…"
-            className="h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm sm:col-span-2"
-          />
-          <select
-            name="city"
-            defaultValue={filters.cityId}
-            className="h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm"
+        <div className="flex items-baseline justify-between gap-2 pb-3">
+          <h2 className="text-lg text-slate-700 font-semibold tracking-tight">
+            Empresas em Destaque
+          </h2>
+          <Link
+            to="/negocios"
+            className="shrink-0 text-sm font-medium text-primary hover:underline"
           >
-            <option value="">Todas as cidades</option>
-            {cities.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name} - {c.state}
-              </option>
-            ))}
-          </select>
-          <select
-            name="category"
-            defaultValue={filters.categoryId}
-            className="h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm"
-          >
-            <option value="">Todas as categorias</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-          <select
-            name="neighborhood"
-            defaultValue={filters.neighborhoodId}
-            className="h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm"
-          >
-            <option value="">Todos os bairros</option>
-            {filteredNeighborhoods.map((n) => (
-              <option key={n.id} value={n.id}>
-                {n.name}
-              </option>
-            ))}
-          </select>
-          <button
-            type="submit"
-            className={`${buttonVariants({ variant: "default", size: "default" })} sm:col-span-1`}
-          >
-            Filtrar
-          </button>
-        </Form>
+            Ver todos
+          </Link>
+        </div>
 
         <div className="pt-6">
           {businesses.length === 0 ? (
@@ -361,7 +275,7 @@ export default function Home() {
               </span>
 
               <p className="text-sm text-muted-foreground">
-                Nenhum negócio encontrado para os filtros selecionados.
+                Nenhuma empresa em destaque no momento.
               </p>
             </div>
           ) : (
@@ -386,71 +300,17 @@ export default function Home() {
             <h2 className="text-lg font-semibold tracking-tight">
               Promoções de hoje
             </h2>
-            <span className="text-xs text-muted-foreground">
-              {promotions.length}{" "}
-              {promotions.length === 1 ? "promoção ativa" : "promoções ativas"}
-            </span>
+            <Link
+              to="/promocoes"
+              className="shrink-0 text-sm font-medium text-primary hover:underline"
+            >
+              Ver todos
+            </Link>
           </div>
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {promotions.map((p) => (
               <li key={p.id}>
-                <Link
-                  to={p.business ? `/negocio/${p.business.handle}` : "#"}
-                  className="group flex flex-col overflow-hidden rounded-2xl border border-border/70 bg-card transition-all hover:border-foreground/20 hover:shadow-sm focus-visible:outline-2 focus-visible:outline-ring"
-                >
-                  <div className="relative aspect-4/3 w-full overflow-hidden bg-muted">
-                    {p.cover_url ? (
-                      <img
-                        src={p.cover_url}
-                        alt=""
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="grid h-full w-full place-items-center text-xs text-muted-foreground">
-                        sem imagem
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex flex-1 flex-col gap-2 p-3">
-                    <div className="flex items-start gap-3">
-                      <div className="-mt-7 size-10 shrink-0 overflow-hidden rounded-xl border border-border bg-background">
-                        {p.business?.logo_url ? (
-                          <img
-                            src={p.business.logo_url}
-                            alt=""
-                            className="h-full w-full object-cover"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="grid h-full w-full place-items-center text-xs text-muted-foreground">
-                            •
-                          </div>
-                        )}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="truncate text-sm font-semibold tracking-tight">
-                          {p.title}
-                        </h3>
-                        <p className="truncate text-xs text-muted-foreground">
-                          {p.business?.name}
-                        </p>
-                      </div>
-                    </div>
-                    {p.description ? (
-                      <p className="line-clamp-2 text-xs text-muted-foreground">
-                        {p.description}
-                      </p>
-                    ) : null}
-                    <p className="text-[11px] text-muted-foreground">
-                      {p.business?.neighborhood?.name}
-                      {p.business?.city
-                        ? ` · ${p.business.city.name} - ${p.business.city.state}`
-                        : ""}
-                      {p.schedule_note ? ` · ${p.schedule_note}` : ""}
-                    </p>
-                  </div>
-                </Link>
+                <PromotionCard promotion={p} />
               </li>
             ))}
           </ul>
