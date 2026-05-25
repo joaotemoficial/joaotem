@@ -117,7 +117,6 @@ create table public.cities (
 );
 
 insert into public.cities (id, name, state, slug, sort_order) values
-  ('11111111-1111-1111-1111-111111111111', 'Feira de Santana', 'BA', 'feira-de-santana-ba', 10),
   ('22222222-2222-2222-2222-222222222222', 'Orós',             'CE', 'oros-ce',             20);
 
 create table public.neighborhoods (
@@ -133,39 +132,6 @@ create table public.neighborhoods (
 );
 
 create index neighborhoods_city_id_idx on public.neighborhoods (city_id);
-
-insert into public.neighborhoods (city_id, name, slug) values
-  ('11111111-1111-1111-1111-111111111111', 'Centro',                       'centro'),
-  ('11111111-1111-1111-1111-111111111111', 'Aviário',                      'aviario'),
-  ('11111111-1111-1111-1111-111111111111', 'Brasília',                     'brasilia'),
-  ('11111111-1111-1111-1111-111111111111', 'Calumbi',                      'calumbi'),
-  ('11111111-1111-1111-1111-111111111111', 'Capuchinhos',                  'capuchinhos'),
-  ('11111111-1111-1111-1111-111111111111', 'Caseb',                        'caseb'),
-  ('11111111-1111-1111-1111-111111111111', 'Cidade Nova',                  'cidade-nova'),
-  ('11111111-1111-1111-1111-111111111111', 'Conceição',                    'conceicao'),
-  ('11111111-1111-1111-1111-111111111111', 'Cruzeiro',                     'cruzeiro'),
-  ('11111111-1111-1111-1111-111111111111', 'Estação Nova',                 'estacao-nova'),
-  ('11111111-1111-1111-1111-111111111111', 'Gabriela',                     'gabriela'),
-  ('11111111-1111-1111-1111-111111111111', 'George Américo',               'george-americo'),
-  ('11111111-1111-1111-1111-111111111111', 'Jardim Acácia',                'jardim-acacia'),
-  ('11111111-1111-1111-1111-111111111111', 'Jardim Cruzeiro',              'jardim-cruzeiro'),
-  ('11111111-1111-1111-1111-111111111111', 'Mangabeira',                   'mangabeira'),
-  ('11111111-1111-1111-1111-111111111111', 'Muchila',                      'muchila'),
-  ('11111111-1111-1111-1111-111111111111', 'Olhos D''Água',                'olhos-dagua'),
-  ('11111111-1111-1111-1111-111111111111', 'Pampalona',                    'pampalona'),
-  ('11111111-1111-1111-1111-111111111111', 'Papagaio',                     'papagaio'),
-  ('11111111-1111-1111-1111-111111111111', 'Parque Ipê',                   'parque-ipe'),
-  ('11111111-1111-1111-1111-111111111111', 'Ponto Central',                'ponto-central'),
-  ('11111111-1111-1111-1111-111111111111', 'Queimadinha',                  'queimadinha'),
-  ('11111111-1111-1111-1111-111111111111', 'Rua Nova',                     'rua-nova'),
-  ('11111111-1111-1111-1111-111111111111', 'Santa Mônica',                 'santa-monica'),
-  ('11111111-1111-1111-1111-111111111111', 'Santo Antônio dos Prazeres',   'santo-antonio-dos-prazeres'),
-  ('11111111-1111-1111-1111-111111111111', 'Sim',                          'sim'),
-  ('11111111-1111-1111-1111-111111111111', 'Sobradinho',                   'sobradinho'),
-  ('11111111-1111-1111-1111-111111111111', 'Subaé',                        'subae'),
-  ('11111111-1111-1111-1111-111111111111', 'Tomba',                        'tomba'),
-  ('11111111-1111-1111-1111-111111111111', 'Tanque da Nação',              'tanque-da-nacao'),
-  ('11111111-1111-1111-1111-111111111111', 'Outro',                        'outro');
 
 insert into public.neighborhoods (city_id, name, slug) values
   ('22222222-2222-2222-2222-222222222222', 'Centro',      'centro'),

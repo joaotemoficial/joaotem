@@ -131,9 +131,10 @@ export async function listPublic({
 }
 
 // Paginated public listing with an exact total count, for the all-businesses
-// page. Same filters + active-subscription filter as listPublic, but returns
-// { items, total } so the page can render pagination controls. Ordered by
-// created_at desc (the gold-first RPC has no offset/count support).
+// page. Returns { items, total } so the page can render pagination controls.
+// Items are Gold-first (Ouro random, then Básico alphabetical) via the
+// search_businesses_ranked RPC; the total is a parallel exact-count query with
+// the equivalent active-subscription + filter predicate.
 export async function listPublicPaginated({
 	supabase,
 	cityId,
@@ -151,27 +152,42 @@ export async function listPublicPaginated({
 	limit?: number;
 	offset?: number;
 }) {
-	let query = supabase
+	const trimmedQ = q && q.trim().length > 0 ? q.trim() : null;
+
+	const baseQuery = publicListingQuery(supabase);
+	// biome-ignore lint/suspicious/noExplicitAny: rpc embeds aren't expressible in Database types
+	const itemsPromise = (supabase.rpc as any)("search_businesses_ranked", {
+		p_q: trimmedQ,
+		p_city_id: cityId ?? null,
+		p_category_id: categoryId ?? null,
+		p_neighborhood_id: neighborhoodId ?? null,
+		p_limit: limit,
+		p_offset: offset,
+	}).select(PUBLIC_BUSINESS_FIELDS) as Promise<Awaited<typeof baseQuery>>;
+
+	let countQuery = supabase
 		.from("businesses")
-		.select(PUBLIC_BUSINESS_FIELDS, { count: "exact" })
+		.select(PUBLIC_BUSINESS_FIELDS, { count: "exact", head: true })
 		.eq("status", "approved")
 		.is("deleted_at", null);
+	countQuery = applyActiveSubscriptionFilter(countQuery);
+	if (cityId) countQuery = countQuery.eq("city_id", cityId);
+	if (categoryId) countQuery = countQuery.eq("category_id", categoryId);
+	if (neighborhoodId)
+		countQuery = countQuery.eq("neighborhood_id", neighborhoodId);
+	if (trimmedQ) countQuery = countQuery.ilike("name", `%${trimmedQ}%`);
 
-	query = applyActiveSubscriptionFilter(query);
+	const [itemsResult, countResult] = await Promise.all([
+		itemsPromise,
+		countQuery,
+	]);
 
-	if (cityId) query = query.eq("city_id", cityId);
-	if (categoryId) query = query.eq("category_id", categoryId);
-	if (neighborhoodId) query = query.eq("neighborhood_id", neighborhoodId);
-	if (q && q.trim().length > 0) {
-		query = query.ilike("name", `%${q.trim()}%`);
-	}
-
-	const { data, count, error: queryError } = await query
-		.order("created_at", { ascending: false })
-		.range(offset, offset + limit - 1);
-
-	if (queryError) return error(queryError.message);
-	return success({ items: data ?? [], total: count ?? 0 });
+	if (itemsResult.error) return error(itemsResult.error.message);
+	if (countResult.error) return error(countResult.error.message);
+	return success({
+		items: itemsResult.data ?? [],
+		total: countResult.count ?? 0,
+	});
 }
 
 // Search: Ouro businesses first (random order), then Básico (alphabetical).

@@ -39,7 +39,7 @@ export function PlanBadge({
 						.join(" ")}
 				>
 					<Crown className="size-3.5" />
-					Selo Ouro
+					Ouro
 				</span>
 			);
 		}

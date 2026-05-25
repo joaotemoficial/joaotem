@@ -13,8 +13,8 @@ import * as promotionsRepo from "~/repositories/promotions";
 import { isError } from "~/types";
 import type { Route } from "./+types/home";
 import {
-  Building2,
   Frown,
+  HeartHandshake,
   MapPin,
   MessageCircle,
   Search,
@@ -41,6 +41,13 @@ const HOW_IT_WORKS_STEPS = [
     title: "Entre em contato",
     desc: "Fale com as empresas pelos contatos disponíveis.",
   },
+] as const;
+
+const MARKETPLACE_FEATURES = [
+  { Icon: HeartHandshake, title: "Apoie o comércio local" },
+  { Icon: Search, title: "Encontre tudo em um só lugar" },
+  { Icon: MessageCircle, title: "Fale direto no WhatsApp" },
+  { Icon: MapPin, title: "Descubra negócios do seu bairro" },
 ] as const;
 
 export const meta: Route.MetaFunction = () => [
@@ -155,99 +162,97 @@ export default function Home() {
 
       <section
         id="hero"
-        className="relative overflow-hidden border-b border-border/60"
+        className="relative overflow-hidden border-b border-border/60 py-16 sm:py-24 lg:py-32"
       >
-        <img
-          src="/oros.jpeg"
-          alt="Vista de Orós - CE"
-          className="absolute inset-0 h-full w-full object-cover"
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: "url(/oros.jpeg)" }}
         />
-        <div aria-hidden className="absolute inset-0 " />
+        <div aria-hidden className="absolute inset-0 bg-primary/90" />
 
-        <div className="relative flex items-center justify-center px-4 py-20 sm:py-24 lg:py-32">
-          <div className="max-w-5xl items-center justify-center space-y-6">
-            <h1 className="text-4xl font-bold text-slate-700 leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">
-              Encontre tudo em{" "}
-              <span className="relative inline-block">
-                <span className="relative z-10 text-primary">Orós</span>
-              </span>{" "}
-              em um so lugar
+        <div className="relative z-10 mx-auto max-w-6xl px-4 text-center">
+          <div className="mx-auto max-w-3xl">
+            <div className="animate-in fade-in fill-mode-both mb-6 inline-flex items-center gap-2 rounded-full bg-primary-foreground/10 px-4 py-2 backdrop-blur-sm duration-700">
+              <span className="size-2 animate-pulse rounded-full bg-whatsapp" />
+              <span className="text-sm font-medium text-primary-foreground/90">
+                O marketplace da sua cidade
+              </span>
+            </div>
+
+            <h1 className="animate-in fade-in fill-mode-both mb-6 text-balance text-3xl font-bold leading-tight text-primary-foreground duration-700 [animation-delay:0.1s] sm:text-4xl lg:text-5xl xl:text-6xl">
+              Encontre negócios e serviços da sua cidade em um só lugar
             </h1>
-            <p className="max-w-xl text-base leading-relaxed  sm:text-lg">
-              O João Tem é o seu guia comercial online de Orós. Busque empresas,
-              produtos, serviços e promoções perto de você.
+
+            <p className="animate-in fade-in fill-mode-both mb-8 text-lg text-primary-foreground/85 duration-700 [animation-delay:0.2s] sm:text-xl">
+              Compre, conheça e apoie empreendedores locais de forma simples e
+              rápida.
             </p>
 
             <Form
               method="get"
               action="/negocios"
-              className="flex flex-wrap items-center gap-x-3 gap-y-4 pt-4"
+              className="animate-in fade-in fill-mode-both relative mx-auto max-w-2xl duration-700 [animation-delay:0.3s]"
             >
-              <div className="relative flex flex-1 flex-wrap items-center gap-1 rounded-xl border border-white/20 bg-white/95 p-1 shadow-lg backdrop-blur-md sm:flex-nowrap">
+              <input type="hidden" name="city" value={defaultHeroCityId} />
+
+              <div className="relative z-10 -mb-4 flex justify-center sm:hidden">
                 <img
                   src="/Design%20sem%20nome%20(1).svg"
-                  alt=""
-                  aria-hidden
-                  className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-[-10px] w-24 -translate-x-1/2"
+                  alt="Mascote João Tem"
+                  className="size-24 object-contain"
                 />
-                <div className="relative flex min-w-[200px] flex-1 items-center">
-                  <Search className="pointer-events-none absolute left-3 size-4 text-muted-foreground" />
-                  <input
-                    name="q"
-                    placeholder="O que você procura?"
-                    className="h-10 w-full rounded-lg border-0 bg-transparent pr-3 pl-9 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-                  />
-                </div>
-                <div className="hidden h-6 w-px bg-border sm:block" />
-                <div className="relative flex items-center">
-                  <MapPin className="pointer-events-none absolute left-3 size-4 text-muted-foreground" />
-                  <select
-                    name="city"
-                    defaultValue={defaultHeroCityId}
-                    className="h-10 rounded-lg border-0 bg-transparent pr-3 pl-9 text-sm text-foreground focus:outline-none"
-                  >
-                    {cities.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name} - {c.state}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              </div>
+              <div className="absolute -top-6 left-1 z-10 hidden sm:block">
+                <img
+                  src="/Design%20sem%20nome%20(1).svg"
+                  alt="Mascote João Tem"
+                  className="size-24 object-contain"
+                />
               </div>
 
-              <div className="flex flex-wrap items-center gap-3">
-                <button
-                  type="submit"
-                  className={buttonVariants({
-                    variant: "default",
-                    size: "lg",
-                    className: "h-11 gap-2 px-5",
-                  })}
-                >
-                  <Building2 />
-                  Cadastrar negócio
-                </button>
-                <Link
-                  to="/signup"
-                  className={buttonVariants({
-                    variant: "secondary",
-                    size: "lg",
-                    className: "h-11 gap-2 px-5",
-                  })}
-                >
-                  <Search />
-                  Buscar agora
-                </Link>
+              <div className="rounded-2xl bg-card p-2 shadow-xl">
+                <div className="flex flex-col items-center gap-2 sm:flex-row">
+                  <div className="relative w-full flex-1">
+                    <input
+                      type="text"
+                      name="q"
+                      placeholder="O que você está procurando?"
+                      className="h-12 w-full rounded-xl bg-muted/50 px-4 text-center text-foreground placeholder:text-muted-foreground transition-all focus:outline-none focus:ring-2 focus:ring-primary/30 sm:h-14 sm:pl-28 sm:text-left"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className={buttonVariants({
+                      variant: "default",
+                      size: "lg",
+                      className:
+                        "h-12 w-full gap-2 rounded-xl px-8 text-base sm:h-14 sm:w-auto",
+                    })}
+                  >
+                    <Search className="size-[18px]" />
+                    Buscar
+                  </button>
+                </div>
               </div>
             </Form>
+
+            <p className="animate-in fade-in fill-mode-both mt-4 text-sm text-primary-foreground/70 duration-700 [animation-delay:0.4s]">
+              Ex: pizzaria, manicure, bolo, barbearia, pet shop…
+            </p>
           </div>
         </div>
       </section>
 
-      <section id="categorias" className="mx-auto max-w-6xl px-4 py-8">
-        <h2 className="text-lg  text-slate-700 font-semibold tracking-tight pb-3">
-          Categorias
-        </h2>
+      <section id="categorias" className="mx-auto max-w-6xl px-4 py-10">
+        <div className="pb-5">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">
+            Categorias populares
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Explore os negócios de Orós por categoria.
+          </p>
+        </div>
         <CategoriesCarousel categories={categories} />
       </section>
 
@@ -316,6 +321,71 @@ export default function Home() {
           </ul>
         </section>
       ) : null}
+
+      <section
+        id="marketplace"
+        className="border-y border-border/60 bg-secondary/40"
+      >
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 lg:grid-cols-2 lg:py-20">
+          <div className="space-y-6">
+            <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium tracking-wide text-primary uppercase">
+              Marketplace da sua cidade
+            </span>
+            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              O João Tem conecta pessoas aos negócios da cidade
+            </h2>
+            <p className="max-w-xl text-base leading-relaxed text-muted-foreground">
+              Aqui você encontra lojas, serviços e empreendedores reais, perto
+              de você. Uma grande vitrine digital para descobrir o melhor da sua
+              cidade.
+            </p>
+
+            <ul className="grid gap-4 sm:grid-cols-2">
+              {MARKETPLACE_FEATURES.map(({ Icon, title }) => (
+                <li key={title} className="flex items-center gap-3">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                    <Icon className="size-5" />
+                  </span>
+                  <span className="text-sm font-medium text-foreground">
+                    {title}
+                  </span>
+                </li>
+              ))}
+            </ul>
+
+            <Link
+              to="/signup"
+              className={buttonVariants({
+                variant: "default",
+                size: "lg",
+                className: "h-11 gap-2 px-6",
+              })}
+            >
+              <Store className="size-4" />
+              Cadastrar meu negócio
+            </Link>
+          </div>
+
+          <div className="relative">
+            <div className="overflow-hidden rounded-3xl border border-border/60 shadow-xl">
+              <img
+                src="/oros.jpeg"
+                alt="Comércio local de Orós"
+                className="h-[420px] w-full object-cover"
+              />
+            </div>
+            <div className="absolute -top-5 -right-5 flex items-center gap-3 rounded-2xl border border-border/60 bg-card px-4 py-3 shadow-lg">
+              <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary">
+                <MessageCircle className="size-5" />
+              </span>
+              <div className="text-sm">
+                <p className="font-semibold text-foreground">Negócios reais</p>
+                <p className="text-muted-foreground">perto de você</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section id="como-funciona" className="mx-auto max-w-6xl px-4 py-16">
         <div className="mx-auto max-w-2xl text-center">
