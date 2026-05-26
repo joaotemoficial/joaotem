@@ -12,6 +12,8 @@ export default [
 	route("negocio/:handle", "routes/public/business-detail.tsx"),
 	route("categoria/:slug", "routes/public/category.tsx"),
 	route("bairro/:citySlug/:slug", "routes/public/neighborhood.tsx"),
+	route("planos", "routes/public/plans.tsx"),
+	route("termos", "routes/public/terms.tsx"),
 
 	route("login", "routes/auth/login.tsx"),
 	route("signup", "routes/auth/signup.tsx"),

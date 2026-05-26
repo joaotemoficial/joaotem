@@ -7,6 +7,7 @@ const NAV_LINKS = [
   { to: "/#categorias", label: "Categorias" },
   { to: "/negocios", label: "Negócios" },
   { to: "/promocoes", label: "Promoções" },
+  { to: "/planos", label: "Planos" },
   { to: "/#como-funciona", label: "Como funciona" },
 ] as const;
 
@@ -80,7 +81,7 @@ export function SiteHeader({
                 Entrar
               </Link>
               <Link
-                to="/signup"
+                to="/planos"
                 className={buttonVariants({ variant: "default", size: "sm" })}
               >
                 <Building2 />

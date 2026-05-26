@@ -1,6 +1,6 @@
 import { getFormProps, getInputProps, useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
-import { Form, Link, redirect, useNavigation } from "react-router";
+import { Form, Link, redirect, useLoaderData, useNavigation } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -12,6 +12,11 @@ import type { Route } from "./+types/signup";
 export const meta: Route.MetaFunction = () => [
 	{ title: "Cadastrar — JoaoTem" },
 ];
+
+export async function loader({ request }: Route.LoaderArgs) {
+	const plan = new URL(request.url).searchParams.get("plan");
+	return { plan: plan === "basico" || plan === "ouro" ? plan : null };
+}
 
 export async function action({ request }: Route.ActionArgs) {
 	const formData = await request.formData();
@@ -27,10 +32,16 @@ export async function action({ request }: Route.ActionArgs) {
 		return submission.reply({ formErrors: [result.error] });
 	}
 
-	throw redirect("/dashboard", { headers: result.success.headers });
+	const plan = formData.get("plan");
+	const dest =
+		plan === "basico" || plan === "ouro"
+			? `/dashboard/businesses/new?plan=${plan}`
+			: "/dashboard";
+	throw redirect(dest, { headers: result.success.headers });
 }
 
 export default function Signup({ actionData }: Route.ComponentProps) {
+	const { plan } = useLoaderData<typeof loader>();
 	const navigation = useNavigation();
 	const submitting = navigation.state !== "idle";
 
@@ -56,6 +67,7 @@ export default function Signup({ actionData }: Route.ComponentProps) {
 				{...getFormProps(form)}
 				className="flex flex-col gap-4"
 			>
+				{plan ? <input type="hidden" name="plan" value={plan} /> : null}
 				<div className="flex flex-col gap-1.5">
 					<Label htmlFor={fields.email.id}>E-mail</Label>
 					<Input

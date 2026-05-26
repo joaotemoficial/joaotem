@@ -19,6 +19,9 @@ export const meta: Route.MetaFunction = () => [
 
 export async function loader({ request }: Route.LoaderArgs) {
 	const ctx = await requireUser(request);
+	const planParam = new URL(request.url).searchParams.get("plan");
+	const requestedPlan =
+		planParam === "basico" || planParam === "ouro" ? planParam : "ouro";
 	const [cats, cities, neighborhoods] = await Promise.all([
 		categoriesRepo.listActive({ supabase: ctx.supabase }),
 		citiesRepo.listActive({ supabase: ctx.supabase }),
@@ -36,6 +39,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 			name: string;
 			city_id: string;
 		}>,
+		requestedPlan,
 	};
 }
 
@@ -52,7 +56,8 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export default function BusinessNew({ actionData }: Route.ComponentProps) {
-	const { categories, cities, neighborhoods } = useLoaderData<typeof loader>();
+	const { categories, cities, neighborhoods, requestedPlan } =
+		useLoaderData<typeof loader>();
 	const navigation = useNavigation();
 	const submitting = navigation.state !== "idle";
 
@@ -115,7 +120,7 @@ export default function BusinessNew({ actionData }: Route.ComponentProps) {
 								<select
 									id="requested_plan"
 									name="requested_plan"
-									defaultValue="ouro"
+									defaultValue={requestedPlan}
 									required
 									className="h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
 								>

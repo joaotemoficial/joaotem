@@ -130,7 +130,10 @@ export function SiteFooter() {
             © {new Date().getFullYear()} JoaoTem. Todos os direitos reservados.
           </p>
           <div className="flex items-center gap-4 text-xs text-blue-50/80">
-            <Link to="#" className="transition-colors hover:text-white">
+            <Link
+              to="/termos"
+              className="transition-colors hover:text-white"
+            >
               Termos de uso
             </Link>
             <span className="h-3 w-px bg-white/30" />
