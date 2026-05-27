@@ -50,10 +50,15 @@ export function BusinessCard({
   business,
   logoUrl,
   coverUrl,
+  hasShowcaseItems = true,
 }: {
   business: BusinessCardData;
   logoUrl: string | null;
   coverUrl: string | null;
+  // Whether the business has at least one item published in its vitrine.
+  // An Ouro card only links to the vitrine when there's something to show;
+  // otherwise it falls back to Instagram.
+  hasShowcaseItems?: boolean;
 }) {
   const isOuro = business.plan_tier === "ouro";
   const businessLink = `/negocio/${business.handle}`;
@@ -164,7 +169,7 @@ export function BusinessCard({
             WhatsApp
           </a>
         ) : null}
-        {isOuro ? (
+        {isOuro && hasShowcaseItems ? (
           <Link
             to={businessLink}
             className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"

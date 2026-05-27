@@ -458,7 +458,7 @@ export default function Terms() {
 	const { user, profile } = useLoaderData<typeof loader>();
 
 	return (
-		<div className="min-h-svh bg-background">
+		<div className="flex min-h-svh flex-col bg-background">
 			<SiteHeader user={user} role={profile?.role} />
 
 			{/* Cabeçalho */}
@@ -476,7 +476,7 @@ export default function Terms() {
 				</div>
 			</section>
 
-			<main className="mx-auto max-w-3xl px-4 py-12">
+			<main className="mx-auto w-full max-w-3xl flex-1 px-4 py-12">
 				{/* Introdução */}
 				<div className="space-y-3">
 					{INTRO.map((text) => (

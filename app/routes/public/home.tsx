@@ -9,6 +9,7 @@ import { PROMOTION_IMAGE_BUCKET, getPublicUrl } from "~/lib/storage.server";
 import * as businessesRepo from "~/repositories/businesses";
 import * as categoriesRepo from "~/repositories/categories";
 import * as citiesRepo from "~/repositories/cities";
+import * as productsRepo from "~/repositories/products";
 import * as promotionsRepo from "~/repositories/promotions";
 import { isError } from "~/types";
 import type { Route } from "./+types/home";
@@ -94,6 +95,14 @@ export async function loader({ request }: Route.LoaderArgs) {
   }
   const promotionsList = isError(promotions) ? [] : promotions.success;
 
+  const showcaseResult = await productsRepo.listBusinessIdsWithActiveProducts({
+    supabase: ctx.supabase,
+    businessIds: businesses.success.map((b) => b.id),
+  });
+  const businessesWithShowcase = isError(showcaseResult)
+    ? new Set<string>()
+    : showcaseResult.success;
+
   return {
     user: ctx.user ? { id: ctx.user.id, email: ctx.user.email ?? null } : null,
     profile: ctx.profile,
@@ -101,6 +110,7 @@ export async function loader({ request }: Route.LoaderArgs) {
       ...b,
       logo_url: getPublicUrl(ctx.supabase, "business-logos", b.logo_path),
       cover_url: getPublicUrl(ctx.supabase, "business-covers", b.cover_path),
+      has_showcase_items: businessesWithShowcase.has(b.id),
     })),
     promotions: promotionsList.map((p) => {
       const cover = (p.images ?? [])
@@ -124,23 +134,23 @@ export async function loader({ request }: Route.LoaderArgs) {
         schedule_note: p.schedule_note,
         cover_url: cover
           ? getPublicUrl(
-            ctx.supabase,
-            PROMOTION_IMAGE_BUCKET,
-            cover.storage_path,
-          )
+              ctx.supabase,
+              PROMOTION_IMAGE_BUCKET,
+              cover.storage_path,
+            )
           : null,
         business: biz
           ? {
-            handle: biz.handle,
-            name: biz.name,
-            logo_url: getPublicUrl(
-              ctx.supabase,
-              "business-logos",
-              biz.logo_path,
-            ),
-            city: bizCity,
-            neighborhood: bizNeighborhood,
-          }
+              handle: biz.handle,
+              name: biz.name,
+              logo_url: getPublicUrl(
+                ctx.supabase,
+                "business-logos",
+                biz.logo_path,
+              ),
+              city: bizCity,
+              neighborhood: bizNeighborhood,
+            }
           : null,
       };
     }),
@@ -246,7 +256,7 @@ export default function Home() {
 
       <section id="categorias" className="mx-auto max-w-6xl px-4 py-10">
         <div className="pb-5">
-          <h2 className="text-2xl font-bold tracking-tight text-foreground">
+          <h2 className="text-2xl font-bold tracking-tight text-slate-700">
             Categorias populares
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -261,9 +271,16 @@ export default function Home() {
         className="mx-auto max-w-6xl px-4 py-8"
       >
         <div className="flex items-baseline justify-between gap-2 pb-3">
-          <h2 className="text-lg text-slate-700 font-semibold tracking-tight">
-            Empresas em Destaque
-          </h2>
+          <div className="space-y-1">
+            <h1 className="text-2xl text-slate-700 font-bold tracking-tight">
+              Negócios em destaque no JoãoTem
+            </h1>
+
+            <h2 className="text-gray-600 text-sm tracking-tight">
+              Conheça os empreendedores locais que fazem parte da nossa
+              comunidade
+            </h2>
+          </div>
           <Link
             to="/negocios"
             className="shrink-0 text-sm font-medium text-primary hover:underline"
@@ -291,6 +308,7 @@ export default function Home() {
                     business={b}
                     logoUrl={b.logo_url}
                     coverUrl={b.cover_url}
+                    hasShowcaseItems={b.has_showcase_items}
                   />
                 </li>
               ))}
@@ -302,9 +320,16 @@ export default function Home() {
       {promotions.length > 0 ? (
         <section className=" mx-auto max-w-6xl px-4 py-8">
           <div className="flex items-baseline justify-between gap-2 pb-3">
-            <h2 className="text-lg font-semibold tracking-tight">
-              Promoções de hoje
-            </h2>
+            <div className="space-y-1">
+              <h1 className="text-2xl text-slate-700 font-bold tracking-tight">
+                Promoções de hoje
+              </h1>
+
+              <h2 className="text-gray-600 text-sm tracking-tight">
+                Confira todos os descontos e ofertas especiais disponíveis hoje
+                em Orós!
+              </h2>
+            </div>
             <Link
               to="/promocoes"
               className="shrink-0 text-sm font-medium text-primary hover:underline"
@@ -312,7 +337,7 @@ export default function Home() {
               Ver todos
             </Link>
           </div>
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mt-4">
             {promotions.map((p) => (
               <li key={p.id}>
                 <PromotionCard promotion={p} />
@@ -331,7 +356,7 @@ export default function Home() {
             <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium tracking-wide text-primary uppercase">
               Marketplace da sua cidade
             </span>
-            <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+            <h2 className="text-3xl font-bold tracking-tight text-slate-700 sm:text-4xl">
               O João Tem conecta pessoas aos negócios da cidade
             </h2>
             <p className="max-w-xl text-base leading-relaxed text-muted-foreground">

@@ -1,5 +1,5 @@
 import { Form, Link, useLoaderData } from "react-router";
-import { Frown } from "lucide-react";
+import { Frown, Search, SlidersHorizontal } from "lucide-react";
 import { SiteFooter } from "~/components/nav/site-footer";
 import { SiteHeader } from "~/components/nav/site-header";
 import {
@@ -10,7 +10,6 @@ import { buttonVariants } from "~/components/ui/button";
 import { Pagination } from "~/components/ui/pagination";
 import { getSessionAndProfile } from "~/lib/auth.server";
 import { PROMOTION_IMAGE_BUCKET, getPublicUrl } from "~/lib/storage.server";
-import * as citiesRepo from "~/repositories/cities";
 import * as promotionsRepo from "~/repositories/promotions";
 import { isError } from "~/types";
 import type { Route } from "./+types/promotions-index";
@@ -28,23 +27,17 @@ export const meta: Route.MetaFunction = () => [
 export async function loader({ request }: Route.LoaderArgs) {
   const ctx = await getSessionAndProfile(request);
   const url = new URL(request.url);
-  const cityId = url.searchParams.get("city") ?? undefined;
   const q = url.searchParams.get("q") ?? undefined;
   const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
   const offset = (page - 1) * PAGE_SIZE;
 
-  const [promotions, cities] = await Promise.all([
-    promotionsRepo.listAllPublicTodayFeed({
-      supabase: ctx.supabase,
-      cityId: cityId || undefined,
-    }),
-    citiesRepo.listActive({ supabase: ctx.supabase }),
-  ]);
+  const promotions = await promotionsRepo.listAllPublicTodayFeed({
+    supabase: ctx.supabase,
+  });
   if (isError(promotions)) {
     console.error("[promotions-index.loader] promotions:", promotions.error);
     throw new Response(promotions.error, { status: 500 });
   }
-  if (isError(cities)) throw new Response(cities.error, { status: 500 });
 
   const mapped: PromotionCardData[] = promotions.success.map((p) => {
     const cover = (p.images ?? [])
@@ -73,7 +66,11 @@ export async function loader({ request }: Route.LoaderArgs) {
         ? {
             handle: biz.handle,
             name: biz.name,
-            logo_url: getPublicUrl(ctx.supabase, "business-logos", biz.logo_path),
+            logo_url: getPublicUrl(
+              ctx.supabase,
+              "business-logos",
+              biz.logo_path,
+            ),
             city: bizCity,
             neighborhood: bizNeighborhood,
           }
@@ -98,8 +95,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     user: ctx.user ? { id: ctx.user.id, email: ctx.user.email ?? null } : null,
     profile: ctx.profile,
     promotions: pageItems,
-    cities: cities.success,
-    filters: { cityId: cityId ?? "", q: q ?? "" },
+    filters: { q: q ?? "" },
     page,
     total,
     totalPages,
@@ -107,13 +103,20 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export default function PromotionsIndex() {
-  const { user, profile, promotions, cities, filters, page, total, totalPages } =
-    useLoaderData<typeof loader>();
+  const {
+    user,
+    profile,
+    promotions,
+    filters,
+    page,
+    total,
+    totalPages,
+  } = useLoaderData<typeof loader>();
 
   return (
-    <div className="min-h-svh bg-background">
+    <div className="flex min-h-svh flex-col bg-background">
       <SiteHeader user={user} role={profile?.role} />
-      <main className="mx-auto max-w-6xl px-4 py-8">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
         <div className="flex items-baseline justify-between gap-2 pb-3">
           <h1 className="text-2xl font-semibold tracking-tight text-slate-700">
             Promoções de hoje
@@ -125,30 +128,36 @@ export default function PromotionsIndex() {
 
         <Form
           method="get"
-          className="grid gap-3 rounded-2xl border border-border/70 bg-card p-4 sm:grid-cols-4"
+          className="flex flex-col gap-3 rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:flex-row sm:items-end"
         >
-          <input
-            name="q"
-            defaultValue={filters.q}
-            placeholder="Buscar por promoção ou empresa…"
-            className="h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm sm:col-span-2"
-          />
-          <select
-            name="city"
-            defaultValue={filters.cityId}
-            className="h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm"
-          >
-            <option value="">Todas as cidades</option>
-            {cities.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name} - {c.state}
-              </option>
-            ))}
-          </select>
+          <div className="flex-1 space-y-1.5">
+            <label
+              htmlFor="promo-q"
+              className="text-xs font-medium text-muted-foreground"
+            >
+              Buscar
+            </label>
+            <div className="relative">
+              <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                id="promo-q"
+                name="q"
+                defaultValue={filters.q}
+                placeholder="Buscar por promoção ou empresa…"
+                className="h-10 w-full rounded-lg border border-input bg-background pr-3 pl-9 text-sm transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+              />
+            </div>
+          </div>
+
           <button
             type="submit"
-            className={`${buttonVariants({ variant: "default", size: "default" })} sm:col-span-1`}
+            className={buttonVariants({
+              variant: "default",
+              size: "lg",
+              className: "h-10 w-full gap-2 px-5 sm:w-auto",
+            })}
           >
+            <SlidersHorizontal className="size-4" />
             Filtrar
           </button>
         </Form>

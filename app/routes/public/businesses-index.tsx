@@ -102,9 +102,9 @@ export default function BusinessesIndex() {
     : neighborhoods;
 
   return (
-    <div className="min-h-svh bg-background">
+    <div className="flex min-h-svh flex-col bg-background">
       <SiteHeader user={user} role={profile?.role} />
-      <main className="mx-auto max-w-6xl px-4 py-8">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
         <div className="flex items-baseline justify-between gap-2 pb-3">
           <h1 className="text-2xl font-semibold tracking-tight text-slate-700">
             Empresas

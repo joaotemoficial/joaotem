@@ -88,7 +88,7 @@ export function CategoriesCarousel({ categories }: { categories: Category[] }) {
     <div className="relative">
       <ul
         ref={scrollerRef}
-        className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex gap-3 overflow-x-auto snap-x snap-mandatory px-1 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {categories.map((c) => {
           const Icon = ICONS[c.slug] ?? Tag;
@@ -96,13 +96,15 @@ export function CategoriesCarousel({ categories }: { categories: Category[] }) {
             <li key={c.id} className="snap-start shrink-0">
               <Link
                 to={`/?category=${c.id}#empresas-em-destaque`}
-                className="group flex h-32 w-28 flex-col items-center justify-center gap-3 rounded-2xl border border-border/70 bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md focus-visible:outline-2 focus-visible:outline-ring"
+                className="group flex h-40 w-32 flex-col items-center justify-center gap-2.5 rounded-2xl border border-border/70 bg-card p-3 transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md focus-visible:outline-2 focus-visible:outline-ring"
               >
                 <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                   <Icon className="size-7" />
                 </span>
-                <span className="line-clamp-2 text-center text-[0.8rem] font-medium leading-tight text-foreground">
-                  {c.name}
+                <span className="flex h-10 items-center justify-center">
+                  <span className="line-clamp-2 text-center text-[0.8rem] font-medium leading-tight text-foreground">
+                    {c.name}
+                  </span>
                 </span>
               </Link>
             </li>

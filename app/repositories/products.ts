@@ -76,6 +76,28 @@ export async function countByBusiness({
 	return success(count ?? 0);
 }
 
+// Given a set of business IDs, returns the subset that has at least one
+// active (visible) showcase product. The home featured section uses this to
+// decide whether an Ouro card links to its vitrine or falls back to Instagram
+// when nothing is cadastrado.
+export async function listBusinessIdsWithActiveProducts({
+	supabase,
+	businessIds,
+}: {
+	supabase: Supabase;
+	businessIds: string[];
+}) {
+	if (businessIds.length === 0) return success(new Set<string>());
+	const { data, error: queryError } = await supabase
+		.from("business_products")
+		.select("business_id")
+		.in("business_id", businessIds)
+		.eq("is_active", true)
+		.is("deleted_at", null);
+	if (queryError) return error(queryError.message);
+	return success(new Set((data ?? []).map((row) => row.business_id)));
+}
+
 export async function getByIdForOwner({
 	supabase,
 	id,
