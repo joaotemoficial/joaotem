@@ -66,6 +66,7 @@ export async function loader({ request }: Route.LoaderArgs) {
         ? {
             handle: biz.handle,
             name: biz.name,
+            whatsapp: biz.whatsapp,
             logo_url: getPublicUrl(
               ctx.supabase,
               "business-logos",
@@ -173,7 +174,7 @@ export default function PromotionsIndex() {
               </p>
             </div>
           ) : (
-            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
               {promotions.map((p) => (
                 <li key={p.id}>
                   <PromotionCard promotion={p} />

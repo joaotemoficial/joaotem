@@ -1,10 +1,5 @@
-import {
-  Building2,
-  Camera,
-  Mail,
-  MessageCircle,
-  ThumbsUp,
-} from "lucide-react";
+import { Building2, Mail, ThumbsUp } from "lucide-react";
+import { FaInstagram, FaWhatsapp } from "react-icons/fa";
 import { Link } from "react-router";
 
 export function SiteFooter() {
@@ -77,7 +72,7 @@ export function SiteFooter() {
                   rel="noreferrer noopener"
                   className="inline-flex items-center gap-2 transition-colors hover:text-white"
                 >
-                  <MessageCircle className="size-4" />
+                  <FaWhatsapp className="size-4" />
                   WhatsApp
                 </a>
               </li>
@@ -103,7 +98,7 @@ export function SiteFooter() {
                 aria-label="Instagram"
                 className="grid size-9 place-items-center rounded-lg border border-white/30 bg-white/10 text-white transition-colors hover:bg-white hover:text-blue-600"
               >
-                <Camera className="size-4" />
+                <FaInstagram className="size-4" />
               </Link>
               <Link
                 to="#"
@@ -119,7 +114,7 @@ export function SiteFooter() {
                 aria-label="WhatsApp"
                 className="grid size-9 place-items-center rounded-lg border border-white/30 bg-white/10 text-white transition-colors hover:bg-white hover:text-blue-600"
               >
-                <MessageCircle className="size-4" />
+                <FaWhatsapp className="size-4" />
               </Link>
             </div>
           </div>

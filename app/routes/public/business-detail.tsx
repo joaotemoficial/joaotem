@@ -3,7 +3,6 @@ import {
   ChevronRight,
   ImageOff,
   MapPin,
-  MessageCircle,
   Minus,
   Phone,
   Plus,
@@ -14,26 +13,7 @@ import {
   Truck,
   X,
 } from "lucide-react";
-
-function InstagramIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-      <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
-    </svg>
-  );
-}
+import { FaInstagram, FaWhatsapp } from "react-icons/fa";
 import { useEffect, useMemo, useState } from "react";
 import { Form, Link, data, useFetcher, useLoaderData } from "react-router";
 import { PlanBadge } from "~/components/business/plan-badge";
@@ -145,20 +125,38 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   }
 
   // Cart is persisted in the `jt_cart` cookie, keyed by business handle.
-  // Re-attach imageUrl from the freshly loaded products (not stored in the
-  // cookie to keep it small); items for other businesses are untouched.
-  const imgByProduct = new Map(
+  // Re-attach imageUrl from the freshly loaded products/promotions (not stored
+  // in the cookie to keep it small); items for other businesses are untouched.
+  const imgById = new Map(
     (products ?? []).map((p) => {
       const img = (p.images ?? [])
         .slice()
         .sort((a, b) => a.sort_order - b.sort_order)[0];
-      return [p.id, getPublicUrl(ctx.supabase, PRODUCT_IMAGE_BUCKET, img?.storage_path ?? null)];
+      return [
+        p.id,
+        getPublicUrl(
+          ctx.supabase,
+          PRODUCT_IMAGE_BUCKET,
+          img?.storage_path ?? null,
+        ),
+      ];
     }),
   );
+  for (const p of promotions ?? []) {
+    const cover = (p.images ?? [])
+      .slice()
+      .sort((a, b) => a.sort_order - b.sort_order)[0];
+    if (cover) {
+      imgById.set(
+        p.id,
+        getPublicUrl(ctx.supabase, PROMOTION_IMAGE_BUCKET, cover.storage_path),
+      );
+    }
+  }
   const storedCart = await getBusinessCart(request, params.handle);
   const initialCart = storedCart.map((item) => ({
     ...item,
-    imageUrl: imgByProduct.get(item.productId) ?? null,
+    imageUrl: imgById.get(item.productId) ?? null,
   }));
 
   return {
@@ -535,7 +533,7 @@ export default function BusinessDetail({ actionData }: Route.ComponentProps) {
             rel="noreferrer"
             className="inline-flex items-center gap-1.5 rounded-lg bg-[#25D366] px-3 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#1ebe5d]"
           >
-            <MessageCircle className="size-4" />
+            <FaWhatsapp className="size-4" />
             WhatsApp
           </a>
           {instagramLink ? (
@@ -545,7 +543,7 @@ export default function BusinessDetail({ actionData }: Route.ComponentProps) {
               rel="noreferrer"
               className="inline-flex items-center gap-1.5 rounded-lg bg-linear-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] px-3 py-2 text-sm font-medium text-white shadow-sm transition-opacity hover:opacity-90"
             >
-              <InstagramIcon className="size-4" />
+              <FaInstagram className="size-4" />
               Instagram
             </a>
           ) : null}
@@ -574,18 +572,34 @@ export default function BusinessDetail({ actionData }: Route.ComponentProps) {
       ) : null}
 
       <main className="mx-auto max-w-4xl px-4 pb-32">
+        {products.length > 0 ? (
+          <div className="pt-6">
+            <div className="relative">
+              <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Buscar produto…"
+                className="h-10 pl-9"
+              />
+            </div>
+          </div>
+        ) : null}
+
         {promotions.length > 0 ? (
           <section id="promocoes" className="scroll-mt-28 pt-6">
-            <h2 className="pb-3 text-lg font-semibold tracking-tight">
+            <h2 className="pb-3 text-lg font-semibold tracking-tight text-slate-700">
               Promoções de hoje
             </h2>
-            <ul className="grid gap-3 sm:grid-cols-2">
+
+            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {promotions.map((p) => (
                 <li
                   key={p.id}
-                  className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm"
+                  className="flex flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm"
                 >
-                  <div className="aspect-4/3 w-full overflow-hidden bg-muted">
+                  <div className="aspect-square w-full overflow-hidden bg-muted">
                     {p.cover_url ? (
                       <img
                         src={p.cover_url}
@@ -599,7 +613,7 @@ export default function BusinessDetail({ actionData }: Route.ComponentProps) {
                       </div>
                     )}
                   </div>
-                  <div className="space-y-1 p-3">
+                  <div className="flex flex-1 flex-col space-y-1 p-3">
                     <p className="text-sm font-semibold">{p.title}</p>
                     {p.description ? (
                       <p className="line-clamp-3 text-xs text-muted-foreground">
@@ -612,6 +626,27 @@ export default function BusinessDetail({ actionData }: Route.ComponentProps) {
                       </p>
                     ) : null}
                   </div>
+                  <div className="px-3 pb-3">
+                    <Button
+                      size="sm"
+                      className="w-full"
+                      onClick={() =>
+                        addToCart({
+                          key: buildCartKey(p.id, [], ""),
+                          productId: p.id,
+                          name: p.title,
+                          imageUrl: p.cover_url,
+                          unitPriceCents: 0,
+                          selections: [],
+                          notes: "",
+                          quantity: 1,
+                        })
+                      }
+                    >
+                      <ShoppingBag className="size-4" />
+                      Adicionar na sacola
+                    </Button>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -619,20 +654,6 @@ export default function BusinessDetail({ actionData }: Route.ComponentProps) {
         ) : null}
 
         <section id="cardapio" className="scroll-mt-28 pt-8">
-          {products.length > 0 ? (
-            <div className="pb-4">
-              <div className="relative">
-                <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  type="search"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Buscar produto…"
-                  className="h-10 pl-9"
-                />
-              </div>
-            </div>
-          ) : null}
           <h2 className="pb-3 text-lg font-semibold tracking-tight">
             Produtos
           </h2>
@@ -1353,7 +1374,7 @@ function CartModal({
               disabled={!canCheckout}
               className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#25D366] text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#1ebe5d] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <MessageCircle className="size-4" />
+              <FaWhatsapp className="size-4" />
               Finalizar pelo WhatsApp
             </button>
             {!canCheckout && !isEmpty ? (

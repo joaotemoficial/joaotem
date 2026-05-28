@@ -1,34 +1,8 @@
-import {
-  Crown,
-  Eye,
-  ImageOff,
-  MapPin,
-  MessageCircle,
-  Truck,
-} from "lucide-react";
+import { Crown, Eye, ImageOff, MapPin, Truck } from "lucide-react";
+import { FaInstagram, FaWhatsapp } from "react-icons/fa";
 import { Link } from "react-router";
 import { Badge } from "~/components/ui/badge";
 import type { PlanTier } from "~/lib/plan";
-
-function InstagramIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-      <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
-    </svg>
-  );
-}
 
 type BusinessCardData = {
   handle: string;
@@ -165,7 +139,7 @@ export function BusinessCard({
             rel="noreferrer"
             className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#25D366] px-3 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#1ebe5d]"
           >
-            <MessageCircle className="size-4" />
+            <FaWhatsapp className="size-4" />
             WhatsApp
           </a>
         ) : null}
@@ -184,7 +158,7 @@ export function BusinessCard({
             rel="noreferrer"
             className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] px-3 py-2 text-sm font-medium text-white shadow-sm transition-opacity hover:opacity-90"
           >
-            <InstagramIcon className="size-4" />
+            <FaInstagram className="size-4" />
             Instagram
           </a>
         ) : null}

@@ -21,6 +21,7 @@ import {
   Search,
   Store,
 } from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa";
 import { CategoriesCarousel } from "~/components/categories/categories-carousel";
 
 const HOW_IT_WORKS_STEPS = [
@@ -38,7 +39,7 @@ const HOW_IT_WORKS_STEPS = [
   },
   {
     n: 3,
-    Icon: MessageCircle,
+    Icon: FaWhatsapp,
     title: "Entre em contato",
     desc: "Fale com as empresas pelos contatos disponíveis.",
   },
@@ -47,7 +48,7 @@ const HOW_IT_WORKS_STEPS = [
 const MARKETPLACE_FEATURES = [
   { Icon: HeartHandshake, title: "Apoie o comércio local" },
   { Icon: Search, title: "Encontre tudo em um só lugar" },
-  { Icon: MessageCircle, title: "Fale direto no WhatsApp" },
+  { Icon: FaWhatsapp, title: "Fale direto no WhatsApp" },
   { Icon: MapPin, title: "Descubra negócios do seu bairro" },
 ] as const;
 
@@ -143,6 +144,7 @@ export async function loader({ request }: Route.LoaderArgs) {
           ? {
               handle: biz.handle,
               name: biz.name,
+              whatsapp: biz.whatsapp,
               logo_url: getPublicUrl(
                 ctx.supabase,
                 "business-logos",
@@ -337,7 +339,7 @@ export default function Home() {
               Ver todos
             </Link>
           </div>
-          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mt-4">
+          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 mt-4">
             {promotions.map((p) => (
               <li key={p.id}>
                 <PromotionCard promotion={p} />

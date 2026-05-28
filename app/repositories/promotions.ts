@@ -99,7 +99,7 @@ export async function listPublicTodayFeed({
 			`
 				id, title, description, schedule_note,
 				recurrence_days, starts_at, ends_at, is_active, deleted_at,
-				business:businesses!inner(id, handle, name, logo_path, status, deleted_at, plan_tier, plan_expires_at, city_id, neighborhood_id, city:cities(name, state), neighborhood:neighborhoods(name)),
+				business:businesses!inner(id, handle, name, whatsapp, logo_path, status, deleted_at, plan_tier, plan_expires_at, city_id, neighborhood_id, city:cities(name, state), neighborhood:neighborhoods(name)),
 				images:business_promotion_images(id, storage_path, alt_text, sort_order)
 			`,
 		)
@@ -134,7 +134,7 @@ export async function listAllPublicTodayFeed({
 			`
 				id, title, description, schedule_note,
 				recurrence_days, starts_at, ends_at, is_active, deleted_at,
-				business:businesses!inner(id, handle, name, logo_path, status, deleted_at, plan_tier, plan_expires_at, city_id, neighborhood_id, city:cities(name, state), neighborhood:neighborhoods(name)),
+				business:businesses!inner(id, handle, name, whatsapp, logo_path, status, deleted_at, plan_tier, plan_expires_at, city_id, neighborhood_id, city:cities(name, state), neighborhood:neighborhoods(name)),
 				images:business_promotion_images(id, storage_path, alt_text, sort_order)
 			`,
 		)
