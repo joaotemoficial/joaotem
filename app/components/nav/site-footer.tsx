@@ -1,4 +1,4 @@
-import { Building2, Mail, ThumbsUp } from "lucide-react";
+import { Mail, ThumbsUp } from "lucide-react";
 import { FaInstagram, FaWhatsapp } from "react-icons/fa";
 import { Link } from "react-router";
 
@@ -10,12 +10,14 @@ export function SiteFooter() {
           <div className="space-y-3 sm:col-span-2 lg:col-span-1">
             <Link
               to="/"
-              className="inline-flex items-center gap-2 text-lg font-bold tracking-tight"
+              aria-label="João Tem"
+              className="inline-flex items-center"
             >
-              <span className="grid size-8 place-items-center">
-                <Building2 className="size-4" />
-              </span>
-              JoaoTem
+              <img
+                src="/joao-tem-logo-dark.svg"
+                alt="João Tem"
+                className="h-14 w-auto object-contain"
+              />
             </Link>
             <p className="max-w-xs text-sm leading-relaxed text-blue-50/90">
               O guia comercial online de Orós - CE. Encontre empresas, produtos

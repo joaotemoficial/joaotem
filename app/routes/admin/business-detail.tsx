@@ -1,11 +1,14 @@
 import { parseWithZod } from "@conform-to/zod";
 import {
+	data,
 	Form,
 	Link,
 	redirect,
+	useActionData,
 	useLoaderData,
 	useNavigation,
 } from "react-router";
+import { FeatureOverridesFields } from "~/components/admin/feature-overrides-fields";
 import { PlanFormFields } from "~/components/admin/plan-form";
 import { PlanBadge } from "~/components/business/plan-badge";
 import { Badge } from "~/components/ui/badge";
@@ -23,6 +26,7 @@ import { getPublicUrl } from "~/lib/storage.server";
 import { planUpdateSchema } from "~/lib/validation/plan";
 import * as adminRepo from "~/repositories/admin";
 import * as businessesRepo from "~/repositories/businesses";
+import * as featureFlagsRepo from "~/repositories/feature-flags";
 import { isError } from "~/types";
 import type { Route } from "./+types/business-detail";
 
@@ -46,17 +50,66 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 	if (isError(result)) throw new Response(result.error, { status: 500 });
 	if (!result.success) throw new Response("Não encontrado", { status: 404 });
 	const b = result.success;
+
+	const effectiveTier = effectivePlanTier({
+		plan_tier: b.plan_tier,
+		plan_expires_at: b.plan_expires_at,
+	});
+
+	const flagsRes = await featureFlagsRepo.listAll({ supabase: ctx.supabase });
+	if (isError(flagsRes)) throw new Response(flagsRes.error, { status: 500 });
+	const overridesRes = await featureFlagsRepo.listOverridesForBusiness({
+		supabase: ctx.supabase,
+		businessId: params.id,
+	});
+	if (isError(overridesRes))
+		throw new Response(overridesRes.error, { status: 500 });
+
+	const overrideByKey = new Map(
+		overridesRes.success.map((o) => [o.feature_key, o]),
+	);
+	const featureRows = flagsRes.success.map((f) => {
+		const ov = overrideByKey.get(f.key) ?? null;
+		const planEnabled =
+			effectiveTier === "ouro"
+				? f.ouro_enabled
+				: effectiveTier === "basico"
+					? f.basico_enabled
+					: false;
+		const planLimit =
+			effectiveTier === "ouro"
+				? f.ouro_limit
+				: effectiveTier === "basico"
+					? f.basico_limit
+					: null;
+		return {
+			key: f.key,
+			label: f.label,
+			flag_type: f.flag_type as "numeric" | "boolean",
+			globallyEnabled: f.enabled,
+			planEnabled,
+			planLimit,
+			effEnabled: !f.enabled ? false : (ov?.enabled ?? planEnabled),
+			effLimit: !f.enabled ? 0 : (ov?.limit_override ?? planLimit),
+			override: ov
+				? {
+						enabled: ov.enabled,
+						limit_override: ov.limit_override,
+						notes: ov.notes,
+					}
+				: null,
+		};
+	});
+
 	return {
 		business: {
 			...b,
 			logo_url: getPublicUrl(ctx.supabase, "business-logos", b.logo_path),
 			cover_url: getPublicUrl(ctx.supabase, "business-covers", b.cover_path),
 		},
-		effectiveTier: effectivePlanTier({
-			plan_tier: b.plan_tier,
-			plan_expires_at: b.plan_expires_at,
-		}),
+		effectiveTier,
 		daysUntilExpiry: daysUntilExpiry(b.plan_expires_at),
+		featureRows,
 	};
 }
 
@@ -138,6 +191,55 @@ export async function action({ params, request }: Route.ActionArgs) {
 				reviewerId: ctx.user.id,
 			});
 			break;
+		case "update-feature-overrides": {
+			const keys = formData.getAll("key").map(String);
+			const errors: string[] = [];
+			for (const key of keys) {
+				const enabledRaw = String(formData.get(`enabled_${key}`) ?? "");
+				const enabled =
+					enabledRaw === "on" ? true : enabledRaw === "off" ? false : null;
+
+				const limitRaw = String(formData.get(`limit_${key}`) ?? "").trim();
+				let limitOverride: number | null = null;
+				if (limitRaw !== "") {
+					const n = Number.parseInt(limitRaw, 10);
+					if (Number.isNaN(n) || n < 0) {
+						errors.push(`Limite inválido para "${key}"`);
+						continue;
+					}
+					limitOverride = n;
+				}
+
+				const notesRaw = String(formData.get(`notes_${key}`) ?? "").trim();
+				const notes = notesRaw === "" ? null : notesRaw.slice(0, 500);
+
+				// Fully-inherit → remove the row; else upsert.
+				if (enabled === null && limitOverride === null && notes === null) {
+					const r = await featureFlagsRepo.deleteOverride({
+						supabase: ctx.supabase,
+						businessId: params.id,
+						featureKey: key,
+					});
+					if (isError(r)) errors.push(r.error);
+				} else {
+					const r = await featureFlagsRepo.upsertOverride({
+						supabase: ctx.supabase,
+						row: {
+							business_id: params.id,
+							feature_key: key,
+							enabled,
+							limit_override: limitOverride,
+							notes,
+						},
+					});
+					if (isError(r)) errors.push(r.error);
+				}
+			}
+			if (errors.length > 0) {
+				return data({ featureErrors: errors }, { status: 400 });
+			}
+			throw redirect(`/admin/businesses/${params.id}`, { headers: ctx.headers });
+		}
 		default:
 			return Response.json({ error: "Ação inválida" }, { status: 400 });
 	}
@@ -150,10 +252,15 @@ export async function action({ params, request }: Route.ActionArgs) {
 }
 
 export default function AdminBusinessDetail() {
-	const { business, effectiveTier, daysUntilExpiry } =
+	const { business, effectiveTier, daysUntilExpiry, featureRows } =
 		useLoaderData<typeof loader>();
+	const actionData = useActionData<typeof action>();
 	const navigation = useNavigation();
 	const submitting = navigation.state !== "idle";
+	const featureErrors =
+		actionData && "featureErrors" in actionData
+			? actionData.featureErrors
+			: undefined;
 
 	const expiryLabel =
 		daysUntilExpiry == null
@@ -271,6 +378,29 @@ export default function AdminBusinessDetail() {
 					<div>
 						<Button type="submit" disabled={submitting} className="self-start">
 							Salvar plano
+						</Button>
+					</div>
+				</Form>
+			</section>
+
+			<section className="mt-6 rounded-2xl border border-border/70 bg-card p-5">
+				<div className="pb-3">
+					<h2 className="text-base font-semibold">Recursos (overrides)</h2>
+					<p className="text-sm text-muted-foreground">
+						"Herdar" usa o padrão do plano. Recursos desativados globalmente
+						ficam off independentemente do override.
+					</p>
+				</div>
+				<Form method="post" className="flex flex-col gap-3">
+					<input
+						type="hidden"
+						name="intent"
+						value="update-feature-overrides"
+					/>
+					<FeatureOverridesFields rows={featureRows} errors={featureErrors} />
+					<div>
+						<Button type="submit" disabled={submitting} className="self-start">
+							Salvar recursos
 						</Button>
 					</div>
 				</Form>

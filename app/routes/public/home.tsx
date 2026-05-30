@@ -19,6 +19,7 @@ import {
   MapPin,
   MessageCircle,
   Search,
+  ShoppingBag,
   Store,
 } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
@@ -50,6 +51,13 @@ const MARKETPLACE_FEATURES = [
   { Icon: Search, title: "Encontre tudo em um só lugar" },
   { Icon: FaWhatsapp, title: "Fale direto no WhatsApp" },
   { Icon: MapPin, title: "Descubra negócios do seu bairro" },
+] as const;
+
+const HERO_FEATURES = [
+  { Icon: Search, label: "Busque com facilidade" },
+  { Icon: Store, label: "Descubra comércios locais" },
+  { Icon: ShoppingBag, label: "Compre no Marketplace Local" },
+  { Icon: MapPin, label: "Tudo da sua cidade em um só lugar" },
 ] as const;
 
 export const meta: Route.MetaFunction = () => [
@@ -179,49 +187,32 @@ export default function Home() {
         <div
           aria-hidden
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: "url(/oros.jpeg)" }}
+          style={{
+            backgroundImage:
+              "url(/WhatsApp%20Image%202026-05-25%20at%2015.01.17.jpeg)",
+          }}
         />
-        <div aria-hidden className="absolute inset-0 bg-primary/90" />
+        <div aria-hidden className="absolute inset-0 bg-[#102A43]/80" />
 
         <div className="relative z-10 mx-auto max-w-6xl px-4 text-center">
           <div className="mx-auto max-w-3xl">
-            <div className="animate-in fade-in fill-mode-both mb-6 inline-flex items-center gap-2 rounded-full bg-primary-foreground/10 px-4 py-2 backdrop-blur-sm duration-700">
-              <span className="size-2 animate-pulse rounded-full bg-whatsapp" />
-              <span className="text-sm font-medium text-primary-foreground/90">
-                O marketplace da sua cidade
-              </span>
-            </div>
+            <img
+              src="/LOGO.svg"
+              alt="João Tem"
+              className="animate-in fade-in fill-mode-both mx-auto mb-6 size-24 object-contain duration-700"
+            />
 
-            <h1 className="animate-in fade-in fill-mode-both mb-6 text-balance text-3xl font-bold leading-tight text-primary-foreground duration-700 [animation-delay:0.1s] sm:text-4xl lg:text-5xl xl:text-6xl">
-              Encontre negócios e serviços da sua cidade em um só lugar
+            <h1 className="animate-in fade-in fill-mode-both mb-8 text-balance text-3xl font-bold leading-tight text-primary-foreground duration-700 [animation-delay:0.1s] sm:text-4xl lg:text-5xl">
+              Encontre negócios e serviços da{" "}
+              <span className="text-blue-400">sua cidade</span> em um só lugar
             </h1>
-
-            <p className="animate-in fade-in fill-mode-both mb-8 text-lg text-primary-foreground/85 duration-700 [animation-delay:0.2s] sm:text-xl">
-              Compre, conheça e apoie empreendedores locais de forma simples e
-              rápida.
-            </p>
 
             <Form
               method="get"
               action="/negocios"
-              className="animate-in fade-in fill-mode-both relative mx-auto max-w-2xl duration-700 [animation-delay:0.3s]"
+              className="animate-in fade-in fill-mode-both mx-auto max-w-2xl duration-700 [animation-delay:0.2s]"
             >
               <input type="hidden" name="city" value={defaultHeroCityId} />
-
-              <div className="relative z-10 -mb-4 flex justify-center sm:hidden">
-                <img
-                  src="/Design%20sem%20nome%20(1).svg"
-                  alt="Mascote João Tem"
-                  className="size-24 object-contain"
-                />
-              </div>
-              <div className="absolute -top-6 left-1 z-10 hidden sm:block">
-                <img
-                  src="/Design%20sem%20nome%20(1).svg"
-                  alt="Mascote João Tem"
-                  className="size-24 object-contain"
-                />
-              </div>
 
               <div className="rounded-2xl bg-card p-2 shadow-xl">
                 <div className="flex flex-col items-center gap-2 sm:flex-row">
@@ -230,7 +221,7 @@ export default function Home() {
                       type="text"
                       name="q"
                       placeholder="O que você está procurando?"
-                      className="h-12 w-full rounded-xl bg-muted/50 px-4 text-center text-foreground placeholder:text-muted-foreground transition-all focus:outline-none focus:ring-2 focus:ring-primary/30 sm:h-14 sm:pl-28 sm:text-left"
+                      className="h-12 w-full rounded-xl bg-muted/50 px-4 text-center text-foreground placeholder:text-muted-foreground transition-all focus:outline-none focus:ring-2 focus:ring-primary/30 sm:h-14 sm:text-left"
                     />
                   </div>
                   <button
@@ -249,9 +240,21 @@ export default function Home() {
               </div>
             </Form>
 
-            <p className="animate-in fade-in fill-mode-both mt-4 text-sm text-primary-foreground/70 duration-700 [animation-delay:0.4s]">
-              Ex: pizzaria, manicure, bolo, barbearia, pet shop…
-            </p>
+            <div className="animate-in fade-in fill-mode-both mt-10 grid grid-cols-2 gap-y-8 duration-700 [animation-delay:0.3s] sm:flex sm:items-start sm:justify-center sm:divide-x sm:divide-primary-foreground/20">
+              {HERO_FEATURES.map(({ Icon, label }) => (
+                <div
+                  key={label}
+                  className="flex flex-col items-center gap-3 px-4 text-center sm:px-8"
+                >
+                  <span className="grid size-12 place-items-center rounded-full bg-primary text-primary-foreground shadow-lg">
+                    <Icon className="size-5" />
+                  </span>
+                  <span className="max-w-[9rem] text-sm font-medium leading-snug text-primary-foreground/90">
+                    {label}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
