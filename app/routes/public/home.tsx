@@ -197,9 +197,9 @@ export default function Home() {
         <div className="relative z-10 mx-auto max-w-6xl px-4 text-center">
           <div className="mx-auto max-w-3xl">
             <img
-              src="/LOGO.svg"
+              src="/SVG2.svg"
               alt="João Tem"
-              className="animate-in fade-in fill-mode-both mx-auto mb-6 size-24 object-contain duration-700"
+              className="animate-in fade-in fill-mode-both mx-auto size-46 object-contain duration-700"
             />
 
             <h1 className="animate-in fade-in fill-mode-both mb-8 text-balance text-3xl font-bold leading-tight text-primary-foreground duration-700 [animation-delay:0.1s] sm:text-4xl lg:text-5xl">
