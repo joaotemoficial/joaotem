@@ -95,7 +95,7 @@ export function CategoriesCarousel({ categories }: { categories: Category[] }) {
           return (
             <li key={c.id} className="snap-start shrink-0">
               <Link
-                to={`/?category=${c.id}#empresas-em-destaque`}
+                to={`/negocios?category=${c.id}`}
                 className="group flex h-40 w-32 flex-col items-center justify-center gap-2.5 rounded-2xl border border-border/70 bg-card p-3 transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md focus-visible:outline-2 focus-visible:outline-ring"
               >
                 <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">

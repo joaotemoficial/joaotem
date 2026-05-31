@@ -135,6 +135,16 @@ export const authSchema = z.object({
 });
 export type AuthValues = z.infer<typeof authSchema>;
 
+// Signup additionally requires accepting the Terms of Use. The checkbox is
+// only validated (must be "on"); nothing is persisted.
+export const signupSchema = authSchema.extend({
+	terms: z
+		.string()
+		.optional()
+		.refine((v) => v === "on", "Você precisa aceitar os Termos de Uso"),
+});
+export type SignupValues = z.infer<typeof signupSchema>;
+
 export const adminRejectSchema = z.object({
 	rejection_reason: z
 		.string()

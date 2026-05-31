@@ -4,7 +4,7 @@ import { Form, Link, redirect, useLoaderData, useNavigation } from "react-router
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { authSchema } from "~/lib/validation/business";
+import { signupSchema } from "~/lib/validation/business";
 import { signUpWithPassword } from "~/repositories/auth";
 import { isError } from "~/types";
 import type { Route } from "./+types/signup";
@@ -20,7 +20,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export async function action({ request }: Route.ActionArgs) {
 	const formData = await request.formData();
-	const submission = parseWithZod(formData, { schema: authSchema });
+	const submission = parseWithZod(formData, { schema: signupSchema });
 	if (submission.status !== "success") return submission.reply();
 
 	const result = await signUpWithPassword({
@@ -49,7 +49,7 @@ export default function Signup({ actionData }: Route.ComponentProps) {
 		lastResult: actionData,
 		shouldRevalidate: "onBlur",
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema: authSchema });
+			return parseWithZod(formData, { schema: signupSchema });
 		},
 	});
 
@@ -93,6 +93,32 @@ export default function Signup({ actionData }: Route.ComponentProps) {
 						<p className="text-xs text-destructive">
 							{fields.password.errors[0]}
 						</p>
+					) : null}
+				</div>
+
+				<div className="flex flex-col gap-1.5">
+					<div className="flex items-start gap-2">
+						<input
+							{...getInputProps(fields.terms, { type: "checkbox" })}
+							className="mt-0.5 size-4"
+						/>
+						<Label
+							htmlFor={fields.terms.id}
+							className="text-sm font-normal leading-snug text-muted-foreground"
+						>
+							Li e aceito os{" "}
+							<Link
+								to="/termos"
+								target="_blank"
+								className="font-medium text-foreground underline"
+							>
+								Termos de Uso
+							</Link>
+							.
+						</Label>
+					</div>
+					{fields.terms.errors ? (
+						<p className="text-xs text-destructive">{fields.terms.errors[0]}</p>
 					) : null}
 				</div>
 

@@ -75,6 +75,9 @@ export function BusinessForm({
 	const initialCity =
 		(fields.city_id.initialValue as string | undefined) ??
 		defaults.city_id ??
+		// With a single city, pre-select it so the neighborhood select isn't
+		// stuck disabled (the browser auto-displays it but never fires onChange).
+		(cities.length === 1 ? cities[0]?.id : undefined) ??
 		"";
 
 	// Track the selected city locally only to filter the neighborhoods list.
@@ -147,6 +150,7 @@ export function BusinessForm({
 					<Field label="Cidade *" error={fields.city_id.errors?.[0]}>
 						<NativeSelect
 							{...getSelectProps(fields.city_id)}
+							defaultValue={initialCity}
 							onChange={(e) => setCityId(e.target.value)}
 						>
 							<option value="" disabled>

@@ -68,38 +68,43 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 	const overrideByKey = new Map(
 		overridesRes.success.map((o) => [o.feature_key, o]),
 	);
-	const featureRows = flagsRes.success.map((f) => {
-		const ov = overrideByKey.get(f.key) ?? null;
-		const planEnabled =
-			effectiveTier === "ouro"
-				? f.ouro_enabled
-				: effectiveTier === "basico"
-					? f.basico_enabled
-					: false;
-		const planLimit =
-			effectiveTier === "ouro"
-				? f.ouro_limit
-				: effectiveTier === "basico"
-					? f.basico_limit
-					: null;
-		return {
-			key: f.key,
-			label: f.label,
-			flag_type: f.flag_type as "numeric" | "boolean",
-			globallyEnabled: f.enabled,
-			planEnabled,
-			planLimit,
-			effEnabled: !f.enabled ? false : (ov?.enabled ?? planEnabled),
-			effLimit: !f.enabled ? 0 : (ov?.limit_override ?? planLimit),
-			override: ov
-				? {
-						enabled: ov.enabled,
-						limit_override: ov.limit_override,
-						notes: ov.notes,
-					}
-				: null,
-		};
-	});
+	// Only promotions and vitrine (showcase) items are meaningful to override
+	// per-business; the remaining flags are not surfaced here.
+	const OVERRIDABLE_KEYS = ["promocoes_semana", "vitrine_produtos"];
+	const featureRows = flagsRes.success
+		.filter((f) => OVERRIDABLE_KEYS.includes(f.key))
+		.map((f) => {
+			const ov = overrideByKey.get(f.key) ?? null;
+			const planEnabled =
+				effectiveTier === "ouro"
+					? f.ouro_enabled
+					: effectiveTier === "basico"
+						? f.basico_enabled
+						: false;
+			const planLimit =
+				effectiveTier === "ouro"
+					? f.ouro_limit
+					: effectiveTier === "basico"
+						? f.basico_limit
+						: null;
+			return {
+				key: f.key,
+				label: f.label,
+				flag_type: f.flag_type as "numeric" | "boolean",
+				globallyEnabled: f.enabled,
+				planEnabled,
+				planLimit,
+				effEnabled: !f.enabled ? false : (ov?.enabled ?? planEnabled),
+				effLimit: !f.enabled ? 0 : (ov?.limit_override ?? planLimit),
+				override: ov
+					? {
+							enabled: ov.enabled,
+							limit_override: ov.limit_override,
+							notes: ov.notes,
+						}
+					: null,
+			};
+		});
 
 	return {
 		business: {
