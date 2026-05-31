@@ -165,28 +165,27 @@ export async function listPublicPaginated({
 		p_offset: offset,
 	}).select(PUBLIC_BUSINESS_FIELDS) as Promise<Awaited<typeof baseQuery>>;
 
-	let countQuery = supabase
-		.from("businesses")
-		.select(PUBLIC_BUSINESS_FIELDS, { count: "exact", head: true })
-		.eq("status", "approved")
-		.is("deleted_at", null);
-	countQuery = applyActiveSubscriptionFilter(countQuery);
-	if (cityId) countQuery = countQuery.eq("city_id", cityId);
-	if (categoryId) countQuery = countQuery.eq("category_id", categoryId);
-	if (neighborhoodId)
-		countQuery = countQuery.eq("neighborhood_id", neighborhoodId);
-	if (trimmedQ) countQuery = countQuery.ilike("name", `%${trimmedQ}%`);
+	// Exact total via the count RPC so it shares the same match predicate as the
+	// items query (FTS + trigram + synonyms). A separate PostgREST .ilike(name)
+	// count would diverge from the ranked search.
+	// biome-ignore lint/suspicious/noExplicitAny: rpc result isn't expressible in Database types
+	const countPromise = (supabase.rpc as any)("count_businesses_ranked", {
+		p_q: trimmedQ,
+		p_city_id: cityId ?? null,
+		p_category_id: categoryId ?? null,
+		p_neighborhood_id: neighborhoodId ?? null,
+	}) as Promise<{ data: number | null; error: { message: string } | null }>;
 
 	const [itemsResult, countResult] = await Promise.all([
 		itemsPromise,
-		countQuery,
+		countPromise,
 	]);
 
 	if (itemsResult.error) return error(itemsResult.error.message);
 	if (countResult.error) return error(countResult.error.message);
 	return success({
 		items: itemsResult.data ?? [],
-		total: countResult.count ?? 0,
+		total: countResult.data ?? 0,
 	});
 }
 

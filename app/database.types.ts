@@ -417,6 +417,7 @@ export type Database = {
           rejection_reason: string | null
           reviewed_at: string | null
           reviewed_by: string | null
+          search_text: string | null
           search_tsv: unknown
           short_description: string | null
           status: Database["public"]["Enums"]["business_status"]
@@ -444,6 +445,7 @@ export type Database = {
           rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          search_text?: string | null
           search_tsv?: unknown
           short_description?: string | null
           status?: Database["public"]["Enums"]["business_status"]
@@ -471,6 +473,7 @@ export type Database = {
           rejection_reason?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
+          search_text?: string | null
           search_tsv?: unknown
           short_description?: string | null
           status?: Database["public"]["Enums"]["business_status"]
@@ -698,6 +701,33 @@ export type Database = {
         }
         Relationships: []
       }
+      search_synonyms: {
+        Row: {
+          created_at: string
+          expansions: string[]
+          id: string
+          is_active: boolean
+          term: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          expansions?: string[]
+          id?: string
+          is_active?: boolean
+          term: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          expansions?: string[]
+          id?: string
+          is_active?: boolean
+          term?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -717,6 +747,20 @@ export type Database = {
         }
         Returns: undefined
       }
+      build_search_tsquery: { Args: { p_q: string }; Returns: unknown }
+      businesses_refresh_search: {
+        Args: { p_business_id: string }
+        Returns: undefined
+      }
+      count_businesses_ranked: {
+        Args: {
+          p_category_id?: string
+          p_city_id?: string
+          p_neighborhood_id?: string
+          p_q?: string
+        }
+        Returns: number
+      }
       effective_plan_tier: {
         Args: {
           expires_at: string
@@ -724,6 +768,7 @@ export type Database = {
         }
         Returns: Database["public"]["Enums"]["plan_tier"]
       }
+      f_unaccent: { Args: { "": string }; Returns: string }
       is_admin: { Args: never; Returns: boolean }
       is_business_public: { Args: { b_id: string }; Returns: boolean }
       list_businesses_gold_first: {
@@ -753,6 +798,7 @@ export type Database = {
           rejection_reason: string | null
           reviewed_at: string | null
           reviewed_by: string | null
+          search_text: string | null
           search_tsv: unknown
           short_description: string | null
           status: Database["public"]["Enums"]["business_status"]
@@ -795,6 +841,7 @@ export type Database = {
           rejection_reason: string | null
           reviewed_at: string | null
           reviewed_by: string | null
+          search_text: string | null
           search_tsv: unknown
           short_description: string | null
           status: Database["public"]["Enums"]["business_status"]
@@ -819,6 +866,7 @@ export type Database = {
           p_city_id?: string
           p_limit?: number
           p_neighborhood_id?: string
+          p_offset?: number
           p_q?: string
         }
         Returns: {
@@ -841,6 +889,7 @@ export type Database = {
           rejection_reason: string | null
           reviewed_at: string | null
           reviewed_by: string | null
+          search_text: string | null
           search_tsv: unknown
           short_description: string | null
           status: Database["public"]["Enums"]["business_status"]
