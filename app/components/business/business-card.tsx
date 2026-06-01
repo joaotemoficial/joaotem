@@ -146,7 +146,7 @@ export function BusinessCard({
         {isOuro && hasShowcaseItems ? (
           <Link
             to={businessLink}
-            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-primary bg-transparent px-3 py-2 text-sm font-medium text-primary shadow-sm transition-colors hover:bg-primary hover:text-primary-foreground"
           >
             <Eye className="size-4" />
             Ver vitrine

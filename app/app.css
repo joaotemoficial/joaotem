@@ -11,7 +11,7 @@
 
 html,
 body {
-  @apply bg-white;
+  @apply bg-background;
 }
 
 @theme inline {
@@ -86,7 +86,7 @@ body {
 }
 
 :root {
-  --background: #FFFFFF;
+  --background: #fbfbf9;
   --foreground: #1F2937;
   --card: #FFFFFF;
   --card-foreground: #1F2937;

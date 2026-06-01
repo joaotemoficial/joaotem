@@ -14,12 +14,14 @@ import * as promotionsRepo from "~/repositories/promotions";
 import { isError } from "~/types";
 import type { Route } from "./+types/home";
 import {
+  Eye,
   Frown,
   HeartHandshake,
   MapPin,
   MessageCircle,
   Search,
   ShoppingBag,
+  Sparkles,
   Store,
 } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
@@ -29,20 +31,20 @@ const HOW_IT_WORKS_STEPS = [
   {
     n: 1,
     Icon: Search,
-    title: "Encontre o que precisa",
-    desc: "Pesquise empresas, produtos e serviços em Orós.",
+    title: "Pesquise o que precisa",
+    desc: "Digite o que você procura ou navegue pelas categorias",
   },
   {
     n: 2,
     Icon: Store,
-    title: "Escolha uma empresa",
-    desc: "Veja informações das empresas e os serviços que elas oferecem.",
+    title: "Encontre negócios locais",
+    desc: "Veja os melhores resultados da sua cidade e bairro",
   },
   {
     n: 3,
-    Icon: FaWhatsapp,
-    title: "Entre em contato",
-    desc: "Fale com as empresas pelos contatos disponíveis.",
+    Icon: Eye,
+    title: "Veja a vitrine da loja",
+    desc: "Explore produtos, serviços e informações do negócio",
   },
 ] as const;
 
@@ -426,33 +428,28 @@ export default function Home() {
             Como funciona?
           </h2>
           <p className="mt-3 text-sm text-muted-foreground sm:text-base">
-            Em três passos simples você encontra o que precisa em Orós.
+            Em quatro passos simples você encontra o que precisa em Orós.
           </p>
         </div>
 
-        <div className="relative mt-12 grid gap-10 sm:grid-cols-3 sm:gap-8">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute top-8 left-[16.67%] right-[16.67%] hidden border-t-2 border-dashed border-border sm:block"
-          />
-
+        <div className="mt-16 grid gap-y-12 gap-x-6 sm:grid-cols-2 lg:grid-cols-3">
           {HOW_IT_WORKS_STEPS.map(({ n, Icon, title, desc }) => (
-            <div
-              key={n}
-              className="group relative flex flex-col items-center rounded-2xl border border-transparent bg-card/40 p-6 text-center transition-all hover:border-border hover:bg-card hover:shadow-sm"
-            >
-              <div className="relative z-10 grid size-16 place-items-center rounded-full bg-primary text-primary-foreground shadow-lg ring-8 ring-background transition-transform group-hover:scale-105">
-                <Icon className="size-7" />
-                <span className="absolute -top-2 -right-2 grid size-7 place-items-center rounded-full border-2 border-background bg-sky-600 text-xs font-bold text-background">
-                  {n}
+            <div key={n} className="relative flex flex-col items-center pt-6">
+              <span className="absolute top-0 z-10 grid size-10 place-items-center rounded-full bg-[#2563EB] text-sm font-bold text-white shadow-md">
+                {n}
+              </span>
+
+              <div className="flex h-full w-full flex-col items-center rounded-2xl border border-border/60 bg-card p-6 pt-8 text-center shadow-sm">
+                <span className="grid size-16 place-items-center rounded-full bg-[#2563EB]/10 text-[#2563EB]">
+                  <Icon className="size-7" />
                 </span>
+                <h3 className="mt-5 text-base font-bold tracking-tight text-slate-700 sm:text-lg">
+                  {title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-blue-900">
+                  {desc}
+                </p>
               </div>
-              <h3 className="mt-5 text-slate-700 text-base font-semibold tracking-tight sm:text-lg">
-                {title}
-              </h3>
-              <p className="mt-2 max-w-xs text-sm leading-relaxed text-muted-foreground">
-                {desc}
-              </p>
             </div>
           ))}
         </div>
@@ -460,25 +457,38 @@ export default function Home() {
 
       <section aria-labelledby="cta-cadastro" className="mt-12">
         <div className="mx-auto max-w-6xl px-4">
-          <div className="flex flex-col items-start justify-between gap-4 rounded-2xl bg-linear-to-t from-sky-600 to-indigo-600 px-6 py-5 text-primary-foreground sm:flex-row sm:items-center sm:px-8">
-            <div className="space-y-1">
+          <div className="grid overflow-hidden rounded-2xl bg-linear-to-t from-sky-600 to-indigo-600 text-primary-foreground md:min-h-[420px] md:grid-cols-2">
+            <div className="flex flex-col items-start justify-center gap-5 px-6 py-10 sm:px-10 md:py-12">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary-foreground/30 bg-primary-foreground/10 px-3 py-1 text-xs font-medium tracking-wide uppercase backdrop-blur-sm">
+                <Sparkles className="size-3.5" />
+                Para empreendedores
+              </span>
               <h2
                 id="cta-cadastro"
-                className="text-lg font-semibold tracking-tight sm:text-xl"
+                className="text-balance text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl"
               >
-                Cadastre sua empresa no João Tem
+                Você é empreendedor? Faça parte do João Tem!
               </h2>
-              <p className="text-sm text-primary-foreground/85">
-                Apareça para clientes de Orós e venda mais todos os dias.
+              <p className="max-w-md text-sm leading-relaxed text-primary-foreground/85 sm:text-base">
+                Cadastre seu negócio e ganhe visibilidade na sua cidade. Seja
+                encontrado por milhares de clientes em potencial.
               </p>
+              <Link
+                to="/signup"
+                className="text-primary inline-flex h-11 items-center gap-2 rounded-lg bg-background px-5 text-sm font-semibold shadow-sm transition-colors hover:bg-background/90"
+              >
+                <Store className="size-4" />
+                Cadastrar meu negócio
+              </Link>
             </div>
-            <Link
-              to="/signup"
-              className="text-primary inline-flex h-11 shrink-0 items-center gap-2 rounded-lg bg-background px-5 text-sm font-semibold shadow-sm transition-colors hover:bg-background/90"
-            >
-              <Store className="size-4" />
-              Quero cadastrar minha empresa
-            </Link>
+
+            <div className="relative hidden md:block">
+              <img
+                src="/oros.jpg"
+                alt="Orós - CE"
+                className="absolute inset-0 size-full object-cover"
+              />
+            </div>
           </div>
         </div>
       </section>

@@ -1,144 +1,59 @@
-import { Mail, ThumbsUp } from "lucide-react";
-import { FaInstagram, FaWhatsapp } from "react-icons/fa";
+import { FaFacebookF, FaInstagram, FaTiktok, FaWhatsapp } from "react-icons/fa";
 import { Link } from "react-router";
+
+const socialLinks = [
+  { href: "#", label: "Instagram", Icon: FaInstagram },
+  { href: "#", label: "Facebook", Icon: FaFacebookF },
+  { href: "https://wa.me/55", label: "WhatsApp", Icon: FaWhatsapp },
+  { href: "#", label: "TikTok", Icon: FaTiktok },
+];
 
 export function SiteFooter() {
   return (
-    <footer className="mt-12 bg-blue-950 text-white">
-      <div className="mx-auto max-w-6xl px-4 py-12">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="space-y-3 sm:col-span-2 lg:col-span-1">
-            <Link
-              to="/"
-              aria-label="João Tem"
-              className="inline-flex items-center"
+    <footer className="mt-12 border-t border-gray-200 bg-white">
+      <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 py-12 text-center">
+        <Link to="/" aria-label="João Tem" className="inline-flex items-center">
+          <img
+            src="/joao-tem-logo.svg"
+            alt="João Tem"
+            className="h-14 w-auto object-contain"
+          />
+        </Link>
+
+        <p className="text-sm text-gray-600">
+          O guia comercial online de Orós - CE.
+        </p>
+
+        <div className="flex items-center gap-3">
+          {socialLinks.map(({ href, label, Icon }) => (
+            <a
+              key={label}
+              href={href}
+              target="_blank"
+              rel="noreferrer noopener"
+              aria-label={label}
+              className="grid size-10 place-items-center rounded-full bg-gray-100 text-blue-600 transition-colors hover:bg-[#2563eb] hover:text-white"
             >
-              <img
-                src="/joao-tem-logo-dark.svg"
-                alt="João Tem"
-                className="h-14 w-auto object-contain"
-              />
-            </Link>
-            <p className="max-w-xs text-sm leading-relaxed text-blue-50/90">
-              O guia comercial online de Orós - CE. Encontre empresas, produtos
-              e promoções perto de você.
-            </p>
-          </div>
-
-          <div>
-            <h3 className="mb-4 text-sm font-semibold tracking-tight">
-              Navegação
-            </h3>
-            <ul className="space-y-2.5 text-sm text-blue-50/90">
-              <li>
-                <Link to="/" className="transition-colors hover:text-white">
-                  Início
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/#categorias"
-                  className="transition-colors hover:text-white"
-                >
-                  Categorias
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/#empresas-em-destaque"
-                  className="transition-colors hover:text-white"
-                >
-                  Empresas
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/signup"
-                  className="transition-colors hover:text-white"
-                >
-                  Cadastrar negócio
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="mb-4 text-sm font-semibold tracking-tight">
-              Contato
-            </h3>
-            <ul className="space-y-2.5 text-sm text-blue-50/90">
-              <li>
-                <a
-                  href="https://wa.me/55"
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="inline-flex items-center gap-2 transition-colors hover:text-white"
-                >
-                  <FaWhatsapp className="size-4" />
-                  WhatsApp
-                </a>
-              </li>
-              <li>
-                <a
-                  href="mailto:contato@joaotem.com.br"
-                  className="inline-flex items-center gap-2 transition-colors hover:text-white"
-                >
-                  <Mail className="size-4" />
-                  contato@joaotem.com.br
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="mb-4 text-sm font-semibold tracking-tight">
-              Siga-nos
-            </h3>
-            <div className="flex items-center gap-2">
-              <Link
-                to="#"
-                aria-label="Instagram"
-                className="grid size-9 place-items-center rounded-lg border border-white/30 bg-white/10 text-white transition-colors hover:bg-white hover:text-blue-600"
-              >
-                <FaInstagram className="size-4" />
-              </Link>
-              <Link
-                to="#"
-                aria-label="Facebook"
-                className="grid size-9 place-items-center rounded-lg border border-white/30 bg-white/10 text-white transition-colors hover:bg-white hover:text-blue-600"
-              >
-                <ThumbsUp className="size-4" />
-              </Link>
-              <Link
-                to="https://wa.me/55"
-                target="_blank"
-                rel="noreferrer noopener"
-                aria-label="WhatsApp"
-                className="grid size-9 place-items-center rounded-lg border border-white/30 bg-white/10 text-white transition-colors hover:bg-white hover:text-blue-600"
-              >
-                <FaWhatsapp className="size-4" />
-              </Link>
-            </div>
-          </div>
+              <Icon className="size-4" />
+            </a>
+          ))}
         </div>
 
-        <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-white/20 pt-6 sm:flex-row">
-          <p className="text-xs text-blue-50/80">
-            © {new Date().getFullYear()} JoaoTem. Todos os direitos reservados.
-          </p>
-          <div className="flex items-center gap-4 text-xs text-blue-50/80">
-            <Link
-              to="/termos"
-              className="transition-colors hover:text-white"
-            >
-              Termos de uso
-            </Link>
-            <span className="h-3 w-px bg-white/30" />
-            <Link to="#" className="transition-colors hover:text-white">
-              Privacidade
-            </Link>
-          </div>
-        </div>
+        <nav className="flex items-center gap-6 text-sm text-gray-600">
+          <Link to="/termos" className="transition-colors hover:text-gray-900">
+            Termos de uso
+          </Link>
+          <Link to="#" className="transition-colors hover:text-gray-900">
+            Privacidade
+          </Link>
+          <Link to="#" className="transition-colors hover:text-gray-900">
+            Contato
+          </Link>
+        </nav>
+
+        <p className="text-xs text-gray-500">
+          © {new Date().getFullYear()} Joao Tem. Todos os direitos reservados.
+        </p>
       </div>
     </footer>
   );
