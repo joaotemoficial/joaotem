@@ -21,8 +21,8 @@ import {
 const NAV_LINKS = [
   { to: "/", label: "Início" },
   { to: "/#categorias", label: "Categorias" },
-  { to: "/negocios", label: "Negócios" },
-  { to: "/promocoes", label: "Promoções" },
+  { to: "/#empresas-em-destaque", label: "Negócios" },
+  { to: "/#promocoes", label: "Promoções" },
   { to: "/planos", label: "Planos" },
   { to: "/#como-funciona", label: "Como funciona" },
 ] as const;

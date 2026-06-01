@@ -325,7 +325,7 @@ export default function Home() {
       </section>
 
       {promotions.length > 0 ? (
-        <section className=" mx-auto max-w-6xl px-4 py-8">
+        <section id="promocoes" className=" mx-auto max-w-6xl px-4 py-8">
           <div className="flex items-baseline justify-between gap-2 pb-3">
             <div className="space-y-1">
               <h1 className="text-2xl text-slate-700 font-bold tracking-tight">
