@@ -121,7 +121,7 @@ export default function BusinessesIndex() {
           <input
             name="q"
             defaultValue={filters.q}
-            placeholder="Buscar por nome…"
+            placeholder="Buscar por nome, categoria, descrição…"
             className="h-9 rounded-lg border border-input bg-transparent px-2.5 text-sm sm:col-span-2"
           />
           <select

@@ -45,6 +45,12 @@ export default function AdminLayout() {
 					>
 						Recursos
 					</Link>
+					<Link
+						to="/admin/search-synonyms"
+						className="text-muted-foreground hover:text-foreground"
+					>
+						Sinônimos
+					</Link>
 				</nav>
 			</div>
 			<Outlet />

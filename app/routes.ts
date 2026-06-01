@@ -57,5 +57,6 @@ export default [
 		route("admin/businesses/:id", "routes/admin/business-detail.tsx"),
 		route("admin/reclaims", "routes/admin/reclaims.tsx"),
 		route("admin/feature-flags", "routes/admin/feature-flags.tsx"),
+		route("admin/search-synonyms", "routes/admin/search-synonyms.tsx"),
 	]),
 ] satisfies RouteConfig;
