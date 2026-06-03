@@ -197,11 +197,11 @@ export default function Home() {
         <div aria-hidden className="absolute inset-0 bg-[#102A43]/80" />
 
         <div className="relative z-10 mx-auto max-w-6xl px-4 text-center">
-          <div className="mx-auto max-w-3xl">
+          <div className="mx-auto max-w-3xl mt-[-4rem]">
             <img
-              src="/SVG2.svg"
+              src="/hero-logo2.svg"
               alt="João Tem"
-              className="animate-in fade-in fill-mode-both mx-auto size-46 object-contain duration-700"
+              className="animate-in fade-in fill-mode-both mx-auto size-72 object-contain duration-700"
             />
 
             <h1 className="animate-in fade-in fill-mode-both mb-8 text-balance text-3xl font-bold leading-tight text-primary-foreground duration-700 [animation-delay:0.1s] sm:text-4xl lg:text-5xl">
