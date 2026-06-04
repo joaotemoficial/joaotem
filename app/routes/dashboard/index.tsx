@@ -14,6 +14,7 @@ import {
 	Crown,
 	ExternalLink,
 	Megaphone,
+	Pencil,
 	Plus,
 	ShoppingBag,
 	Sparkles,
@@ -216,6 +217,8 @@ function OwnerBusinessCard({
 }) {
 	const base = `/dashboard/businesses/${b.id}`;
 	const showPublicLink = b.status === "approved" && b.effective_tier !== null;
+	const tileCls =
+		"flex flex-col items-center gap-1 rounded-lg px-2 py-2.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground";
 
 	return (
 		<li
@@ -224,7 +227,7 @@ function OwnerBusinessCard({
 		>
 			<div className="group flex h-full flex-col overflow-hidden rounded-2xl bg-card shadow-sm ring-1 ring-border/70 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:ring-border">
 				{/* Cover */}
-				<div className="relative h-20 w-full overflow-hidden bg-gradient-to-br from-primary/20 via-sky-100 to-secondary">
+				<div className="relative h-24 w-full shrink-0 overflow-hidden bg-gradient-to-br from-primary/20 via-sky-100 to-secondary">
 					{b.cover_url ? (
 						<img
 							src={b.cover_url}
@@ -237,48 +240,42 @@ function OwnerBusinessCard({
 							className="absolute inset-0 opacity-60 [background-image:radial-gradient(circle_at_1px_1px,var(--color-primary)_1px,transparent_0)] [background-size:14px_14px]"
 						/>
 					)}
-					<div className="absolute inset-0 bg-gradient-to-t from-card/40 to-transparent" />
+					<div className="absolute inset-0 bg-gradient-to-t from-card/30 to-transparent" />
 				</div>
 
-				{/* Identity */}
-				<div className="px-4">
-					<div className="-mt-7 flex items-end justify-between gap-2">
-						<div className="size-14 shrink-0 overflow-hidden rounded-2xl bg-background shadow-sm ring-4 ring-card">
-							{b.logo_url ? (
-								<img
-									src={b.logo_url}
-									alt=""
-									className="h-full w-full object-cover"
-								/>
-							) : (
-								<div className="grid h-full w-full place-items-center bg-gradient-to-br from-primary to-sky-400 text-base font-bold text-primary-foreground">
-									{b.name.charAt(0).toUpperCase()}
-								</div>
-							)}
-						</div>
-						<div className="mb-1 flex items-center gap-1.5">
-							<PlanBadge tier={b.effective_tier} />
-						</div>
+				{/* Identity: logo, then name + handle below it */}
+				<div className="relative z-10 -mt-9 px-4">
+					<div className="size-16 shrink-0 overflow-hidden rounded-2xl bg-background shadow-md ring-4 ring-card">
+						{b.logo_url ? (
+							<img
+								src={b.logo_url}
+								alt=""
+								className="h-full w-full object-cover"
+							/>
+						) : (
+							<div className="grid h-full w-full place-items-center bg-gradient-to-br from-primary to-sky-400 text-lg font-bold text-primary-foreground">
+								{b.name.charAt(0).toUpperCase()}
+							</div>
+						)}
+					</div>
+					<div className="mt-2.5">
+						<h3 className="truncate text-sm font-semibold tracking-tight text-foreground">
+							{b.name}
+						</h3>
+						<p className="truncate text-xs text-muted-foreground">
+							@{b.handle}
+						</p>
 					</div>
 				</div>
 
 				{/* Body */}
 				<div className="flex flex-1 flex-col px-4 pb-4 pt-3">
-					<div className="flex items-start justify-between gap-2">
-						<div className="min-w-0">
-							<h3 className="truncate text-sm font-semibold tracking-tight text-foreground">
-								{b.name}
-							</h3>
-							<p className="truncate text-xs text-muted-foreground">
-								@{b.handle}
-							</p>
-						</div>
-						<Badge
-							variant={STATUS_VARIANT[b.status] ?? "secondary"}
-							className="shrink-0"
-						>
+					{/* Status + plan, on a readable card background */}
+					<div className="flex flex-wrap items-center gap-1.5">
+						<Badge variant={STATUS_VARIANT[b.status] ?? "secondary"}>
 							{BUSINESS_STATUS_LABELS[b.status]}
 						</Badge>
+						<PlanBadge tier={b.effective_tier} />
 					</div>
 
 					{/* Plan / status notices */}
@@ -314,36 +311,22 @@ function OwnerBusinessCard({
 					) : null}
 
 					{/* Actions */}
-					<div className="mt-4 flex flex-1 flex-col justify-end">
-						<div className="flex flex-wrap items-center gap-1.5 border-t border-border/60 pt-3">
-							<Link
-								to={base}
-								className={buttonVariants({ variant: "outline", size: "sm" })}
-							>
+					<div className="mt-4 flex flex-1 flex-col justify-end gap-2 border-t border-border/60 pt-3">
+						<div className="grid grid-cols-3 gap-1.5">
+							<Link to={base} className={tileCls}>
+								<Pencil className="size-4" />
 								Editar
 							</Link>
-							<Link
-								to={`${base}/products`}
-								className={buttonVariants({
-									variant: "ghost",
-									size: "sm",
-									className: "gap-1",
-								})}
-							>
-								<ShoppingBag />
+							<Link to={`${base}/products`} className={tileCls}>
+								<ShoppingBag className="size-4" />
 								Produtos
 							</Link>
-							<Link
-								to={`${base}/promotions`}
-								className={buttonVariants({
-									variant: "ghost",
-									size: "sm",
-									className: "gap-1",
-								})}
-							>
-								<Megaphone />
+							<Link to={`${base}/promotions`} className={tileCls}>
+								<Megaphone className="size-4" />
 								Promoções
 							</Link>
+						</div>
+						<div className="flex items-center gap-1">
 							<Link
 								to={`/dashboard/upgrade?business=${b.id}`}
 								className={buttonVariants({
@@ -352,7 +335,7 @@ function OwnerBusinessCard({
 									className:
 										b.effective_tier === null
 											? "gap-1 text-destructive hover:text-destructive"
-											: "gap-1",
+											: "gap-1 text-muted-foreground",
 								})}
 							>
 								<Sparkles />

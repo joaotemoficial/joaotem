@@ -25,10 +25,13 @@ import type { FeatureFlagRow } from "~/repositories/feature-flags";
 import { isError } from "~/types";
 import type { Route } from "./+types/plans";
 
-// Reusable call-to-action button styles. Orange is the conversion accent,
-// the primary blue outline is the secondary action — mirroring the reference.
-const ctaOrange =
-	"inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-orange-500 px-7 text-base font-semibold text-white shadow-sm transition-colors hover:bg-orange-600";
+// Conversion CTAs. On the blue gradient banners we use a white pill with a blue
+// label (mirroring the home "cta-cadastro" section); on light sections a solid
+// blue button. The blue outline is the secondary action.
+const ctaOnGradient =
+	"inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-background px-7 text-base font-semibold text-primary shadow-sm transition-colors hover:bg-background/90";
+const ctaSolid =
+	"inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-7 text-base font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90";
 const ctaOutline =
 	"inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-primary/30 bg-card px-7 text-base font-semibold text-primary transition-colors hover:bg-primary/5";
 
@@ -313,7 +316,7 @@ export default function Plans() {
 					</p>
 
 					<div className="animate-in fade-in fill-mode-both flex justify-center duration-700 [animation-delay:0.3s]">
-						<Link to="/signup" className={`${ctaOrange} w-full sm:w-auto`}>
+						<Link to="/signup" className={`${ctaOnGradient} w-full sm:w-auto`}>
 							<Store className="size-[18px]" />
 							Cadastrar meu negócio
 							<ArrowRight className="size-[18px]" />
@@ -534,7 +537,7 @@ export default function Plans() {
 					</div>
 
 					<div className="mt-12 flex justify-center">
-						<Link to="/signup" className={ctaOrange}>
+						<Link to="/signup" className={ctaSolid}>
 							Cadastrar meu negócio
 							<ArrowRight className="size-[18px]" />
 						</Link>
@@ -720,13 +723,7 @@ export default function Plans() {
 			</section>
 
 			{/* Vitrine em Rede */}
-			<section
-				className="relative overflow-hidden py-16 sm:py-20"
-				style={{
-					background:
-						"linear-gradient(135deg, #2563EB 0%, #3B82F6 100%)",
-				}}
-			>
+			<section className="relative overflow-hidden bg-linear-to-t from-sky-600 to-indigo-600 py-16 sm:py-20">
 				<div className="mx-auto max-w-5xl px-4">
 					<div className="mx-auto max-w-3xl text-center">
 						<h2 className="text-balance text-2xl font-bold tracking-tight text-primary-foreground sm:text-3xl">
@@ -761,7 +758,7 @@ export default function Plans() {
 					</div>
 
 					<div className="mt-10 flex justify-center">
-						<Link to="/signup" className={ctaOrange}>
+						<Link to="/signup" className={ctaOnGradient}>
 							Cadastrar meu negócio
 							<ArrowRight className="size-[18px]" />
 						</Link>
@@ -952,13 +949,7 @@ export default function Plans() {
 			</section>
 
 			{/* Final CTA */}
-			<section
-				className="relative overflow-hidden py-16 sm:py-20"
-				style={{
-					background:
-						"linear-gradient(135deg, #2563EB 0%, #3B82F6 100%)",
-				}}
-			>
+			<section className="relative overflow-hidden bg-linear-to-t from-sky-600 to-indigo-600 py-16 sm:py-20">
 				<div className="mx-auto max-w-2xl px-4 text-center">
 					<h2 className="text-balance text-2xl font-bold tracking-tight text-primary-foreground sm:text-3xl">
 						Comece hoje e amplie a visibilidade do seu negócio no João Tem
@@ -968,7 +959,7 @@ export default function Plans() {
 						presença mais forte, mais visível e mais conectada dentro da cidade.
 					</p>
 					<div className="mt-8 flex justify-center">
-						<Link to="/signup" className={ctaOrange}>
+						<Link to="/signup" className={ctaOnGradient}>
 							<ShieldCheck className="size-[18px]" />
 							Cadastrar meu negócio
 							<ArrowRight className="size-[18px]" />

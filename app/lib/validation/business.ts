@@ -54,7 +54,13 @@ export const businessFormSchema = z.object({
 	whatsapp: z
 		.string()
 		.trim()
-		.regex(WHATSAPP_REGEX, "Apenas números, com DDD (10–13 dígitos)"),
+		// The UI shows a mask like "(11) 9.9999-9999"; strip everything that
+		// isn't a digit so we always persist a clean number.
+		.transform((v) => v.replace(/\D/g, ""))
+		.refine(
+			(v) => WHATSAPP_REGEX.test(v),
+			"Informe um WhatsApp válido com DDD",
+		),
 	instagram: z
 		.string()
 		.trim()

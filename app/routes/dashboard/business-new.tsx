@@ -1,5 +1,6 @@
 import { useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
+import { Sparkles, Store } from "lucide-react";
 import { redirect, useLoaderData, useNavigation } from "react-router";
 import { BusinessForm } from "~/components/business/business-form";
 import { Label } from "~/components/ui/label";
@@ -77,14 +78,21 @@ export default function BusinessNew({ actionData }: Route.ComponentProps) {
 	const planMessageError = submissionErrors.plan_message?.[0];
 
 	return (
-		<main className="mx-auto max-w-3xl px-4 py-8">
-			<div className="pb-6">
-				<h1 className="text-xl font-semibold tracking-tight">Cadastrar Negócio</h1>
-				<p className="text-sm text-muted-foreground">
-					Preencha os dados do negócio e escolha o plano. Após enviar, um
-					administrador entra em contato para confirmar o pagamento e ativar a
-					assinatura.
-				</p>
+		<main className="mx-auto max-w-3xl px-4 py-8 sm:py-10">
+			<div className="mb-7 flex items-start gap-4">
+				<span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary">
+					<Store className="size-6" />
+				</span>
+				<div>
+					<h1 className="text-2xl font-semibold tracking-tight">
+						Cadastrar Negócio
+					</h1>
+					<p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+						Preencha os dados do negócio e escolha o plano. Após enviar, um
+						administrador entra em contato para confirmar o pagamento e ativar a
+						assinatura.
+					</p>
+				</div>
 			</div>
 			<BusinessForm
 				form={form}
@@ -109,11 +117,18 @@ export default function BusinessNew({ actionData }: Route.ComponentProps) {
 				submitLabel="Salvar e continuar"
 				extra={
 					<>
-						<h2 className="text-base font-semibold">Escolha um plano</h2>
-						<p className="pb-3 text-xs text-muted-foreground">
-							O administrador vai analisar sua solicitação e confirmar o
-							pagamento pelo WhatsApp.
-						</p>
+						<div className="-mx-5 -mt-5 mb-5 flex items-center gap-3 border-b border-border/50 bg-muted/30 px-5 py-4">
+							<span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+								<Sparkles className="size-4.5" />
+							</span>
+							<div className="min-w-0">
+								<h2 className="text-sm font-semibold">Escolha um plano</h2>
+								<p className="text-xs text-muted-foreground">
+									O administrador vai analisar sua solicitação e confirmar o
+									pagamento pelo WhatsApp.
+								</p>
+							</div>
+						</div>
 						<div className="grid gap-3 sm:grid-cols-2">
 							<label className="flex flex-col gap-1.5 text-sm sm:col-span-1">
 								<Label htmlFor="requested_plan">Plano desejado *</Label>
