@@ -41,61 +41,85 @@ export default function Login({ actionData }: Route.ComponentProps) {
 	});
 
 	return (
-		<main className="mx-auto flex min-h-svh max-w-md flex-col justify-center px-4 py-10">
-			<div className="space-y-1.5 pb-6">
-				<h1 className="text-xl font-semibold tracking-tight">Entrar</h1>
-				<p className="text-sm text-muted-foreground">
-					Acesse sua conta para gerenciar seus negócios.
+		<main className="mx-auto flex min-h-svh flex-col items-center justify-center bg-secondary px-6 py-12">
+			<div className="w-full max-w-[520px] rounded-[28px] border border-border bg-card p-9 shadow-[0_20px_50px_rgba(16,42,67,0.08)]">
+				<img
+					src="/joao-tem-logo.svg"
+					alt="João Tem"
+					className="mx-auto mb-5 h-auto w-[90px]"
+				/>
+
+				<h1 className="text-center text-3xl font-black tracking-tighter text-accent">
+					Entrar
+				</h1>
+				<p className="mt-2 mb-8 text-center text-[15px] leading-relaxed text-muted-foreground">
+					Acesse sua conta para gerenciar seus negócios no João Tem.
 				</p>
-			</div>
 
-			<Form
-				method="post"
-				{...getFormProps(form)}
-				className="flex flex-col gap-4"
-			>
-				<div className="flex flex-col gap-1.5">
-					<Label htmlFor={fields.email.id}>E-mail</Label>
-					<Input
-						{...getInputProps(fields.email, { type: "email" })}
-						placeholder="voce@exemplo.com"
-						autoComplete="email"
-					/>
-					{fields.email.errors ? (
-						<p className="text-xs text-destructive">{fields.email.errors[0]}</p>
-					) : null}
-				</div>
+				<Form
+					method="post"
+					{...getFormProps(form)}
+					className="flex flex-col gap-[18px]"
+				>
+					<div className="flex flex-col gap-2">
+						<Label htmlFor={fields.email.id} className="text-sm font-extrabold">
+							E-mail
+						</Label>
+						<Input
+							{...getInputProps(fields.email, { type: "email" })}
+							placeholder="voce@exemplo.com"
+							autoComplete="email"
+							className="h-[52px] rounded-2xl px-4 text-[15px]"
+						/>
+						{fields.email.errors ? (
+							<p className="text-xs text-destructive">
+								{fields.email.errors[0]}
+							</p>
+						) : null}
+					</div>
 
-				<div className="flex flex-col gap-1.5">
-					<Label htmlFor={fields.password.id}>Senha</Label>
-					<Input
-						{...getInputProps(fields.password, { type: "password" })}
-						autoComplete="current-password"
-					/>
-					{fields.password.errors ? (
-						<p className="text-xs text-destructive">
-							{fields.password.errors[0]}
+					<div className="flex flex-col gap-2">
+						<Label
+							htmlFor={fields.password.id}
+							className="text-sm font-extrabold"
+						>
+							Senha
+						</Label>
+						<Input
+							{...getInputProps(fields.password, { type: "password" })}
+							placeholder="Digite sua senha"
+							autoComplete="current-password"
+							className="h-[52px] rounded-2xl px-4 text-[15px]"
+						/>
+						{fields.password.errors ? (
+							<p className="text-xs text-destructive">
+								{fields.password.errors[0]}
+							</p>
+						) : null}
+					</div>
+
+					{form.errors ? (
+						<p className="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
+							{form.errors[0]}
 						</p>
 					) : null}
-				</div>
 
-				{form.errors ? (
-					<p className="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
-						{form.errors[0]}
+					<Button
+						type="submit"
+						disabled={submitting}
+						className="mt-1.5 h-[54px] rounded-2xl text-[15px] font-black hover:bg-accent"
+					>
+						{submitting ? "Entrando…" : "Entrar"}
+					</Button>
+
+					<p className="pt-3 text-center text-sm text-muted-foreground">
+						Ainda não tem conta?{" "}
+						<Link to="/signup" className="font-extrabold text-primary">
+							Cadastre-se
+						</Link>
 					</p>
-				) : null}
-
-				<Button type="submit" disabled={submitting}>
-					{submitting ? "Entrando…" : "Entrar"}
-				</Button>
-
-				<p className="pt-2 text-center text-sm text-muted-foreground">
-					Ainda não tem conta?{" "}
-					<Link to="/signup" className="font-medium text-foreground underline">
-						Cadastre-se
-					</Link>
-				</p>
-			</Form>
+				</Form>
+			</div>
 		</main>
 	);
 }

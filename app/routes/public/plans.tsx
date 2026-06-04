@@ -25,12 +25,9 @@ import type { FeatureFlagRow } from "~/repositories/feature-flags";
 import { isError } from "~/types";
 import type { Route } from "./+types/plans";
 
-// Conversion CTAs. On the blue gradient banners we use a white pill with a blue
-// label (mirroring the home "cta-cadastro" section); on light sections a solid
-// blue button. The blue outline is the secondary action.
-const ctaOnGradient =
-	"inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-background px-7 text-base font-semibold text-primary shadow-sm transition-colors hover:bg-background/90";
-const ctaSolid =
+// Reusable call-to-action button styles. Orange is the conversion accent,
+// the primary blue outline is the secondary action — mirroring the reference.
+const ctaOrange =
 	"inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-7 text-base font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90";
 const ctaOutline =
 	"inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-primary/30 bg-card px-7 text-base font-semibold text-primary transition-colors hover:bg-primary/5";
@@ -292,7 +289,7 @@ export default function Plans() {
 					className="absolute inset-0"
 					style={{
 						background:
-							"linear-gradient(135deg, rgba(37,99,235,0.95) 0%, rgba(59,130,246,0.88) 100%)",
+							"linear-gradient(135deg, rgba(16,42,67,0.95) 0%, rgba(16,42,67,0.88) 100%)",
 					}}
 				/>
 
@@ -723,7 +720,13 @@ export default function Plans() {
 			</section>
 
 			{/* Vitrine em Rede */}
-			<section className="relative overflow-hidden bg-linear-to-t from-sky-600 to-indigo-600 py-16 sm:py-20">
+			<section
+				className="relative overflow-hidden py-16 sm:py-20"
+				style={{
+					background:
+						"#102A43",
+				}}
+			>
 				<div className="mx-auto max-w-5xl px-4">
 					<div className="mx-auto max-w-3xl text-center">
 						<h2 className="text-balance text-2xl font-bold tracking-tight text-primary-foreground sm:text-3xl">
@@ -949,7 +952,13 @@ export default function Plans() {
 			</section>
 
 			{/* Final CTA */}
-			<section className="relative overflow-hidden bg-linear-to-t from-sky-600 to-indigo-600 py-16 sm:py-20">
+			<section
+				className="relative overflow-hidden py-16 sm:py-20"
+				style={{
+					background:
+						"#102A43",
+				}}
+			>
 				<div className="mx-auto max-w-2xl px-4 text-center">
 					<h2 className="text-balance text-2xl font-bold tracking-tight text-primary-foreground sm:text-3xl">
 						Comece hoje e amplie a visibilidade do seu negócio no João Tem
@@ -968,7 +977,7 @@ export default function Plans() {
 				</div>
 			</section>
 
-			<SiteFooter />
+			<SiteFooter className="mt-0" />
 		</div>
 	);
 }

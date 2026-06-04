@@ -404,7 +404,7 @@ function InputWithIcon({
 	);
 }
 
-function NativeSelect({
+export function NativeSelect({
 	className,
 	children,
 	icon: Icon,
@@ -432,7 +432,7 @@ function NativeSelect({
 	);
 }
 
-function ImageUpload({
+export function ImageUpload({
 	name,
 	label,
 	currentUrl,

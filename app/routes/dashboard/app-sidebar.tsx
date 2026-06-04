@@ -131,7 +131,7 @@ export function AppSidebar({
         <Link
           to="/dashboard"
           aria-label="João Tem — Painel"
-          className="flex items-center rounded-xl px-1.5 py-1 outline-hidden ring-sidebar-ring transition-colors focus-visible:ring-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
+          className="flex items-center justify-center rounded-xl px-1.5 py-1 outline-hidden ring-sidebar-ring transition-colors focus-visible:ring-2 group-data-[collapsible=icon]:px-0"
         >
           <img
             src="/joao-tem-logo.svg"
@@ -141,7 +141,7 @@ export function AppSidebar({
           <img
             src="/SVG2.svg"
             alt="João Tem"
-            className="hidden size-8 shrink-0 object-contain group-data-[collapsible=icon]:block"
+            className="mx-auto hidden size-8 shrink-0 object-contain group-data-[collapsible=icon]:block"
           />
         </Link>
 

@@ -1,10 +1,8 @@
-import { useForm } from "@conform-to/react";
+import { type SubmissionResult, useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
-import { Sparkles, Store } from "lucide-react";
-import { redirect, useLoaderData, useNavigation } from "react-router";
-import { BusinessForm } from "~/components/business/business-form";
-import { Label } from "~/components/ui/label";
-import { Textarea } from "~/components/ui/textarea";
+import { useLoaderData, useNavigation } from "react-router";
+import { BusinessOnboardingForm } from "~/components/business/business-onboarding-form";
+import { BusinessSuccess } from "~/components/business/business-success";
 import { requireUser } from "~/lib/auth.server";
 import { handleBusinessSubmission } from "~/lib/business-action.server";
 import { businessFormSchema } from "~/lib/validation/business";
@@ -21,8 +19,10 @@ export const meta: Route.MetaFunction = () => [
 export async function loader({ request }: Route.LoaderArgs) {
 	const ctx = await requireUser(request);
 	const planParam = new URL(request.url).searchParams.get("plan");
-	const requestedPlan =
-		planParam === "basico" || planParam === "ouro" ? planParam : "ouro";
+	// `planLocked` means a valid plan came in via the URL — render it read-only
+	// (the "PLANO SELECIONADO" card) instead of letting the owner pick one.
+	const planLocked = planParam === "basico" || planParam === "ouro";
+	const requestedPlan = planLocked ? (planParam as "basico" | "ouro") : "ouro";
 	const [cats, cities, neighborhoods] = await Promise.all([
 		categoriesRepo.listActive({ supabase: ctx.supabase }),
 		citiesRepo.listActive({ supabase: ctx.supabase }),
@@ -41,6 +41,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 			city_id: string;
 		}>,
 		requestedPlan,
+		planLocked,
 	};
 }
 
@@ -53,17 +54,44 @@ export async function action({ request }: Route.ActionArgs) {
 		userId: ctx.user.id,
 	});
 	if (!result.ok) return result.submission;
-	throw redirect("/dashboard", { headers: ctx.headers });
+	// Instead of redirecting, hand back enough data to render the
+	// "Cadastro iniciado!" confirmation screen with an activation CTA.
+	const field = (key: string) => {
+		const value = formData.get(key);
+		return typeof value === "string" ? value : "";
+	};
+	return {
+		ok: true as const,
+		business: {
+			name: field("name"),
+			handle: result.handle,
+			categoryId: field("category_id"),
+			neighborhoodId: field("neighborhood_id"),
+			requestedPlan:
+				field("requested_plan") === "basico"
+					? ("basico" as const)
+					: ("ouro" as const),
+		},
+	};
 }
 
 export default function BusinessNew({ actionData }: Route.ComponentProps) {
-	const { categories, cities, neighborhoods, requestedPlan } =
+	const { categories, cities, neighborhoods, requestedPlan, planLocked } =
 		useLoaderData<typeof loader>();
+
+	// On a successful submission the action returns the confirmation payload
+	// (instead of redirecting) so we can render the "Cadastro iniciado!" screen.
+	const success = actionData && "ok" in actionData ? actionData : null;
+	// Everything below only concerns the form; isolate the SubmissionResult.
+	const formResult = (success ? undefined : actionData) as
+		| SubmissionResult<string[]>
+		| undefined;
+
 	const navigation = useNavigation();
 	const submitting = navigation.state !== "idle";
 
 	const [form, fields] = useForm({
-		lastResult: actionData,
+		lastResult: formResult,
 		shouldRevalidate: "onBlur",
 		onValidate({ formData }) {
 			return parseWithZod(formData, { schema: businessFormSchema });
@@ -73,28 +101,32 @@ export default function BusinessNew({ actionData }: Route.ComponentProps) {
 	// Plan-picker errors come back keyed by their schema field names,
 	// merged into the same submission.error map by handleBusinessSubmission.
 	const submissionErrors =
-		(actionData as { error?: Record<string, string[]> } | null)?.error ?? {};
+		(formResult as { error?: Record<string, string[]> } | null)?.error ?? {};
 	const planError = submissionErrors.requested_plan?.[0];
 	const planMessageError = submissionErrors.plan_message?.[0];
 
+	if (success) {
+		const categoryName = categories.find(
+			(c) => c.id === success.business.categoryId,
+		)?.name;
+		const neighborhoodName = neighborhoods.find(
+			(n) => n.id === success.business.neighborhoodId,
+		)?.name;
+		return (
+			<main className="mx-auto max-w-xl px-4 py-8">
+				<BusinessSuccess
+					name={success.business.name}
+					categoryName={categoryName}
+					neighborhoodName={neighborhoodName}
+					requestedPlan={success.business.requestedPlan}
+				/>
+			</main>
+		);
+	}
+
 	return (
-		<main className="mx-auto max-w-3xl px-4 py-8 sm:py-10">
-			<div className="mb-7 flex items-start gap-4">
-				<span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-primary/10 text-primary">
-					<Store className="size-6" />
-				</span>
-				<div>
-					<h1 className="text-2xl font-semibold tracking-tight">
-						Cadastrar Negócio
-					</h1>
-					<p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-						Preencha os dados do negócio e escolha o plano. Após enviar, um
-						administrador entra em contato para confirmar o pagamento e ativar a
-						assinatura.
-					</p>
-				</div>
-			</div>
-			<BusinessForm
+		<main className="mx-auto max-w-3xl px-4 py-8">
+			<BusinessOnboardingForm
 				form={form}
 				fields={{
 					name: fields.name,
@@ -112,62 +144,11 @@ export default function BusinessNew({ actionData }: Route.ComponentProps) {
 				categories={categories}
 				cities={cities}
 				neighborhoods={neighborhoods}
-				defaults={{}}
+				requestedPlan={requestedPlan}
+				planLocked={planLocked}
+				planError={planError}
+				planMessageError={planMessageError}
 				submitting={submitting}
-				submitLabel="Salvar e continuar"
-				extra={
-					<>
-						<div className="-mx-5 -mt-5 mb-5 flex items-center gap-3 border-b border-border/50 bg-muted/30 px-5 py-4">
-							<span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-								<Sparkles className="size-4.5" />
-							</span>
-							<div className="min-w-0">
-								<h2 className="text-sm font-semibold">Escolha um plano</h2>
-								<p className="text-xs text-muted-foreground">
-									O administrador vai analisar sua solicitação e confirmar o
-									pagamento pelo WhatsApp.
-								</p>
-							</div>
-						</div>
-						<div className="grid gap-3 sm:grid-cols-2">
-							<label className="flex flex-col gap-1.5 text-sm sm:col-span-1">
-								<Label htmlFor="requested_plan">Plano desejado *</Label>
-								<select
-									id="requested_plan"
-									name="requested_plan"
-									defaultValue={requestedPlan}
-									required
-									className="h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-								>
-									<option value="ouro">
-										Ouro — destaque + produtos + promoções
-									</option>
-									<option value="basico">
-										Básico — listagem em buscas
-									</option>
-								</select>
-								{planError ? (
-									<span className="text-xs text-destructive">{planError}</span>
-								) : null}
-							</label>
-							<label className="flex flex-col gap-1.5 text-sm sm:col-span-2">
-								<Label htmlFor="plan_message">Mensagem (opcional)</Label>
-								<Textarea
-									id="plan_message"
-									name="plan_message"
-									rows={2}
-									maxLength={500}
-									placeholder="Algum detalhe que o administrador deva saber…"
-								/>
-								{planMessageError ? (
-									<span className="text-xs text-destructive">
-										{planMessageError}
-									</span>
-								) : null}
-							</label>
-						</div>
-					</>
-				}
 			/>
 		</main>
 	);

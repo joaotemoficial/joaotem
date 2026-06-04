@@ -145,24 +145,24 @@ export async function loader({ request }: Route.LoaderArgs) {
         schedule_note: p.schedule_note,
         cover_url: cover
           ? getPublicUrl(
-              ctx.supabase,
-              PROMOTION_IMAGE_BUCKET,
-              cover.storage_path,
-            )
+            ctx.supabase,
+            PROMOTION_IMAGE_BUCKET,
+            cover.storage_path,
+          )
           : null,
         business: biz
           ? {
-              handle: biz.handle,
-              name: biz.name,
-              whatsapp: biz.whatsapp,
-              logo_url: getPublicUrl(
-                ctx.supabase,
-                "business-logos",
-                biz.logo_path,
-              ),
-              city: bizCity,
-              neighborhood: bizNeighborhood,
-            }
+            handle: biz.handle,
+            name: biz.name,
+            whatsapp: biz.whatsapp,
+            logo_url: getPublicUrl(
+              ctx.supabase,
+              "business-logos",
+              biz.logo_path,
+            ),
+            city: bizCity,
+            neighborhood: bizNeighborhood,
+          }
           : null,
       };
     }),
@@ -474,7 +474,7 @@ export default function Home() {
                 encontrado por milhares de clientes em potencial.
               </p>
               <Link
-                to="/signup"
+                to="/planos"
                 className="text-primary inline-flex h-11 items-center gap-2 rounded-lg bg-background px-5 text-sm font-semibold shadow-sm transition-colors hover:bg-background/90"
               >
                 <Store className="size-4" />

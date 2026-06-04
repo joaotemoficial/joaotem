@@ -1,5 +1,6 @@
 import { FaFacebookF, FaInstagram, FaTiktok, FaWhatsapp } from "react-icons/fa";
 import { Link } from "react-router";
+import { cn } from "~/lib/utils";
 
 const socialLinks = [
   { href: "#", label: "Instagram", Icon: FaInstagram },
@@ -8,9 +9,9 @@ const socialLinks = [
   { href: "#", label: "TikTok", Icon: FaTiktok },
 ];
 
-export function SiteFooter() {
+export function SiteFooter({ className }: { className?: string }) {
   return (
-    <footer className="mt-12 border-t border-gray-200 bg-white">
+    <footer className={cn("mt-12 border-t border-gray-200 bg-white", className)}>
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-6 px-4 py-12 text-center">
         <Link to="/" aria-label="João Tem" className="inline-flex items-center">
           <img

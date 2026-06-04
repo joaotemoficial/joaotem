@@ -111,7 +111,7 @@ export default function DashboardHome() {
 				/>
 				<div
 					aria-hidden
-					className="pointer-events-none absolute -left-20 top-10 size-56 rounded-full bg-whatsapp/10 blur-3xl"
+					className="pointer-events-none absolute -left-20 top-10 size-56 rounded-full bg-primary/10 blur-3xl"
 				/>
 				<div className="relative mx-auto w-full max-w-5xl px-4 py-8 sm:py-10">
 					<div className="flex flex-wrap items-end justify-between gap-4">
