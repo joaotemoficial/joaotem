@@ -313,7 +313,7 @@ export default function Plans() {
 					</p>
 
 					<div className="animate-in fade-in fill-mode-both flex justify-center duration-700 [animation-delay:0.3s]">
-						<Link to="/signup" className={`${ctaOnGradient} w-full sm:w-auto`}>
+						<Link to="/signup" className={`w-full sm:w-auto`}>
 							<Store className="size-[18px]" />
 							Cadastrar meu negócio
 							<ArrowRight className="size-[18px]" />
@@ -534,7 +534,7 @@ export default function Plans() {
 					</div>
 
 					<div className="mt-12 flex justify-center">
-						<Link to="/signup" className={ctaSolid}>
+						<Link to="/signup" >
 							Cadastrar meu negócio
 							<ArrowRight className="size-[18px]" />
 						</Link>
@@ -761,7 +761,7 @@ export default function Plans() {
 					</div>
 
 					<div className="mt-10 flex justify-center">
-						<Link to="/signup" className={ctaOnGradient}>
+						<Link to="/signup" >
 							Cadastrar meu negócio
 							<ArrowRight className="size-[18px]" />
 						</Link>
@@ -968,7 +968,7 @@ export default function Plans() {
 						presença mais forte, mais visível e mais conectada dentro da cidade.
 					</p>
 					<div className="mt-8 flex justify-center">
-						<Link to="/signup" className={ctaOnGradient}>
+						<Link to="/signup">
 							<ShieldCheck className="size-[18px]" />
 							Cadastrar meu negócio
 							<ArrowRight className="size-[18px]" />
