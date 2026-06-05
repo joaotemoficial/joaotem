@@ -36,7 +36,7 @@ const PLAN_DISPLAY = {
 	basico: {
 		tier: "basico",
 		name: "Plano Básico",
-		price: "R$ 7,90",
+		price: "R$ 29,90",
 		period: "/mês",
 		tagline:
 			"A forma mais simples e acessível de colocar seu negócio na busca do WhatsApp e no portal, para ser encontrado com mais facilidade.",
@@ -45,7 +45,7 @@ const PLAN_DISPLAY = {
 	ouro: {
 		tier: "ouro",
 		name: "Presença Completa",
-		price: "R$ 47,90",
+		price: "R$ 79,90",
 		period: "/mês",
 		tagline:
 			"Para quem quer ir além do básico e dar ao negócio mais visibilidade, presença e chances de receber contatos e pedidos.",

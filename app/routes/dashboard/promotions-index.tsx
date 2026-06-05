@@ -1,4 +1,5 @@
 import { Link, useLoaderData } from "react-router";
+import { FeatureUpgradeCallout } from "~/components/business/feature-upgrade-callout";
 import { Badge } from "~/components/ui/badge";
 import { Button, buttonVariants } from "~/components/ui/button";
 import { requireUser } from "~/lib/auth.server";
@@ -8,7 +9,7 @@ import {
 	hasFeature,
 	resolveFlagsForBusiness,
 } from "~/lib/feature-flags.server";
-import { effectivePlanTier } from "~/lib/plan";
+import { effectivePlanTier, subscriptionStatus } from "~/lib/plan";
 import { PROMOTION_IMAGE_BUCKET, getPublicUrl } from "~/lib/storage.server";
 import { maskToDays } from "~/lib/validation/business";
 import * as businessesRepo from "~/repositories/businesses";
@@ -65,6 +66,11 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
 	return {
 		business: { id: business.id, name: business.name, handle: business.handle },
+		subscriptionStatus: subscriptionStatus({
+			plan_tier: business.plan_tier,
+			plan_started_at: business.plan_started_at,
+			plan_expires_at: business.plan_expires_at,
+		}),
 		canUsePromotions,
 		promotionLimit,
 		currentCount,
@@ -111,6 +117,7 @@ function formatDateRange(starts: string | null, ends: string | null): string | n
 export default function PromotionsIndex() {
 	const {
 		business,
+		subscriptionStatus: status,
 		promotions,
 		canUsePromotions,
 		promotionLimit,
@@ -162,39 +169,22 @@ export default function PromotionsIndex() {
 			</div>
 
 			{!canUsePromotions ? (
-				<div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3">
-					<div>
-						<p className="text-sm font-semibold text-amber-900">
-							Promoções da semana é um recurso Ouro
-						</p>
-						<p className="text-xs text-amber-800">
-							Faça upgrade para o plano Ouro para divulgar promoções.
-						</p>
-					</div>
-					<Link
-						to={`/dashboard/upgrade?business=${business.id}`}
-						className={buttonVariants({ variant: "default", size: "sm" })}
-					>
-						Solicitar upgrade
-					</Link>
-				</div>
+				<FeatureUpgradeCallout
+					business={business}
+					status={status}
+					feature="Promoções da semana"
+					action="divulgar promoções"
+					itemPlural="promoções"
+				/>
 			) : atLimit ? (
-				<div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3">
-					<div>
-						<p className="text-sm font-semibold text-amber-900">
-							Você atingiu o limite de {promotionLimit} promoções
-						</p>
-						<p className="text-xs text-amber-800">
-							Atualize seu plano para divulgar mais promoções.
-						</p>
-					</div>
-					<Link
-						to={`/dashboard/upgrade?business=${business.id}`}
-						className={buttonVariants({ variant: "default", size: "sm" })}
-					>
-						Solicitar upgrade
-					</Link>
-				</div>
+				<FeatureUpgradeCallout
+					business={business}
+					status={status}
+					feature="Promoções da semana"
+					action="divulgar promoções"
+					itemPlural="promoções"
+					limit={promotionLimit ?? undefined}
+				/>
 			) : null}
 
 			{promotions.length === 0 ? (

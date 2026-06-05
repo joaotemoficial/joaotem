@@ -4,16 +4,25 @@ import { Badge } from "~/components/ui/badge";
 import { buttonVariants } from "~/components/ui/button";
 import { requireUser } from "~/lib/auth.server";
 import { BUSINESS_STATUS_LABELS } from "~/lib/constants";
-import { daysUntilExpiry, effectivePlanTier } from "~/lib/plan";
+import {
+	activationWhatsappHref,
+	daysUntilExpiry,
+	effectivePlanTier,
+	type PlanTier,
+	type SubscriptionStatus,
+	subscriptionStatus,
+} from "~/lib/plan";
 import { getPublicUrl } from "~/lib/storage.server";
 import { cn } from "~/lib/utils";
 import * as businesses from "~/repositories/businesses";
-import { unwrap } from "~/types";
+import * as planUpgradeRepo from "~/repositories/plan-upgrade-requests";
+import { isError, unwrap } from "~/types";
 import {
 	CircleAlert,
 	Crown,
 	ExternalLink,
 	Megaphone,
+	MessageCircle,
 	Pencil,
 	Plus,
 	ShoppingBag,
@@ -27,11 +36,26 @@ export const meta: Route.MetaFunction = () => [{ title: "Meu painel — JoaoTem"
 
 export async function loader({ request }: Route.LoaderArgs) {
 	const ctx = await requireUser(request);
-	const result = await businesses.listByUser({
-		supabase: ctx.supabase,
-		userId: ctx.user.id,
-	});
+	const [result, requestsResult] = await Promise.all([
+		businesses.listByUser({ supabase: ctx.supabase, userId: ctx.user.id }),
+		planUpgradeRepo.listForOwner({
+			supabase: ctx.supabase,
+			userId: ctx.user.id,
+		}),
+	]);
 	const list = unwrap(result);
+
+	// Most recent pending request per business — used to suggest a plan in the
+	// "never subscribed" WhatsApp activation message. Already ordered desc.
+	const pendingPlanByBusiness: Record<string, PlanTier> = {};
+	if (!isError(requestsResult)) {
+		for (const r of requestsResult.success) {
+			if (r.status === "pending" && !(r.business_id in pendingPlanByBusiness)) {
+				pendingPlanByBusiness[r.business_id] = r.requested_plan;
+			}
+		}
+	}
+
 	const items = (Array.isArray(list) ? list : []).map((b) => ({
 		...b,
 		logo_url: getPublicUrl(ctx.supabase, "business-logos", b.logo_path),
@@ -41,8 +65,31 @@ export async function loader({ request }: Route.LoaderArgs) {
 			plan_expires_at: b.plan_expires_at,
 		}),
 		days_until_expiry: daysUntilExpiry(b.plan_expires_at),
+		subscription_status: subscriptionStatus({
+			plan_tier: b.plan_tier,
+			plan_started_at: b.plan_started_at,
+			plan_expires_at: b.plan_expires_at,
+		}),
+		requested_plan: pendingPlanByBusiness[b.id] ?? ("ouro" as PlanTier),
 	}));
 	return data({ items }, { headers: ctx.headers });
+}
+
+// Label for the plan action button, given the subscription status and the
+// active tier. "never" is handled separately (WhatsApp CTA) and never reaches
+// this function.
+function planActionLabel(
+	status: SubscriptionStatus,
+	effectiveTier: PlanTier | null,
+): string {
+	switch (status) {
+		case "expired":
+			return "Solicitar renovação";
+		case "active":
+			return effectiveTier === "basico" ? "Upgrade" : "Plano";
+		default:
+			return "Plano";
+	}
 }
 
 const STATUS_VARIANT: Record<
@@ -279,7 +326,17 @@ function OwnerBusinessCard({
 					</div>
 
 					{/* Plan / status notices */}
-					{b.effective_tier === null ? (
+					{b.subscription_status === "never" ? (
+						<div className="mt-3 rounded-lg bg-amber-400/10 px-2.5 py-2 text-xs">
+							<p className="font-semibold text-amber-700">
+								Negócio em rascunho — oculto do site.
+							</p>
+							<p className="text-amber-700/80">
+								Envie uma mensagem no WhatsApp dizendo que quer pagar para
+								ativar.
+							</p>
+						</div>
+					) : b.subscription_status === "expired" ? (
 						<div className="mt-3 rounded-lg bg-destructive/10 px-2.5 py-2 text-xs">
 							<p className="font-semibold text-destructive">
 								Plano inativo — oculto do site.
@@ -327,24 +384,36 @@ function OwnerBusinessCard({
 							</Link>
 						</div>
 						<div className="flex items-center gap-1">
-							<Link
-								to={`/dashboard/upgrade?business=${b.id}`}
-								className={buttonVariants({
-									variant: "ghost",
-									size: "sm",
-									className:
-										b.effective_tier === null
-											? "gap-1 text-destructive hover:text-destructive"
-											: "gap-1 text-muted-foreground",
-								})}
-							>
-								<Sparkles />
-								{b.effective_tier === null
-									? "Renovar"
-									: b.effective_tier === "basico"
-										? "Upgrade"
-										: "Renovar"}
-							</Link>
+							{b.subscription_status === "never" ? (
+								<a
+									href={activationWhatsappHref(b.name, b.requested_plan)}
+									target="_blank"
+									rel="noreferrer"
+									className={buttonVariants({
+										variant: "ghost",
+										size: "sm",
+										className: "gap-1 text-whatsapp hover:text-whatsapp",
+									})}
+								>
+									<MessageCircle />
+									Quero pagar
+								</a>
+							) : (
+								<Link
+									to={`/dashboard/upgrade?business=${b.id}`}
+									className={buttonVariants({
+										variant: "ghost",
+										size: "sm",
+										className:
+											b.subscription_status === "expired"
+												? "gap-1 text-destructive hover:text-destructive"
+												: "gap-1 text-muted-foreground",
+									})}
+								>
+									<Sparkles />
+									{planActionLabel(b.subscription_status, b.effective_tier)}
+								</Link>
+							)}
 							{showPublicLink ? (
 								<a
 									href={`/negocio/${b.handle}`}

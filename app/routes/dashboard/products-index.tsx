@@ -1,4 +1,5 @@
 import { Link, useLoaderData } from "react-router";
+import { FeatureUpgradeCallout } from "~/components/business/feature-upgrade-callout";
 import { Badge } from "~/components/ui/badge";
 import { Button, buttonVariants } from "~/components/ui/button";
 import { requireUser } from "~/lib/auth.server";
@@ -7,7 +8,7 @@ import {
 	hasFeature,
 	resolveFlagsForBusiness,
 } from "~/lib/feature-flags.server";
-import { effectivePlanTier } from "~/lib/plan";
+import { effectivePlanTier, subscriptionStatus } from "~/lib/plan";
 import { PRODUCT_IMAGE_BUCKET, getPublicUrl } from "~/lib/storage.server";
 import { formatBRL } from "~/lib/validation/business";
 import * as businessesRepo from "~/repositories/businesses";
@@ -63,6 +64,11 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
 	return {
 		business: { id: business.id, name: business.name, handle: business.handle },
+		subscriptionStatus: subscriptionStatus({
+			plan_tier: business.plan_tier,
+			plan_started_at: business.plan_started_at,
+			plan_expires_at: business.plan_expires_at,
+		}),
 		canUseProducts,
 		productLimit,
 		currentCount,
@@ -95,6 +101,7 @@ export async function action({ params, request }: Route.ActionArgs) {
 export default function ProductsIndex() {
 	const {
 		business,
+		subscriptionStatus: status,
 		products,
 		canUseProducts,
 		productLimit,
@@ -146,16 +153,21 @@ export default function ProductsIndex() {
 			</div>
 
 			{!canUseProducts ? (
-				<UpgradeBanner
-					businessId={business.id}
-					title="Vitrine de produtos é um recurso Ouro"
-					message="Faça upgrade para o plano Ouro para começar a publicar produtos na sua página."
+				<FeatureUpgradeCallout
+					business={business}
+					status={status}
+					feature="Vitrine de produtos"
+					action="publicar produtos"
+					itemPlural="produtos"
 				/>
 			) : atLimit ? (
-				<UpgradeBanner
-					businessId={business.id}
-					title={`Você atingiu o limite de ${productLimit} produtos`}
-					message="Atualize seu plano para cadastrar mais produtos."
+				<FeatureUpgradeCallout
+					business={business}
+					status={status}
+					feature="Vitrine de produtos"
+					action="publicar produtos"
+					itemPlural="produtos"
+					limit={productLimit ?? undefined}
 				/>
 			) : null}
 
@@ -225,30 +237,5 @@ export default function ProductsIndex() {
 				</ul>
 			)}
 		</main>
-	);
-}
-
-function UpgradeBanner({
-	businessId,
-	title,
-	message,
-}: {
-	businessId: string;
-	title: string;
-	message: string;
-}) {
-	return (
-		<div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3">
-			<div>
-				<p className="text-sm font-semibold text-amber-900">{title}</p>
-				<p className="text-xs text-amber-800">{message}</p>
-			</div>
-			<Link
-				to={`/dashboard/upgrade?business=${businessId}`}
-				className={buttonVariants({ variant: "default", size: "sm" })}
-			>
-				Solicitar upgrade
-			</Link>
-		</div>
 	);
 }

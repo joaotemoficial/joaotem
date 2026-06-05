@@ -1,14 +1,20 @@
 import { parseWithZod } from "@conform-to/zod";
-import { Form, Link, redirect, useLoaderData, useNavigation } from "react-router";
-import { PlanBadge } from "~/components/business/plan-badge";
-import { Button } from "~/components/ui/button";
-import { Label } from "~/components/ui/label";
-import { Textarea } from "~/components/ui/textarea";
+import { MessageCircle, RefreshCw, ShieldCheck } from "lucide-react";
+import { data, Link, redirect, useLoaderData } from "react-router";
+import { BusinessSuccess } from "~/components/business/business-success";
+import {
+	parseActiveBusinessId,
+	resolveActiveBusinessId,
+	serializeActiveBusinessId,
+} from "~/lib/active-business.server";
 import { requireUser } from "~/lib/auth.server";
 import {
 	daysUntilExpiry,
 	effectivePlanTier,
-	planLabel,
+	type PlanTier,
+	renewalWhatsappHref,
+	subscriptionStatus,
+	supportWhatsappHref,
 } from "~/lib/plan";
 import { planUpgradeRequestSchema } from "~/lib/validation/plan";
 import * as businessesRepo from "~/repositories/businesses";
@@ -23,17 +29,41 @@ export const meta: Route.MetaFunction = () => [
 export async function loader({ request }: Route.LoaderArgs) {
 	const ctx = await requireUser(request);
 	const url = new URL(request.url);
-	const selectedBusinessId = url.searchParams.get("business") ?? "";
 
-	const [businessesResult, requestsResult] = await Promise.all([
+	const [businessesResult, requestsResult, cookieId] = await Promise.all([
 		businessesRepo.listByUser({ supabase: ctx.supabase, userId: ctx.user.id }),
 		planUpgradeRepo.listForOwner({
 			supabase: ctx.supabase,
 			userId: ctx.user.id,
 		}),
+		parseActiveBusinessId(request),
 	]);
 	if (isError(businessesResult))
 		throw new Response(businessesResult.error, { status: 500 });
+
+	const businessIds = businessesResult.success.map((b) => b.id);
+
+	// A `?business=` may arrive from a dashboard card or feature callout. Consume
+	// it once: persist the selection to the shared active-business cookie and
+	// redirect to the clean URL, so the cookie is the single source of truth —
+	// consistent with the rest of the dashboard.
+	const paramBusinessId = url.searchParams.get("business");
+	if (paramBusinessId && businessIds.includes(paramBusinessId)) {
+		const headers = new Headers(ctx.headers);
+		headers.append(
+			"Set-Cookie",
+			await serializeActiveBusinessId(paramBusinessId),
+		);
+		throw redirect("/dashboard/upgrade", { headers });
+	}
+
+	const selectedBusinessId =
+		resolveActiveBusinessId({
+			pathname: url.pathname,
+			cookieId,
+			businessIds,
+		}) ?? "";
+
 	const myBusinesses = businessesResult.success.map((b) => ({
 		id: b.id,
 		name: b.name,
@@ -45,10 +75,41 @@ export async function loader({ request }: Route.LoaderArgs) {
 			plan_expires_at: b.plan_expires_at,
 		}),
 		days_until_expiry: daysUntilExpiry(b.plan_expires_at),
+		status: subscriptionStatus({
+			plan_tier: b.plan_tier,
+			plan_started_at: b.plan_started_at,
+			plan_expires_at: b.plan_expires_at,
+		}),
+		category_name: b.category?.name ?? undefined,
+		neighborhood_name: b.neighborhood?.name ?? undefined,
 	}));
 	const recentRequests = isError(requestsResult) ? [] : requestsResult.success;
 
-	return { myBusinesses, recentRequests, selectedBusinessId };
+	// Most recent pending request per business — drives the plan shown to a
+	// never-subscriber on the BusinessSuccess screen. The list is already
+	// ordered by created_at desc, so the first pending row per business wins.
+	const pendingPlanByBusiness: Record<string, PlanTier> = {};
+	for (const r of recentRequests) {
+		if (r.status === "pending" && !(r.business_id in pendingPlanByBusiness)) {
+			pendingPlanByBusiness[r.business_id] = r.requested_plan;
+		}
+	}
+
+	// Persist a self-healed selection (stale/empty cookie → first business) so it
+	// sticks on the next navigation, mirroring the dashboard layout loader.
+	let headers = ctx.headers;
+	if (selectedBusinessId && selectedBusinessId !== cookieId) {
+		headers = new Headers(ctx.headers);
+		headers.append(
+			"Set-Cookie",
+			await serializeActiveBusinessId(selectedBusinessId),
+		);
+	}
+
+	return data(
+		{ myBusinesses, selectedBusinessId, pendingPlanByBusiness },
+		{ headers },
+	);
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -109,28 +170,9 @@ export async function action({ request }: Route.ActionArgs) {
 	throw redirect("/dashboard/upgrade?submitted=1", { headers: ctx.headers });
 }
 
-const REQUEST_STATUS_LABELS: Record<string, string> = {
-	pending: "Pendente",
-	approved: "Aprovada",
-	rejected: "Rejeitada",
-	canceled: "Cancelada",
-};
-
-export default function DashboardUpgrade({
-	actionData,
-}: Route.ComponentProps) {
-	const { myBusinesses, recentRequests, selectedBusinessId } =
+export default function DashboardUpgrade() {
+	const { myBusinesses, selectedBusinessId, pendingPlanByBusiness } =
 		useLoaderData<typeof loader>();
-	const navigation = useNavigation();
-	const submitting = navigation.state !== "idle";
-	const formErrors =
-		actionData && "submission" in actionData
-			? (actionData.submission as { error?: Record<string, string[]> } | null)
-					?.error ?? {}
-			: {};
-	const justSubmitted =
-		typeof window !== "undefined" &&
-		window.location.search.includes("submitted=1");
 
 	if (myBusinesses.length === 0) {
 		return (
@@ -153,151 +195,81 @@ export default function DashboardUpgrade({
 		);
 	}
 
+	// The active business comes from the shared cookie (resolved in the loader),
+	// so it's always a business the owner owns. Switch business via the sidebar.
+	const selected =
+		myBusinesses.find((b) => b.id === selectedBusinessId) ?? myBusinesses[0];
+
+	if (selected.status === "never") {
+		const requestedPlan = pendingPlanByBusiness[selected.id] ?? "ouro";
+		return (
+			<main className="mx-auto max-w-3xl px-4 py-8">
+				<BusinessSuccess
+					name={selected.name}
+					categoryName={selected.category_name}
+					neighborhoodName={selected.neighborhood_name}
+					requestedPlan={requestedPlan}
+					editHref={`/dashboard/businesses/${selected.id}`}
+					title="Ative seu negócio"
+					subtitle="Seu negócio ainda não está ativo. Envie uma mensagem no WhatsApp para concluir o pagamento e aparecer no João Tem."
+				/>
+			</main>
+		);
+	}
+
+	// Plan is active and fine — no form, just confirmation + a support contact.
+	if (selected.status === "active") {
+		const expiryNote =
+			selected.days_until_expiry != null
+				? ` Seu plano expira em ${selected.days_until_expiry} dia(s).`
+				: "";
+		return (
+			<main className="mx-auto max-w-3xl px-4 py-8">
+				<BusinessSuccess
+					name={selected.name}
+					categoryName={selected.category_name}
+					neighborhoodName={selected.neighborhood_name}
+					requestedPlan={selected.effective_tier ?? "ouro"}
+					editHref={`/dashboard/businesses/${selected.id}`}
+					title="Seu plano está ativo"
+					subtitle={`Está tudo certo com o seu plano.${expiryNote} Se tiver qualquer dúvida, fale com o nosso suporte pelo WhatsApp.`}
+					headerIcon={ShieldCheck}
+					badgeLabel="Ativo"
+					badgeTone="active"
+					planCardLabel="Plano atual:"
+					steps={[]}
+					primaryLabel="Falar com o suporte"
+					primaryHref={supportWhatsappHref(selected.name)}
+					primaryIcon={MessageCircle}
+					secondaryLabel="Editar negócio"
+				/>
+			</main>
+		);
+	}
+
+	// Expired → renew directly through WhatsApp, same callout pattern as the
+	// activation (never) and support (active) states.
+	const renewPlan = selected.plan_tier ?? "ouro";
 	return (
 		<main className="mx-auto max-w-3xl px-4 py-8">
-			<div className="pb-6">
-				<h1 className="text-xl font-semibold tracking-tight">
-					Solicitar / renovar plano
-				</h1>
-				<p className="text-sm text-muted-foreground">
-					Envie uma solicitação. Um administrador vai entrar em contato pelo
-					WhatsApp para finalizar o pagamento e ativar/renovar seu plano.
-				</p>
-			</div>
-
-			{justSubmitted ? (
-				<div className="mb-6 rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-					Solicitação enviada. Aguarde o contato do administrador.
-				</div>
-			) : null}
-
-			<Form method="post" className="flex flex-col gap-4">
-				<label className="flex flex-col gap-1.5 text-sm">
-					<Label htmlFor="business-select">Negócio *</Label>
-					<select
-						id="business-select"
-						name="business_id"
-						defaultValue={selectedBusinessId}
-						required
-						className="h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-					>
-						<option value="" disabled>
-							Selecione um negócio
-						</option>
-						{myBusinesses.map((b) => (
-							<option key={b.id} value={b.id}>
-								{b.name} ({planLabel(b.effective_tier)})
-							</option>
-						))}
-					</select>
-					{formErrors.business_id?.[0] ? (
-						<span className="text-xs text-destructive">
-							{formErrors.business_id[0]}
-						</span>
-					) : null}
-				</label>
-
-				<label className="flex flex-col gap-1.5 text-sm">
-					<Label htmlFor="plan-select">Plano desejado *</Label>
-					<select
-						id="plan-select"
-						name="requested_plan"
-						defaultValue="ouro"
-						required
-						className="h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-					>
-						<option value="ouro">Ouro — destaque + produtos + promoções</option>
-						<option value="basico">Básico — listagem em buscas</option>
-					</select>
-					{formErrors.requested_plan?.[0] ? (
-						<span className="text-xs text-destructive">
-							{formErrors.requested_plan[0]}
-						</span>
-					) : null}
-				</label>
-
-				<label className="flex flex-col gap-1.5 text-sm">
-					<Label htmlFor="message">Mensagem (opcional)</Label>
-					<Textarea
-						id="message"
-						name="message"
-						rows={3}
-						maxLength={500}
-						placeholder="Algum detalhe sobre o pedido…"
-					/>
-					{formErrors.message?.[0] ? (
-						<span className="text-xs text-destructive">
-							{formErrors.message[0]}
-						</span>
-					) : null}
-				</label>
-
-				{formErrors[""]?.[0] ? (
-					<p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-						{formErrors[""][0]}
-					</p>
-				) : null}
-
-				<div>
-					<Button type="submit" disabled={submitting}>
-						{submitting ? "Enviando…" : "Enviar solicitação"}
-					</Button>
-				</div>
-			</Form>
-
-			{recentRequests.length > 0 ? (
-				<section className="mt-10">
-					<h2 className="pb-3 text-base font-semibold tracking-tight">
-						Suas solicitações
-					</h2>
-					<ul className="flex flex-col gap-3">
-						{recentRequests.map((r) => (
-							<li
-								key={r.id}
-								className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/70 bg-card p-4 text-sm"
-							>
-								<div>
-									<div className="flex items-center gap-2">
-										<PlanBadge tier={r.requested_plan} />
-										<span className="text-xs text-muted-foreground">
-											{new Date(r.created_at).toLocaleString("pt-BR")}
-										</span>
-									</div>
-									{r.message ? (
-										<p className="mt-1 text-xs text-muted-foreground">
-											{r.message}
-										</p>
-									) : null}
-									{r.review_notes ? (
-										<p className="mt-1 rounded-md bg-muted px-2 py-1 text-xs">
-											Resposta: {r.review_notes}
-										</p>
-									) : null}
-								</div>
-								<div className="flex items-center gap-2">
-									<span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
-										{REQUEST_STATUS_LABELS[r.status] ?? r.status}
-									</span>
-									{r.status === "pending" ? (
-										<Form method="post">
-											<input type="hidden" name="intent" value="cancel" />
-											<input type="hidden" name="request_id" value={r.id} />
-											<Button
-												type="submit"
-												variant="ghost"
-												size="sm"
-												disabled={submitting}
-											>
-												Cancelar
-											</Button>
-										</Form>
-									) : null}
-								</div>
-							</li>
-						))}
-					</ul>
-				</section>
-			) : null}
+			<BusinessSuccess
+				name={selected.name}
+				categoryName={selected.category_name}
+				neighborhoodName={selected.neighborhood_name}
+				requestedPlan={renewPlan}
+				editHref={`/dashboard/businesses/${selected.id}`}
+				title="Renove seu plano"
+				subtitle="Seu plano expirou e seu negócio está oculto do site. Renove pelo WhatsApp para voltar a aparecer nas buscas."
+				headerIcon={RefreshCw}
+				badgeLabel="Plano expirado"
+				badgeTone="expired"
+				planCardLabel="Plano para renovar:"
+				stepsTitle="Ao renovar:"
+				primaryLabel="Renovar pelo WhatsApp"
+				primaryHref={renewalWhatsappHref(selected.name, renewPlan)}
+				primaryIcon={MessageCircle}
+				secondaryLabel="Editar negócio"
+			/>
 		</main>
 	);
 }

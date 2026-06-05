@@ -395,7 +395,7 @@ export function BusinessOnboardingForm({
 							className="h-11 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 px-5 text-base shadow-md shadow-primary/20 hover:from-blue-600 hover:to-indigo-700"
 						>
 							<Rocket className="size-4" />
-							{submitting ? "Enviando…" : "Enviar cadastro para análise"}
+							{submitting ? "Enviando…" : "Enviar e continuar"}
 						</Button>
 					</div>
 				</section>
