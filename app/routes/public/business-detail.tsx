@@ -98,15 +98,15 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   const [productsResult, promotionsResult] = await Promise.all([
     showProducts
       ? productsRepo.listPublicByBusiness({
-          supabase: ctx.supabase,
-          businessId: business.id,
-        })
+        supabase: ctx.supabase,
+        businessId: business.id,
+      })
       : Promise.resolve({ success: [] as never[] }),
     showPromotions
       ? promotionsRepo.listPublicActiveToday({
-          supabase: ctx.supabase,
-          businessId: business.id,
-        })
+        supabase: ctx.supabase,
+        businessId: business.id,
+      })
       : Promise.resolve({ success: [] as never[] }),
   ]);
   const products = isError(productsResult) ? [] : productsResult.success;
@@ -190,10 +190,10 @@ export async function loader({ params, request }: Route.LoaderArgs) {
         schedule_note: p.schedule_note,
         cover_url: cover
           ? getPublicUrl(
-              ctx.supabase,
-              PROMOTION_IMAGE_BUCKET,
-              cover.storage_path,
-            )
+            ctx.supabase,
+            PROMOTION_IMAGE_BUCKET,
+            cover.storage_path,
+          )
           : null,
       };
     }),
@@ -418,13 +418,15 @@ export default function BusinessDetail({ actionData }: Route.ComponentProps) {
     const existing = cart.find((i) => i.key === item.key);
     const next = existing
       ? cart.map((i) =>
-          i.key === item.key
-            ? { ...i, quantity: i.quantity + item.quantity }
-            : i,
-        )
+        i.key === item.key
+          ? { ...i, quantity: i.quantity + item.quantity }
+          : i,
+      )
       : [...cart, item];
     setCart(next);
     persist(next);
+    // Mirror seufeira: adding an item immediately opens the bag.
+    setCartOpen(true);
   }
 
   function updateQty(key: string, delta: number) {
@@ -439,12 +441,6 @@ export default function BusinessDetail({ actionData }: Route.ComponentProps) {
     const next = cart.filter((i) => i.key !== key);
     setCart(next);
     persist(next);
-  }
-
-  function clearCart() {
-    setCart([]);
-    persist([]);
-    setCartOpen(false);
   }
 
   const itemCount = cart.reduce((s, i) => s + i.quantity, 0);
@@ -718,13 +714,10 @@ export default function BusinessDetail({ actionData }: Route.ComponentProps) {
         <CartModal
           items={cart}
           subtotalCents={subtotalCents}
-          businessName={business.name}
-          businessPhone={business.whatsapp}
-          offersDelivery={business.offers_delivery}
+          businessHandle={business.handle}
           onIncrement={(k) => updateQty(k, +1)}
           onDecrement={(k) => updateQty(k, -1)}
           onRemove={removeFromCart}
-          onCheckout={clearCart}
           onClose={() => setCartOpen(false)}
         />
       </Dialog>
@@ -776,11 +769,10 @@ function SectionTabs({ tabs }: { tabs: { id: string; label: string }[] }) {
             key={t.id}
             href={`#${t.id}`}
             onClick={() => setActive(t.id)}
-            className={`relative whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition-colors ${
-              active === t.id
+            className={`relative whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition-colors ${active === t.id
                 ? "border-primary text-foreground"
                 : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
+              }`}
           >
             {t.label}
           </a>
@@ -808,8 +800,8 @@ function ProductCard({
     .filter((p): p is number => p !== null);
   const minPrice = anyPriced
     ? Math.min(
-        ...(variantPrices.length ? variantPrices : [product.price_cents]),
-      )
+      ...(variantPrices.length ? variantPrices : [product.price_cents]),
+    )
     : product.price_cents;
   const showFrom =
     anyPriced && variantPrices.length > 1 && new Set(variantPrices).size > 1;
@@ -992,9 +984,8 @@ function ProductDetailModal({
                 return (
                   <label
                     key={value.id}
-                    className={`flex cursor-pointer items-center justify-between gap-3 px-3 py-2.5 text-sm transition-colors ${
-                      checked ? "bg-primary/5" : "hover:bg-muted/40"
-                    }`}
+                    className={`flex cursor-pointer items-center justify-between gap-3 px-3 py-2.5 text-sm transition-colors ${checked ? "bg-primary/5" : "hover:bg-muted/40"
+                      }`}
                   >
                     <span className="flex items-center gap-2.5">
                       <input
@@ -1037,7 +1028,7 @@ function ProductDetailModal({
             onChange={(e) => setNotes(e.target.value)}
             rows={2}
             maxLength={200}
-            placeholder="Ex.: sem cebola, ponto da carne…"
+            placeholder="Adicione alguma informação sobre o pedido"
           />
         </div>
       </div>
@@ -1120,79 +1111,30 @@ function FloatingCartBar({
 function CartModal({
   items,
   subtotalCents,
-  businessName,
-  businessPhone,
-  offersDelivery,
+  businessHandle,
   onIncrement,
   onDecrement,
   onRemove,
-  onCheckout,
   onClose,
 }: {
   items: CartItem[];
   subtotalCents: number;
-  businessName: string;
-  businessPhone: string;
-  offersDelivery: boolean;
+  businessHandle: string;
   onIncrement: (key: string) => void;
   onDecrement: (key: string) => void;
   onRemove: (key: string) => void;
-  onCheckout: () => void;
   onClose: () => void;
 }) {
-  const [customerName, setCustomerName] = useState("");
-  const [address, setAddress] = useState("");
-  const [reference, setReference] = useState("");
-  const [mode, setMode] = useState<"delivery" | "pickup">(
-    offersDelivery ? "delivery" : "pickup",
-  );
-
   const isEmpty = items.length === 0;
-  const nameMissing = customerName.trim().length === 0;
-  const addressMissing = mode === "delivery" && address.trim().length === 0;
-  const canCheckout = !isEmpty && !nameMissing && !addressMissing;
-
-  function checkout() {
-    if (!canCheckout) return;
-    const lines: string[] = [];
-    lines.push(`Olá! Gostaria de fazer um pedido em *${businessName}*:`);
-    lines.push("");
-    lines.push("🛒 *Itens*");
-    for (const item of items) {
-      const opts =
-        item.selections.length > 0
-          ? ` (${item.selections.map((s) => `${s.groupName}: ${s.value}`).join(", ")})`
-          : "";
-      lines.push(
-        `• ${item.quantity}x ${item.name}${opts} — ${formatBRL(item.unitPriceCents * item.quantity)}`,
-      );
-      if (item.notes) lines.push(`   _Obs: ${item.notes}_`);
-    }
-    lines.push("");
-    lines.push(`*Total: ${formatBRL(subtotalCents)}*`);
-    lines.push("");
-    lines.push(`👤 Nome: ${customerName.trim()}`);
-    if (mode === "delivery") {
-      lines.push(`📍 Entrega: ${address.trim()}`);
-      if (reference.trim()) lines.push(`   Referência: ${reference.trim()}`);
-    } else {
-      lines.push(`🏪 Retirada no local`);
-    }
-
-    const url = `https://wa.me/55${businessPhone}?text=${encodeURIComponent(
-      lines.join("\n"),
-    )}`;
-    window.open(url, "_blank", "noopener");
-    onCheckout();
-  }
 
   return (
     <DialogContent
       showCloseButton={false}
-      className="flex max-h-[90svh] max-w-lg flex-col overflow-hidden p-0 sm:max-w-lg"
+      className="flex max-h-[90svh] max-w-lg flex-col overflow-hidden p-0 duration-300 ease-out data-open:zoom-in-95 data-open:slide-in-from-bottom-4 data-closed:zoom-out-95 data-closed:slide-out-to-bottom-2 sm:max-w-lg"
     >
       <div className="flex items-center justify-between border-b border-border/60 px-5 py-3">
-        <DialogTitle className="text-base font-semibold">
+        <DialogTitle className="flex items-center gap-2 text-base font-semibold">
+          <ShoppingBag className="size-4" />
           Sua sacola
         </DialogTitle>
         <DialogClose
@@ -1297,93 +1239,28 @@ function CartModal({
           </ul>
 
           <div className="space-y-3 border-t border-border/60 bg-muted/30 px-5 py-4">
-            {offersDelivery ? (
-              <div className="inline-flex rounded-full border border-border/70 bg-background p-0.5 text-xs font-medium">
-                <button
-                  type="button"
-                  onClick={() => setMode("delivery")}
-                  className={`rounded-full px-3 py-1.5 transition-colors ${
-                    mode === "delivery"
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground"
-                  }`}
-                >
-                  Entrega
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMode("pickup")}
-                  className={`rounded-full px-3 py-1.5 transition-colors ${
-                    mode === "pickup"
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground"
-                  }`}
-                >
-                  Retirada
-                </button>
-              </div>
-            ) : null}
-
-            <div className="space-y-2">
-              <label className="block">
-                <span className="block pb-1 text-xs font-medium">
-                  Seu nome *
-                </span>
-                <Input
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="Como o vendedor deve te chamar"
-                />
-              </label>
-              {mode === "delivery" ? (
-                <>
-                  <label className="block">
-                    <span className="block pb-1 text-xs font-medium">
-                      Endereço de entrega *
-                    </span>
-                    <Input
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
-                      placeholder="Rua, número, bairro"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="block pb-1 text-xs font-medium">
-                      Referência (opcional)
-                    </span>
-                    <Input
-                      value={reference}
-                      onChange={(e) => setReference(e.target.value)}
-                      placeholder="Ex.: portão azul, ao lado da padaria"
-                    />
-                  </label>
-                </>
-              ) : null}
-            </div>
-
-            <div className="flex items-center justify-between pt-1 text-sm">
+            <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Total</span>
               <span className="text-base font-semibold tabular-nums">
                 {formatBRL(subtotalCents)}
               </span>
             </div>
 
-            <button
-              type="button"
-              onClick={checkout}
-              disabled={!canCheckout}
-              className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#25D366] text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#1ebe5d] disabled:cursor-not-allowed disabled:opacity-50"
+            <Link
+              to={`/negocio/${businessHandle}/checkout`}
+              onClick={onClose}
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#25D366] text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#1ebe5d]"
             >
               <FaWhatsapp className="size-4" />
-              Finalizar pelo WhatsApp
-            </button>
-            {!canCheckout && !isEmpty ? (
-              <p className="text-center text-[11px] text-muted-foreground">
-                {nameMissing
-                  ? "Informe seu nome para continuar."
-                  : "Informe o endereço de entrega."}
-              </p>
-            ) : null}
+              Finalizar pedido
+            </Link>
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className="w-full rounded-full"
+            >
+              Continuar comprando
+            </Button>
           </div>
         </>
       )}
@@ -1403,8 +1280,8 @@ function ReclaimSection({
   loggedIn: boolean;
   alreadyRequested: boolean;
   actionData:
-    | { reclaimOk?: boolean; reclaimError?: string; cartOk?: boolean }
-    | undefined;
+  | { reclaimOk?: boolean; reclaimError?: string; cartOk?: boolean }
+  | undefined;
 }) {
   if (!loggedIn) {
     return (

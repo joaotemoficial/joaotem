@@ -63,6 +63,7 @@ export async function action({ request }: Route.ActionArgs) {
 	return {
 		ok: true as const,
 		business: {
+			id: result.id,
 			name: field("name"),
 			handle: result.handle,
 			categoryId: field("category_id"),
@@ -119,6 +120,7 @@ export default function BusinessNew({ actionData }: Route.ComponentProps) {
 					categoryName={categoryName}
 					neighborhoodName={neighborhoodName}
 					requestedPlan={success.business.requestedPlan}
+					editHref={`/dashboard/businesses/${success.business.id}`}
 				/>
 			</main>
 		);

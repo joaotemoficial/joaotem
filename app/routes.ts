@@ -10,6 +10,7 @@ export default [
 	route("negocios", "routes/public/businesses-index.tsx"),
 	route("promocoes", "routes/public/promotions-index.tsx"),
 	route("negocio/:handle", "routes/public/business-detail.tsx"),
+	route("negocio/:handle/checkout", "routes/public/business-checkout.tsx"),
 	route("categoria/:slug", "routes/public/category.tsx"),
 	route("bairro/:citySlug/:slug", "routes/public/neighborhood.tsx"),
 	route("planos", "routes/public/plans.tsx"),
