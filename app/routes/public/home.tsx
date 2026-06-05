@@ -145,24 +145,24 @@ export async function loader({ request }: Route.LoaderArgs) {
         schedule_note: p.schedule_note,
         cover_url: cover
           ? getPublicUrl(
-            ctx.supabase,
-            PROMOTION_IMAGE_BUCKET,
-            cover.storage_path,
-          )
+              ctx.supabase,
+              PROMOTION_IMAGE_BUCKET,
+              cover.storage_path,
+            )
           : null,
         business: biz
           ? {
-            handle: biz.handle,
-            name: biz.name,
-            whatsapp: biz.whatsapp,
-            logo_url: getPublicUrl(
-              ctx.supabase,
-              "business-logos",
-              biz.logo_path,
-            ),
-            city: bizCity,
-            neighborhood: bizNeighborhood,
-          }
+              handle: biz.handle,
+              name: biz.name,
+              whatsapp: biz.whatsapp,
+              logo_url: getPublicUrl(
+                ctx.supabase,
+                "business-logos",
+                biz.logo_path,
+              ),
+              city: bizCity,
+              neighborhood: bizNeighborhood,
+            }
           : null,
       };
     }),
@@ -199,7 +199,7 @@ export default function Home() {
         <div className="relative z-10 mx-auto max-w-6xl px-4 text-center">
           <div className="mx-auto max-w-3xl mt-[-4rem]">
             <img
-              src="/hero-logo2.svg"
+              src="/SVG2.svg"
               alt="João Tem"
               className="animate-in fade-in fill-mode-both mx-auto size-72 object-contain duration-700"
             />

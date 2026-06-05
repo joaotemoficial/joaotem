@@ -63,7 +63,6 @@ export function SiteHeader({
           ))}
         </nav>
 
-        {/* Desktop auth actions */}
         <nav className="hidden items-center gap-1.5 md:flex">
           {user ? (
             <>
@@ -91,13 +90,22 @@ export function SiteHeader({
             <>
               <Link
                 to="/login"
-                className={buttonVariants({ variant: "ghost", size: "sm" })}
+                className={buttonVariants({
+                  variant: "outline",
+                  size: "sm",
+                  className:
+                    "h-auto border border-primary! py-2.5 text-primary hover:text-primary",
+                })}
               >
                 Entrar
               </Link>
               <Link
                 to="/planos"
-                className={buttonVariants({ variant: "default", size: "sm" })}
+                className={buttonVariants({
+                  variant: "default",
+                  size: "sm",
+                  className: "h-auto px-6 py-2.5",
+                })}
               >
                 <Building2 />
                 Cadastrar meu negócio
@@ -136,7 +144,11 @@ export function SiteHeader({
               </SheetTitle>
               <SheetClose
                 render={
-                  <Button variant="ghost" size="icon" aria-label="Fechar menu" />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Fechar menu"
+                  />
                 }
               >
                 <X className="size-5" />

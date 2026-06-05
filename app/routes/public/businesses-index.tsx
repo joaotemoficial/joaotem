@@ -1,5 +1,5 @@
 import { Form, Link, useLoaderData } from "react-router";
-import { ChevronDown, Frown, Search, Truck, X } from "lucide-react";
+import { ArrowLeft, ChevronDown, Frown, Search, Truck, X } from "lucide-react";
 import { BusinessCard } from "~/components/business/business-card";
 import { SiteFooter } from "~/components/nav/site-footer";
 import { SiteHeader } from "~/components/nav/site-header";
@@ -53,7 +53,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     console.error("[businesses-index.loader] businesses:", businesses.error);
     throw new Response(businesses.error, { status: 500 });
   }
-  if (isError(categories)) throw new Response(categories.error, { status: 500 });
+  if (isError(categories))
+    throw new Response(categories.error, { status: 500 });
   if (isError(cities)) throw new Response(cities.error, { status: 500 });
   if (isError(neighborhoods))
     throw new Response(neighborhoods.error, { status: 500 });
@@ -67,9 +68,6 @@ export async function loader({ request }: Route.LoaderArgs) {
     cover_url: getPublicUrl(ctx.supabase, "business-covers", b.cover_path),
   }));
 
-  // The ranked search RPC has no delivery predicate, so "Faz entrega" filters
-  // the current page's results client-side. Pagination is hidden while it's on
-  // to avoid showing a page-scoped count against the full total.
   if (delivery) items = items.filter((b) => b.offers_delivery);
 
   const selectedCategory =
@@ -97,9 +95,6 @@ export async function loader({ request }: Route.LoaderArgs) {
   };
 }
 
-// Submitting the surrounding GET form on change makes the dropdowns/toggle
-// behave like instant filters (progressive enhancement — still works via the
-// "Buscar" button without JS).
 function autoSubmit(e: { currentTarget: { form: HTMLFormElement | null } }) {
   e.currentTarget.form?.requestSubmit();
 }
@@ -153,10 +148,10 @@ export default function BusinessesIndex() {
 
   const hasActiveFilters = Boolean(
     filters.q ||
-      filters.cityId ||
-      filters.categoryId ||
-      filters.neighborhoodId ||
-      filters.delivery,
+    filters.cityId ||
+    filters.categoryId ||
+    filters.neighborhoodId ||
+    filters.delivery,
   );
 
   return (
@@ -164,26 +159,16 @@ export default function BusinessesIndex() {
       <SiteHeader user={user} role={profile?.role} />
 
       <Form method="get" className="flex-1">
-        {/* Hero search band */}
-        <section className="relative overflow-hidden bg-linear-to-br from-[#0b1f38] via-[#102A43] to-[#1d4ed8]">
-          <div
-            aria-hidden
-            className="absolute inset-0 opacity-[0.07] bg-[linear-gradient(to_right,#fff_1px,transparent_1px),linear-gradient(to_bottom,#fff_1px,transparent_1px)] bg-size-[32px_32px]"
-          />
-          <div
-            aria-hidden
-            className="absolute -top-24 -right-16 size-72 rounded-full bg-blue-400/30 blur-3xl"
-          />
-          <div
-            aria-hidden
-            className="absolute -bottom-28 -left-16 size-72 rounded-full bg-primary/40 blur-3xl"
-          />
-
-          <div className="relative z-10 mx-auto max-w-6xl px-4 py-12 sm:py-16">
-            <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium uppercase tracking-wide text-blue-100 backdrop-blur">
-              Marketplace local
-            </span>
-            <h1 className="mt-4 max-w-2xl text-balance text-3xl font-bold leading-tight text-white sm:text-4xl">
+        <section className="bg-[#102841]">
+          <div className="mx-auto max-w-6xl px-4 py-6">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium text-blue-100 transition-colors hover:bg-white/20"
+            >
+              <ArrowLeft className="size-3.5" />
+              Voltar
+            </Link>
+            <h1 className="mt-4 max-w-2xl text-balance text-2xl font-bold leading-tight text-white sm:text-3xl">
               {selectedCategoryName ? (
                 <>
                   Negócios em{" "}
@@ -196,42 +181,39 @@ export default function BusinessesIndex() {
                 </>
               )}
             </h1>
-            <p className="mt-2 max-w-xl text-sm text-blue-100/80 sm:text-base">
-              Procure por bairro, categoria ou nome e fale direto com o
-              comércio da sua cidade.
+            <p className="mt-2 max-w-xl text-sm text-blue-100/80">
+              Procure por bairro, categoria ou nome e fale direto com o comércio
+              da sua cidade.
             </p>
-
-            <div className="mt-6 max-w-2xl rounded-2xl bg-card p-2 shadow-xl ring-1 ring-black/5">
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <div className="relative w-full flex-1">
-                  <Search className="pointer-events-none absolute left-4 top-1/2 size-[18px] -translate-y-1/2 text-muted-foreground" />
-                  <input
-                    type="text"
-                    name="q"
-                    defaultValue={filters.q}
-                    placeholder="Procure por bairro, categoria ou nome"
-                    className="h-12 w-full rounded-xl bg-muted/50 pl-11 pr-4 text-foreground placeholder:text-muted-foreground transition-all focus:outline-none focus:ring-2 focus:ring-primary/30 sm:h-13"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className={buttonVariants({
-                    variant: "default",
-                    size: "lg",
-                    className: "h-12 shrink-0 gap-2 rounded-xl px-8 sm:h-13",
-                  })}
-                >
-                  <Search className="size-[18px]" />
-                  Buscar
-                </button>
-              </div>
-            </div>
           </div>
         </section>
 
         <main className="mx-auto w-full max-w-6xl px-4 py-6">
-          {/* Sticky filter bar */}
-          <div className="sticky top-16 z-20 -mx-4 mb-6 border-b border-border/70 bg-background/85 px-4 py-3 backdrop-blur sm:mx-0 sm:rounded-2xl sm:border sm:px-4 sm:shadow-sm">
+          <div className="mb-6 -mx-4 border-b border-border/70 px-4 py-3 sm:mx-0 sm:rounded-2xl sm:border sm:px-4 sm:shadow-sm">
+            <div className="mb-3 flex flex-col gap-2 sm:flex-row">
+              <div className="relative w-full flex-1">
+                <Search className="pointer-events-none absolute left-4 top-1/2 size-[18px] -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="text"
+                  name="q"
+                  defaultValue={filters.q}
+                  placeholder="Procure por bairro, categoria ou nome"
+                  className="h-12 w-full rounded-xl border border-input bg-card pl-11 pr-4 text-foreground placeholder:text-muted-foreground transition-all focus:outline-none focus:ring-2 focus:ring-primary/30"
+                />
+              </div>
+              <button
+                type="submit"
+                className={buttonVariants({
+                  variant: "default",
+                  size: "lg",
+                  className: "h-12 shrink-0 gap-2 rounded-xl px-8",
+                })}
+              >
+                <Search className="size-[18px]" />
+                Buscar
+              </button>
+            </div>
+
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:flex lg:flex-wrap lg:items-center">
                 <FilterSelect
@@ -344,19 +326,9 @@ export default function BusinessesIndex() {
             </ul>
           )}
 
-          {/* Page-scoped delivery filter can't paginate reliably, so hide it. */}
           {deliveryActive ? null : (
             <Pagination page={page} totalPages={totalPages} />
           )}
-
-          <div className="pt-10 text-center">
-            <Link
-              to="/"
-              className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-            >
-              ← Voltar à página inicial
-            </Link>
-          </div>
         </main>
       </Form>
 
