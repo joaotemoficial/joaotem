@@ -5,6 +5,7 @@
   "scripts": {
     "build": "react-router build",
     "dev": "react-router dev",
+    "generate-pwa-assets": "pwa-assets-generator",
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc"
   },
@@ -40,8 +41,12 @@
     "@types/node": "^22",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@vite-pwa/assets-generator": "^1.0.2",
+    "@vitejs/plugin-basic-ssl": "^2.3.0",
     "tailwindcss": "^4.2.2",
     "typescript": "^5.9.3",
-    "vite": "^8.0.3"
+    "vite": "^8.0.3",
+    "vite-plugin-pwa": "^1.3.0",
+    "workbox-window": "^7.4.1"
   }
 }

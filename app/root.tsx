@@ -7,6 +7,8 @@ import {
   ScrollRestoration,
 } from "react-router";
 
+import { InstallPrompt } from "~/components/pwa/InstallPrompt";
+import { RegisterPWA } from "~/components/pwa/RegisterPWA";
 import { Toaster } from "~/components/ui/sonner";
 import type { Route } from "./+types/root";
 import "./app.css";
@@ -22,6 +24,8 @@ export const links: Route.LinksFunction = () => [
     rel: "stylesheet",
     href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
   },
+  { rel: "manifest", href: "/manifest.webmanifest" },
+  { rel: "apple-touch-icon", href: "/apple-touch-icon-180x180.png" },
 ];
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -30,11 +34,20 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#ffffff" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta
+          name="apple-mobile-web-app-status-bar-style"
+          content="default"
+        />
+        <meta name="apple-mobile-web-app-title" content="João Tem" />
         <Meta />
         <Links />
       </head>
       <body>
         {children}
+        <RegisterPWA />
+        <InstallPrompt />
         <Toaster richColors closeButton position="top-right" />
         <ScrollRestoration />
         <Scripts />
