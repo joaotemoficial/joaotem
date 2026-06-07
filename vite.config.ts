@@ -40,6 +40,22 @@ export default defineConfig({
             purpose: "maskable",
           },
         ],
+        screenshots: [
+          {
+            src: "screenshots/wide.png",
+            sizes: "1280x800",
+            type: "image/png",
+            form_factor: "wide",
+            label: "João Tem no desktop",
+          },
+          {
+            src: "screenshots/narrow.png",
+            sizes: "720x1280",
+            type: "image/png",
+            // no form_factor => used for mobile rich install UI
+            label: "João Tem no celular",
+          },
+        ],
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,ico,woff2}"],

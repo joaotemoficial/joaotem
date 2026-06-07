@@ -5,6 +5,7 @@ import { SiteHeader } from "~/components/nav/site-header";
 import { PromotionCard } from "~/components/promotions/promotion-card";
 import { buttonVariants } from "~/components/ui/button";
 import { getSessionAndProfile } from "~/lib/auth.server";
+import { ACTIVATION_WHATSAPP } from "~/lib/plan";
 import { PROMOTION_IMAGE_BUCKET, getPublicUrl } from "~/lib/storage.server";
 import * as businessesRepo from "~/repositories/businesses";
 import * as categoriesRepo from "~/repositories/categories";
@@ -32,12 +33,25 @@ import { CategoriesCarousel } from "~/components/categories/categories-carousel"
 // Outline icons matched to the JoãoTem reference design (24x24, currentColor).
 const WHY_FEATURES = [
   {
-    paths: <path d="M4 10h16M6 6h12M7 14h10M9 18h6" />,
+    paths: (
+      <>
+        <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91 0z" />
+        <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />
+        <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" />
+        <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" />
+      </>
+    ),
     title: "Mais rápido para encontrar",
     desc: "O cliente encontra lojas, serviços, promoções e contatos sem precisar procurar em vários lugares.",
   },
   {
-    paths: <path d="M4 20V10l8-6 8 6v10M9 20v-6h6v6" />,
+    paths: (
+      <>
+        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+        <path d="M3 6h18" />
+        <path d="M16 10a4 4 0 0 1-8 0" />
+      </>
+    ),
     title: "Mais visibilidade para vender",
     desc: "Empresas ganham uma vitrine organizada para divulgar sua marca, produtos e diferenciais.",
   },
@@ -433,9 +447,16 @@ export default function Home() {
                     </span>
                   ))}
                 </div>
-                <span className="flex h-11 items-center justify-center gap-2 rounded-[14px] bg-[#2563EB] text-sm font-black text-white">
+                <a
+                  href={`https://wa.me/${ACTIVATION_WHATSAPP}?text=${encodeURIComponent(
+                    "Olá! Vi sua empresa no João Tem e tenho interesse nos seus produtos/serviços",
+                  )}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex h-11 items-center justify-center gap-2 rounded-[14px] bg-[#2563EB] text-sm font-black text-white"
+                >
                   💬 Chamar no WhatsApp
-                </span>
+                </a>
                 <div className="mt-3 grid grid-cols-3 gap-2">
                   {[ShoppingBag, Tag, Star].map((Icon, i) => (
                     <div
@@ -706,6 +727,7 @@ export default function Home() {
       </section>
 
       <section
+        id="planos"
         aria-labelledby="cta-cadastro"
         className="px-3.5 py-9 sm:px-6 sm:pt-12 sm:pb-14"
       >
@@ -753,7 +775,7 @@ export default function Home() {
 
           <div className="relative hidden min-h-[330px] overflow-hidden md:block">
             <img
-              src="https://images.unsplash.com/photo-1556740749-887f6717d7e4?q=80&w=1200&auto=format&fit=crop"
+              src="/plan-cta-callout.jpeg"
               alt="Empreendedor local"
               className="absolute inset-0 size-full object-cover"
             />

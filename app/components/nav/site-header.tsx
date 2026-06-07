@@ -23,7 +23,7 @@ const NAV_LINKS = [
   { to: "/#categorias", label: "Categorias" },
   { to: "/#empresas-em-destaque", label: "Negócios" },
   { to: "/#promocoes", label: "Promoções" },
-  { to: "/planos", label: "Planos" },
+  { to: "/#planos", label: "Planos" },
   { to: "/#como-funciona", label: "Como funciona" },
 ] as const;
 

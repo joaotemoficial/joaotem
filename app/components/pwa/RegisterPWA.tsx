@@ -7,6 +7,14 @@ import { useRegisterSW } from "virtual:pwa-register/react";
  * no-op during SSR (useRegisterSW only runs in the browser).
  */
 export function RegisterPWA() {
-  useRegisterSW({ immediate: true });
+  useRegisterSW({
+    immediate: true,
+    onRegisteredSW(swUrl, registration) {
+      console.info("[PWA] SW registered:", swUrl, registration);
+    },
+    onRegisterError(error) {
+      console.error("[PWA] SW registration FAILED:", error);
+    },
+  });
   return null;
 }

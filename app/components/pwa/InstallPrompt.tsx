@@ -40,6 +40,14 @@ export function InstallPrompt() {
   const [showIosHint, setShowIosHint] = useState(false);
 
   useEffect(() => {
+    console.info("[PWA] InstallPrompt mounted", {
+      secureContext: window.isSecureContext,
+      standalone: isInStandaloneMode(),
+      ios: isIos(),
+      dismissed: !!localStorage.getItem(DISMISS_KEY),
+      hasSW: "serviceWorker" in navigator,
+    });
+
     if (isInStandaloneMode()) return;
     if (localStorage.getItem(DISMISS_KEY)) return;
 
@@ -49,6 +57,7 @@ export function InstallPrompt() {
     }
 
     const handler = (e: Event) => {
+      console.info("[PWA] beforeinstallprompt fired ✅");
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
     };
