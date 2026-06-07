@@ -156,6 +156,8 @@ html {
   --animate-jt-float: jt-float 4s ease-in-out infinite;
   --animate-jt-float-badge: jt-float 4.5s ease-in-out infinite;
   --animate-jt-spin-slow: jt-spin-slow 32s linear infinite;
+  --animate-jt-hero-glow: jt-hero-glow 8s ease-in-out infinite;
+  --animate-jt-hero-logo: jt-hero-logo 4s ease-in-out infinite;
 }
 
 @keyframes jt-float {
@@ -165,6 +167,28 @@ html {
   }
   50% {
     transform: translateY(-12px);
+  }
+}
+
+/* Hero: blurred blue glow drifting behind the logo (centered via margin auto). */
+@keyframes jt-hero-glow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+/* Hero: gentle float of the mascot logo (keeps its 22px base offset). */
+@keyframes jt-hero-logo {
+  0%,
+  100% {
+    transform: translateY(22px);
+  }
+  50% {
+    transform: translateY(10px);
   }
 }
 

@@ -14,12 +14,18 @@ import * as promotionsRepo from "~/repositories/promotions";
 import { isError } from "~/types";
 import type { Route } from "./+types/home";
 import {
+  Building2,
   Frown,
+  Handshake,
+  Heart,
   MapPin,
   Search,
   ShoppingBag,
   Sparkles,
+  Star,
   Store,
+  Tag,
+  Users,
 } from "lucide-react";
 import { CategoriesCarousel } from "~/components/categories/categories-carousel";
 
@@ -267,12 +273,16 @@ export default function Home() {
         <div aria-hidden className="absolute inset-0 bg-[#102A43]/80" />
 
         <div className="relative z-10 mx-auto max-w-6xl px-4 text-center">
-          <div className="mx-auto max-w-3xl mt-[-4rem]">
+          <div className="relative isolate mx-auto max-w-3xl mt-[-4rem]">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 top-[34px] -z-10 mx-auto h-[220px] w-[520px] max-w-[90vw] animate-jt-hero-glow rounded-[60px] bg-[linear-gradient(135deg,rgba(37,99,235,0.22),rgba(96,165,250,0.35),rgba(37,99,235,0.18))] blur-[50px]"
+            />
             <img
               src="/SVG2.svg"
               alt="João Tem"
-              className="animate-in fade-in fill-mode-both mx-auto size-72 object-contain duration-700"
-              style={{ marginBottom: "-18px", transform: "translateY(22px)" }}
+              className="mx-auto size-72 animate-jt-hero-logo object-contain drop-shadow-[0_24px_40px_rgba(0,0,0,0.24)]"
+              style={{ marginBottom: "-18px" }}
             />
 
             <h1 className="animate-in fade-in fill-mode-both mb-8 text-balance text-3xl font-bold leading-tight text-primary-foreground duration-700 [animation-delay:0.1s] sm:text-4xl lg:text-5xl">
@@ -317,10 +327,10 @@ export default function Home() {
               {HERO_FEATURES.map(({ Icon, label }) => (
                 <div
                   key={label}
-                  className="flex flex-col items-center gap-3 px-4 text-center sm:px-8"
+                  className="group flex flex-col items-center gap-3 px-4 text-center transition-transform duration-300 hover:-translate-y-2 sm:px-8"
                 >
-                  <span className="grid size-12 place-items-center rounded-full bg-primary text-primary-foreground shadow-lg">
-                    <Icon className="size-5" />
+                  <span className="grid size-12 place-items-center rounded-full bg-primary text-primary-foreground shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:bg-[#2563EB] group-hover:shadow-[0_18px_30px_rgba(37,99,235,0.25)]">
+                    <Icon className="size-5 transition-transform duration-300 group-hover:-rotate-[8deg]" />
                   </span>
                   <span className="max-w-[9rem] text-sm font-medium leading-snug text-primary-foreground/90">
                     {label}
@@ -347,12 +357,12 @@ export default function Home() {
         id="patrocinador-oficial"
         className="mx-auto max-w-6xl px-4 py-7"
       >
-        <div className="relative grid items-center gap-8 overflow-hidden rounded-[2.25rem] bg-[#102A43] bg-[radial-gradient(circle_at_82%_10%,rgba(96,165,250,0.38),transparent_32%),radial-gradient(circle_at_10%_100%,rgba(37,99,235,0.28),transparent_34%),linear-gradient(135deg,#102A43_0%,#123A61_52%,#2563EB_100%)] p-8 text-white shadow-[0_24px_70px_rgba(16,42,67,0.22)] lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="relative grid items-center gap-8 overflow-hidden rounded-[2.25rem] bg-[#102A43] p-6 text-white shadow-[0_22px_60px_rgba(16,42,67,0.22)] sm:p-8 lg:min-h-[390px] lg:grid-cols-[1.05fr_0.95fr]">
           <div className="relative z-10">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/15 px-3.5 py-2 text-xs font-black tracking-wider uppercase backdrop-blur">
               ⭐ Patrocinador oficial
             </span>
-            <h2 className="my-4 max-w-xl text-3xl font-black leading-[1.02] tracking-tight sm:text-4xl lg:text-5xl">
+            <h2 className="my-4 max-w-[620px] text-[2.35rem] font-black leading-[1.02] tracking-tight sm:text-5xl lg:text-[3.5rem]">
               Coloque sua marca no ponto mais{" "}
               <span className="text-[#93C5FD]">estratégico</span> do João Tem
             </h2>
@@ -378,28 +388,32 @@ export default function Home() {
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <Link
                 to="/planos"
-                className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-white px-5.5 text-sm font-black text-[#102A43] shadow-[0_16px_34px_rgba(0,0,0,0.18)] transition-transform hover:-translate-y-0.5"
+                className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-white px-5.5 text-sm font-black text-[#102A43] shadow-[0_16px_34px_rgba(0,0,0,0.18)] transition-all hover:-translate-y-0.5 hover:brightness-95 sm:w-auto"
               >
                 Quero ser patrocinador →
               </Link>
-              <div className="text-[13px] font-bold text-white/80">
+              <div className="w-full text-center text-[13px] font-bold text-white/80 sm:w-auto sm:text-left">
                 Apareça antes dos destaques comuns
               </div>
             </div>
           </div>
 
           <div className="relative z-10 flex justify-center">
-            <div className="w-full max-w-[390px] rotate-1 overflow-hidden rounded-[1.75rem] border border-white/20 bg-white text-[#102A43] shadow-[0_24px_65px_rgba(0,0,0,0.28)] transition-transform duration-300 hover:rotate-0 hover:-translate-y-1">
-              <div className="relative h-36 bg-[linear-gradient(rgba(16,42,67,0.18),rgba(16,42,67,0.18)),url('https://images.unsplash.com/photo-1604719312566-8912e9227c6a?q=80&w=1200&auto=format&fit=crop')] bg-cover bg-center">
-                <div className="absolute left-3.5 top-3.5 inline-flex items-center gap-1.5 rounded-full bg-[#FACC15] px-2.5 py-1.5 text-[11px] font-black text-[#713F12]">
+            <div className="w-full max-w-[390px] overflow-hidden rounded-[1.75rem] border border-white/20 bg-white text-[#102A43] shadow-[0_24px_65px_rgba(0,0,0,0.28)] transition-transform duration-300 hover:-translate-y-1.5 hover:shadow-[0_28px_70px_rgba(0,0,0,0.32)]">
+              <div className="relative h-36 bg-[linear-gradient(rgba(16,42,67,0.12),rgba(16,42,67,0.22)),url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop')] bg-cover bg-center">
+                <div
+                  aria-hidden
+                  className="absolute inset-0 bg-gradient-to-b from-transparent to-[rgba(16,42,67,0.45)]"
+                />
+                <div className="absolute left-3.5 top-3.5 z-10 inline-flex items-center gap-1.5 rounded-full bg-[#FACC15] px-2.5 py-1.5 text-[11px] font-black text-[#713F12]">
                   👑 Ouro fixo
                 </div>
-                <div className="absolute right-3.5 top-3.5 rounded-full bg-white/90 px-2.5 py-1.5 text-[11px] font-black text-[#102A43]">
+                <div className="absolute right-3.5 top-3.5 z-10 rounded-full bg-white/90 px-2.5 py-1.5 text-[11px] font-black text-[#102A43]">
                   Destaque
                 </div>
               </div>
               <div className="px-4.5 pb-4.5">
-                <div className="-mt-8 grid size-16 place-items-center rounded-[1.25rem] border-[3px] border-white bg-white text-xl font-black text-primary shadow-[0_10px_24px_rgba(16,42,67,0.14)]">
+                <div className="relative z-10 -mt-[34px] grid size-[68px] place-items-center rounded-[1.25rem] border-[3px] border-white bg-white text-xl font-black text-[#2563EB] shadow-[0_10px_24px_rgba(16,42,67,0.14)]">
                   LOGO
                 </div>
                 <h3 className="mt-3 mb-1.5 text-lg font-black text-[#102A43]">
@@ -413,22 +427,22 @@ export default function Home() {
                   {["Categoria", "Centro", "Patrocinador"].map((t) => (
                     <span
                       key={t}
-                      className="rounded-lg bg-[#F1F5F9] px-2.5 py-1 text-[11px] font-bold text-[#102A43]"
+                      className="rounded-full bg-[#EFF6FF] px-2.5 py-1 text-[11px] font-bold text-[#2563EB]"
                     >
                       {t}
                     </span>
                   ))}
                 </div>
-                <span className="flex h-11 items-center justify-center gap-2 rounded-xl bg-[#25D366] text-sm font-black text-white">
+                <span className="flex h-11 items-center justify-center gap-2 rounded-[14px] bg-[#2563EB] text-sm font-black text-white">
                   💬 Chamar no WhatsApp
                 </span>
                 <div className="mt-3 grid grid-cols-3 gap-2">
-                  {["🛍️", "🏷️", "⭐"].map((e, i) => (
+                  {[ShoppingBag, Tag, Star].map((Icon, i) => (
                     <div
                       key={i}
-                      className="grid h-12 place-items-center rounded-xl bg-[#F8FAFC] text-lg"
+                      className="grid h-[54px] place-items-center rounded-[14px] border border-[#E5E7EB] bg-[#F5F7FA] text-primary"
                     >
-                      {e}
+                      <Icon className="size-5" />
                     </div>
                   ))}
                 </div>
@@ -511,7 +525,7 @@ export default function Home() {
 
       <section id="marketplace" className="py-16">
         <div className="mx-auto grid max-w-6xl items-center gap-14 px-4 lg:grid-cols-2">
-          <div>
+          <div className="min-w-0">
             <span className="text-[13px] font-black tracking-[1.4px] text-primary uppercase">
               Por que escolher
             </span>
@@ -557,14 +571,14 @@ export default function Home() {
 
             <Link
               to="/planos"
-              className="mt-8 inline-flex min-h-12 items-center justify-center gap-2.5 rounded-2xl bg-primary px-6 text-sm font-black text-white shadow-[0_14px_34px_rgba(37,99,235,0.24)] transition-transform hover:-translate-y-0.5"
+              className="mt-8 inline-flex min-h-12 w-full items-center justify-center gap-2.5 rounded-2xl bg-primary px-6 text-sm font-black text-white shadow-[0_14px_34px_rgba(37,99,235,0.24)] transition-transform hover:-translate-y-0.5 sm:w-auto"
             >
               Quero cadastrar meu negócio →
             </Link>
           </div>
 
-          <div className="rounded-[2.125rem] border border-border bg-white p-8 shadow-[0_18px_50px_rgba(16,42,67,0.08)]">
-            <div className="relative aspect-square min-h-[420px]">
+          <div className="min-w-0 rounded-[2.125rem] border border-border bg-white p-6 shadow-[0_18px_50px_rgba(16,42,67,0.08)] sm:p-8">
+            <div className="relative aspect-square min-h-[340px] sm:min-h-[420px]">
               <svg
                 aria-hidden
                 viewBox="0 0 100 100"
@@ -614,19 +628,19 @@ export default function Home() {
               </div>
 
               {[
-                { e: "🏪", pos: "top-1.5 left-1/2 -translate-x-1/2" },
-                { e: "🏢", pos: "top-[18%] -right-0.5" },
-                { e: "👥", pos: "bottom-[18%] right-3" },
-                { e: "🤝", pos: "bottom-1.5 left-1/2 -translate-x-1/2" },
-                { e: "🛍️", pos: "top-[18%] -left-0.5" },
-                { e: "💙", pos: "bottom-[18%] left-3" },
-              ].map(({ e, pos }, i) => (
+                { Icon: Store, pos: "top-[8%] left-1/2" },
+                { Icon: Building2, pos: "top-[29%] left-[86.4%]" },
+                { Icon: Users, pos: "top-[71%] left-[86.4%]" },
+                { Icon: Handshake, pos: "top-[92%] left-1/2" },
+                { Icon: ShoppingBag, pos: "top-[29%] left-[13.6%]" },
+                { Icon: Heart, pos: "top-[71%] left-[13.6%]" },
+              ].map(({ Icon, pos }, i) => (
                 <div
                   key={i}
-                  className={`absolute z-10 grid size-13 animate-jt-float-badge place-items-center rounded-[1.125rem] border border-border bg-white text-xl shadow-[0_14px_34px_rgba(16,42,67,0.12)] ${pos}`}
+                  className={`absolute z-10 grid size-13 -translate-x-1/2 -translate-y-1/2 animate-jt-float-badge place-items-center rounded-[1.125rem] border border-border bg-white text-primary shadow-[0_14px_34px_rgba(16,42,67,0.12)] ${pos}`}
                   style={{ animationDelay: `${i * 0.2}s` }}
                 >
-                  {e}
+                  <Icon className="size-6" />
                 </div>
               ))}
 
@@ -693,10 +707,10 @@ export default function Home() {
 
       <section
         aria-labelledby="cta-cadastro"
-        className="px-4 pt-12 pb-14 sm:px-6"
+        className="px-3.5 py-9 sm:px-6 sm:pt-12 sm:pb-14"
       >
-        <div className="mx-auto grid max-w-6xl overflow-hidden rounded-[2rem] border border-white/10 bg-[#102A43] shadow-[0_20px_60px_rgba(16,42,67,0.15)] md:min-h-[330px] md:grid-cols-2">
-          <div className="flex flex-col items-start justify-center p-8 text-white sm:p-9">
+        <div className="mx-auto grid max-w-6xl overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#102A43] shadow-[0_20px_60px_rgba(16,42,67,0.15)] sm:rounded-[2rem] md:min-h-[330px] md:grid-cols-2">
+          <div className="flex flex-col items-start justify-center px-[22px] py-[30px] text-white sm:p-9">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3.5 py-2 text-xs font-black tracking-wide text-white uppercase">
               <Sparkles className="size-3.5" />
               Para empreendedores
