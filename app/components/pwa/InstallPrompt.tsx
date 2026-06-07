@@ -105,9 +105,13 @@ export function InstallPrompt() {
             Instale o app João Tem
           </p>
           {showIosHint ? (
-            <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
-              Toque em <Share className="inline size-3.5" /> e em "Adicionar à
-              Tela de Início" <Plus className="inline size-3.5" />
+            <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
+              Toque em{" "}
+              <Share className="inline-block size-3.5 -translate-y-px" /> e em{" "}
+              <span className="whitespace-nowrap">
+                "Adicionar à Tela de Início"
+              </span>{" "}
+              <Plus className="inline-block size-3.5 -translate-y-px" />
             </p>
           ) : (
             <p className="mt-0.5 text-xs text-muted-foreground">

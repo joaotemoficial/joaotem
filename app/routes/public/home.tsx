@@ -269,7 +269,7 @@ export default function Home() {
   const defaultHeroCityId = orosCity?.id ?? "";
 
   return (
-    <div className="min-h-svh bg-background">
+    <div className="min-h-svh overflow-x-clip bg-background">
       <SiteHeader user={user} role={profile?.role} />
 
       <section
@@ -599,7 +599,7 @@ export default function Home() {
           </div>
 
           <div className="min-w-0 rounded-[2.125rem] border border-border bg-white p-6 shadow-[0_18px_50px_rgba(16,42,67,0.08)] sm:p-8">
-            <div className="relative aspect-square min-h-[340px] sm:min-h-[420px]">
+            <div className="relative mx-auto aspect-square w-full max-w-[420px] overflow-hidden">
               <svg
                 aria-hidden
                 viewBox="0 0 100 100"
@@ -644,31 +644,31 @@ export default function Home() {
                 <img
                   src="/SVG2.svg"
                   alt="João Tem"
-                  className="w-[68%] max-w-[285px] animate-jt-float object-contain drop-shadow-[0_24px_36px_rgba(16,42,67,0.18)]"
+                  className="w-[52%] max-w-[285px] animate-jt-float object-contain drop-shadow-[0_24px_36px_rgba(16,42,67,0.18)]"
                 />
               </div>
 
               {[
-                { Icon: Store, pos: "top-[8%] left-1/2" },
-                { Icon: Building2, pos: "top-[29%] left-[86.4%]" },
-                { Icon: Users, pos: "top-[71%] left-[86.4%]" },
-                { Icon: Handshake, pos: "top-[92%] left-1/2" },
-                { Icon: ShoppingBag, pos: "top-[29%] left-[13.6%]" },
-                { Icon: Heart, pos: "top-[71%] left-[13.6%]" },
+                { Icon: Store, pos: "top-[10%] left-1/2" },
+                { Icon: Building2, pos: "top-[30%] left-[82%]" },
+                { Icon: Users, pos: "top-[70%] left-[82%]" },
+                { Icon: Handshake, pos: "top-[90%] left-1/2" },
+                { Icon: ShoppingBag, pos: "top-[30%] left-[18%]" },
+                { Icon: Heart, pos: "top-[70%] left-[18%]" },
               ].map(({ Icon, pos }, i) => (
                 <div
                   key={i}
-                  className={`absolute z-10 grid size-13 -translate-x-1/2 -translate-y-1/2 animate-jt-float-badge place-items-center rounded-[1.125rem] border border-border bg-white text-primary shadow-[0_14px_34px_rgba(16,42,67,0.12)] ${pos}`}
+                  className={`absolute z-10 grid size-11 -translate-x-1/2 -translate-y-1/2 animate-jt-float-badge place-items-center rounded-2xl border border-border bg-white text-primary shadow-[0_14px_34px_rgba(16,42,67,0.12)] sm:size-13 sm:rounded-[1.125rem] ${pos}`}
                   style={{ animationDelay: `${i * 0.2}s` }}
                 >
-                  <Icon className="size-6" />
+                  <Icon className="size-5 sm:size-6" />
                 </div>
               ))}
 
-              <div className="absolute right-0 top-0 z-20 rounded-2xl bg-primary px-3.5 py-2.5 text-xs font-black text-white shadow-[0_12px_28px_rgba(16,42,67,0.12)]">
+              <div className="absolute right-2 top-2 z-20 rounded-xl bg-primary px-2.5 py-2 text-[11px] font-black text-white shadow-[0_12px_28px_rgba(16,42,67,0.12)] sm:right-0 sm:top-0 sm:rounded-2xl sm:px-3.5 sm:py-2.5 sm:text-xs">
                 Guia local
               </div>
-              <div className="absolute bottom-0 left-0 z-20 rounded-2xl bg-white px-3.5 py-2.5 text-xs font-black text-[#102A43] shadow-[0_12px_28px_rgba(16,42,67,0.12)]">
+              <div className="absolute bottom-0 left-0 z-20 hidden rounded-2xl bg-white px-3.5 py-2.5 text-xs font-black text-[#102A43] shadow-[0_12px_28px_rgba(16,42,67,0.12)] sm:block">
                 Orós conectado
               </div>
             </div>
