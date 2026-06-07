@@ -14,70 +14,93 @@ import * as promotionsRepo from "~/repositories/promotions";
 import { isError } from "~/types";
 import type { Route } from "./+types/home";
 import {
-  Eye,
   Frown,
-  HeartHandshake,
-  LayoutGrid,
   MapPin,
-  MessageCircle,
   Search,
-  ShieldCheck,
   ShoppingBag,
   Sparkles,
   Store,
-  Zap,
 } from "lucide-react";
 import { CategoriesCarousel } from "~/components/categories/categories-carousel";
 
+// Outline icons matched to the JoãoTem reference design (24x24, currentColor).
 const WHY_FEATURES = [
   {
-    Icon: Zap,
+    paths: <path d="M4 10h16M6 6h12M7 14h10M9 18h6" />,
     title: "Mais rápido para encontrar",
     desc: "O cliente encontra lojas, serviços, promoções e contatos sem precisar procurar em vários lugares.",
   },
   {
-    Icon: Store,
+    paths: <path d="M4 20V10l8-6 8 6v10M9 20v-6h6v6" />,
     title: "Mais visibilidade para vender",
     desc: "Empresas ganham uma vitrine organizada para divulgar sua marca, produtos e diferenciais.",
   },
   {
-    Icon: HeartHandshake,
+    paths: (
+      <>
+        <path d="M12 21s8-4.5 8-11a8 8 0 1 0-16 0c0 6.5 8 11 8 11Z" />
+        <circle cx="12" cy="10" r="3" />
+      </>
+    ),
     title: "Mais força para a cidade",
     desc: "Cada busca valoriza os empreendedores locais e incentiva as pessoas a comprarem em Orós.",
   },
   {
-    Icon: ShieldCheck,
+    paths: (
+      <>
+        <path d="M12 3 4 7v6c0 5 3.5 7.5 8 8 4.5-.5 8-3 8-8V7l-8-4Z" />
+        <path d="m9 12 2 2 4-4" />
+      </>
+    ),
     title: "Mais confiança para escolher",
     desc: "Perfis com informações, fotos e categorias ajudam o cliente a decidir com mais segurança.",
   },
-] as const;
+];
 
 const STEPS = [
   {
     n: 1,
-    Icon: Search,
+    paths: (
+      <>
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.3-4.3" />
+      </>
+    ),
     title: "Busque pelo que precisa",
     desc: "Digite uma loja, serviço, produto ou escolha uma categoria.",
   },
   {
     n: 2,
-    Icon: LayoutGrid,
+    paths: (
+      <>
+        <path d="M3 9.5 5 4h14l2 5.5" />
+        <path d="M4 10h16v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-9Z" />
+        <path d="M10 20v-5h4v5" />
+      </>
+    ),
     title: "Compare opções locais",
     desc: "Veja empresas, categorias, destaques e promoções da cidade.",
   },
   {
     n: 3,
-    Icon: Eye,
+    paths: (
+      <>
+        <path d="M4 5h16v14H4z" />
+        <path d="M8 9h8" />
+        <path d="M8 13h6" />
+        <path d="M8 17h4" />
+      </>
+    ),
     title: "Abra a vitrine",
     desc: "Confira fotos, informações, descrição e detalhes do negócio.",
   },
   {
     n: 4,
-    Icon: MessageCircle,
+    paths: <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />,
     title: "Fale e resolva",
     desc: "Entre em contato direto com o negócio e faça seu pedido.",
   },
-] as const;
+];
 
 const HERO_FEATURES = [
   { Icon: Search, label: "Busque com facilidade" },
@@ -502,13 +525,23 @@ export default function Home() {
             </p>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              {WHY_FEATURES.map(({ Icon, title, desc }) => (
+              {WHY_FEATURES.map(({ paths, title, desc }) => (
                 <div
                   key={title}
                   className="group flex gap-3.5 rounded-2xl p-4 transition-all hover:-translate-y-1 hover:bg-white hover:shadow-[0_18px_40px_rgba(16,42,67,0.08)]"
                 >
                   <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-[#EAF2FF] text-primary ring-1 ring-[#DBEAFE] transition-all group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
-                    <Icon className="size-6" />
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth={2.2}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="size-6"
+                    >
+                      {paths}
+                    </svg>
                   </span>
                   <div>
                     <h3 className="mb-1 text-base font-black text-[#102A43]">
@@ -532,6 +565,41 @@ export default function Home() {
 
           <div className="rounded-[2.125rem] border border-border bg-white p-8 shadow-[0_18px_50px_rgba(16,42,67,0.08)]">
             <div className="relative aspect-square min-h-[420px]">
+              <svg
+                aria-hidden
+                viewBox="0 0 100 100"
+                preserveAspectRatio="xMidYMid meet"
+                className="absolute inset-0 z-0 size-full"
+              >
+                {[
+                  { x: 50, y: 12, dur: "2s" },
+                  { x: 85, y: 30, dur: "2.5s" },
+                  { x: 82, y: 70, dur: "3s" },
+                  { x: 50, y: 88, dur: "2.2s" },
+                  { x: 15, y: 30, dur: "2.8s" },
+                  { x: 18, y: 70, dur: "3.2s" },
+                ].map(({ x, y, dur }, i) => (
+                  <line
+                    key={i}
+                    x1="50"
+                    y1="50"
+                    x2={x}
+                    y2={y}
+                    stroke="#2563EB"
+                    strokeWidth="0.55"
+                    strokeDasharray="3 3"
+                    opacity="0.28"
+                  >
+                    <animate
+                      attributeName="stroke-dashoffset"
+                      from="20"
+                      to="0"
+                      dur={dur}
+                      repeatCount="indefinite"
+                    />
+                  </line>
+                ))}
+              </svg>
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="flex size-[82%] animate-jt-spin-slow items-center justify-center rounded-full border border-dashed border-primary/20">
                   <div className="size-[70%] rounded-full border-2 border-primary/15" />
@@ -586,80 +654,99 @@ export default function Home() {
           </div>
 
           <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {STEPS.map(({ n, Icon, title, desc }) => (
+            {STEPS.map(({ n, paths, title, desc }) => (
               <div
                 key={n}
-                className="group relative flex flex-col items-start rounded-3xl border border-border bg-white p-6 shadow-[0_10px_28px_rgba(16,42,67,0.06)] transition-all hover:-translate-y-1.5 hover:shadow-[0_20px_48px_rgba(16,42,67,0.12)]"
+                className="group relative flex flex-col items-center rounded-3xl border border-border bg-white px-5 pt-9 pb-6 text-center shadow-[0_12px_34px_rgba(16,42,67,0.06)] transition-all hover:-translate-y-1.5 hover:border-[#BFDBFE] hover:shadow-[0_20px_48px_rgba(16,42,67,0.12)]"
               >
-                <span className="absolute right-5 top-5 text-4xl font-black text-primary/10">
+                <span className="absolute -top-3.5 left-1/2 grid size-9 -translate-x-1/2 place-items-center rounded-full bg-primary text-[13px] font-black text-white shadow-[0_10px_24px_rgba(37,99,235,0.24)]">
                   {n}
                 </span>
-                <span className="grid size-14 place-items-center rounded-2xl bg-[#EAF2FF] text-primary ring-1 ring-[#DBEAFE] transition-all group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
-                  <Icon className="size-6" />
+                <span className="mt-2 mb-[18px] grid size-[68px] place-items-center rounded-[22px] bg-[#EFF6FF] text-primary ring-1 ring-[#DBEAFE] transition-all group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2.2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="size-[30px]"
+                  >
+                    {paths}
+                  </svg>
                 </span>
-                <h3 className="mt-5 text-base font-black text-[#102A43]">
-                  {title}
-                </h3>
+                <h3 className="text-[17px] font-black text-[#102A43]">{title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-[#64748B]">
                   {desc}
                 </p>
+                {n < STEPS.length ? (
+                  <span
+                    aria-hidden
+                    className="absolute top-1/2 -right-[18px] hidden h-0.5 w-[18px] bg-[#D8E2EF] lg:block"
+                  />
+                ) : null}
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section aria-labelledby="cta-cadastro" className="py-10">
-        <div className="mx-auto max-w-6xl px-4">
-          <div className="grid items-center gap-8 overflow-hidden rounded-[2.25rem] border border-border bg-white p-6 shadow-[0_18px_50px_rgba(16,42,67,0.08)] sm:p-8 md:grid-cols-2">
-            <div className="flex flex-col items-start">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EAF2FF] px-3.5 py-2 text-xs font-black tracking-wide text-primary uppercase">
-                <Sparkles className="size-3.5" />
-                Para empreendedores
-              </span>
-              <h2
-                id="cta-cadastro"
-                className="mt-4 text-balance text-2xl font-black tracking-tight text-[#102A43] sm:text-3xl lg:text-4xl"
-              >
-                Seu negócio merece ser{" "}
-                <span className="text-primary">encontrado</span>
-              </h2>
-              <p className="mt-3 max-w-md text-sm leading-relaxed text-[#64748B] sm:text-base">
-                Cadastre sua empresa no João Tem e apareça para clientes que já
-                estão procurando produtos e serviços na sua cidade.
-              </p>
-              <div className="mt-5 space-y-2.5">
-                {[
-                  "Página exclusiva para divulgar sua marca",
-                  "Mais visibilidade para seu negócio",
-                  "Promoções e destaque para atrair clientes",
-                ].map((t) => (
-                  <div
-                    key={t}
-                    className="flex items-center gap-2.5 text-sm font-medium text-[#102A43]"
-                  >
-                    <span className="grid size-5 shrink-0 place-items-center rounded-full bg-primary text-xs font-black text-white">
-                      ✓
-                    </span>
-                    {t}
-                  </div>
-                ))}
-              </div>
-              <Link
-                to="/planos"
-                className="mt-7 inline-flex min-h-12 items-center gap-2 rounded-2xl bg-primary px-6 text-sm font-black text-white shadow-[0_14px_34px_rgba(37,99,235,0.24)] transition-transform hover:-translate-y-0.5"
-              >
-                Cadastrar meu negócio →
-              </Link>
+      <section
+        aria-labelledby="cta-cadastro"
+        className="px-4 pt-12 pb-14 sm:px-6"
+      >
+        <div className="mx-auto grid max-w-6xl overflow-hidden rounded-[2rem] border border-white/10 bg-[#102A43] shadow-[0_20px_60px_rgba(16,42,67,0.15)] md:min-h-[330px] md:grid-cols-2">
+          <div className="flex flex-col items-start justify-center p-8 text-white sm:p-9">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3.5 py-2 text-xs font-black tracking-wide text-white uppercase">
+              <Sparkles className="size-3.5" />
+              Para empreendedores
+            </span>
+            <h2
+              id="cta-cadastro"
+              className="mt-4 text-balance text-3xl font-black leading-[1.02] tracking-tight text-white sm:text-4xl lg:text-5xl"
+            >
+              Seu negócio merece ser{" "}
+              <span className="text-[#60A5FA]">encontrado</span>
+            </h2>
+            <p className="mt-3 max-w-md text-base leading-relaxed text-white/85">
+              Cadastre sua empresa no João Tem e apareça para clientes que já
+              estão procurando produtos e serviços na sua cidade.
+            </p>
+            <div className="mt-5 space-y-2.5">
+              {[
+                "Página exclusiva para divulgar sua marca",
+                "Mais visibilidade para seu negócio",
+                "Promoções e destaque para atrair clientes",
+              ].map((t) => (
+                <div
+                  key={t}
+                  className="flex items-center gap-2.5 text-sm font-bold text-white/90"
+                >
+                  <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary text-xs font-black text-white">
+                    ✓
+                  </span>
+                  {t}
+                </div>
+              ))}
             </div>
+            <Link
+              to="/planos"
+              className="mt-7 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-primary px-6 text-sm font-black text-white shadow-[0_14px_32px_rgba(37,99,235,0.25)] transition-transform hover:-translate-y-0.5 sm:w-auto"
+            >
+              Cadastrar meu negócio →
+            </Link>
+          </div>
 
-            <div className="relative h-64 overflow-hidden rounded-3xl md:h-full md:min-h-[380px]">
-              <img
-                src="https://images.unsplash.com/photo-1556740749-887f6717d7e4?q=80&w=1200&auto=format&fit=crop"
-                alt="Empreendedor local"
-                className="absolute inset-0 size-full object-cover"
-              />
-            </div>
+          <div className="relative hidden min-h-[330px] overflow-hidden md:block">
+            <img
+              src="https://images.unsplash.com/photo-1556740749-887f6717d7e4?q=80&w=1200&auto=format&fit=crop"
+              alt="Empreendedor local"
+              className="absolute inset-0 size-full object-cover"
+            />
+            <div
+              aria-hidden
+              className="absolute inset-0 bg-[linear-gradient(90deg,#102A43_0%,rgba(16,42,67,0.35)_15%,transparent_52%)]"
+            />
           </div>
         </div>
       </section>
