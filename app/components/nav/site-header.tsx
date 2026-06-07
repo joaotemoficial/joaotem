@@ -76,7 +76,7 @@ export function SiteHeader({
               ) : null}
               <Link
                 to="/dashboard"
-                className={buttonVariants({ variant: "ghost", size: "sm" })}
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-primary bg-transparent px-4 py-2 text-sm font-medium text-primary shadow-sm transition-colors hover:bg-primary hover:text-primary-foreground"
               >
                 Meu painel
               </Link>
@@ -90,12 +90,7 @@ export function SiteHeader({
             <>
               <Link
                 to="/login"
-                className={buttonVariants({
-                  variant: "outline",
-                  size: "sm",
-                  className:
-                    "h-auto border border-primary! py-2.5 text-primary hover:text-primary",
-                })}
+                className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-primary bg-transparent px-4 py-2 text-sm font-medium text-primary shadow-sm transition-colors hover:bg-primary hover:text-primary-foreground"
               >
                 Entrar
               </Link>

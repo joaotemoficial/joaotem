@@ -35,6 +35,8 @@ import {
   getBusinessCart,
   setBusinessCart,
 } from "~/lib/cart.server";
+import { SITE_NAME, buildMeta } from "~/lib/seo";
+import { canonicalFor, getSiteOrigin } from "~/lib/seo.server";
 import {
   hasFeature,
   resolveFlagsForBusiness,
@@ -55,12 +57,70 @@ import { isError } from "~/types";
 import type { Route } from "./+types/business-detail";
 
 export const meta: Route.MetaFunction = ({ data }) => {
-  if (!data?.business) return [{ title: "Negócio — JoaoTem" }];
+  const business = data?.business;
+  if (!business) return [{ title: `Negócio — ${SITE_NAME}` }];
+
+  const category = business.category?.name;
+  const city = business.city
+    ? `${business.city.name} - ${business.city.state}`
+    : null;
+  const locationLabel = [category, city ? `em ${city}` : null]
+    .filter(Boolean)
+    .join(" ");
+
+  const title = locationLabel
+    ? `${business.name} — ${locationLabel} | ${SITE_NAME}`
+    : `${business.name} — ${SITE_NAME}`;
+
+  const description =
+    business.short_description ??
+    [
+      business.name,
+      category ? `· ${category}` : null,
+      city ? `em ${city}` : null,
+      "Veja produtos, promoções e fale direto pelo WhatsApp no João Tem.",
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+  const ldAddress = business.city
+    ? {
+        "@type": "PostalAddress",
+        addressLocality: business.city.name,
+        addressRegion: business.city.state,
+        ...(business.neighborhood?.name
+          ? { streetAddress: business.neighborhood.name }
+          : {}),
+        addressCountry: "BR",
+      }
+    : undefined;
+
+  const instagramHandle = business.instagram?.replace(/^@/, "");
+
   return [
-    { title: `${data.business.name} — JoaoTem` },
+    ...buildMeta({
+      title,
+      description,
+      canonical: data?.canonical,
+      image: business.cover_url ?? business.logo_url,
+      type: "profile",
+    }),
     {
-      name: "description",
-      content: data.business.short_description ?? data.business.name,
+      "script:ld+json": {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        name: business.name,
+        ...(business.short_description
+          ? { description: business.short_description }
+          : {}),
+        ...(data?.canonical ? { url: data.canonical } : {}),
+        ...(business.logo_url ? { image: business.logo_url } : {}),
+        ...(business.whatsapp ? { telephone: `+55${business.whatsapp}` } : {}),
+        ...(ldAddress ? { address: ldAddress } : {}),
+        ...(instagramHandle
+          ? { sameAs: [`https://instagram.com/${instagramHandle}`] }
+          : {}),
+      },
     },
   ];
 };
@@ -160,6 +220,8 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   }));
 
   return {
+    canonical: canonicalFor(request, `/negocio/${business.handle}`),
+    origin: getSiteOrigin(request),
     user: ctx.user ? { id: ctx.user.id, email: ctx.user.email ?? null } : null,
     profile: ctx.profile,
     isSystemOwned,
@@ -458,7 +520,8 @@ export default function BusinessDetail({ actionData }: Route.ComponentProps) {
         {business.cover_url ? (
           <img
             src={business.cover_url}
-            alt=""
+            alt={`Foto de capa de ${business.name}`}
+            fetchPriority="high"
             className="h-full w-full object-cover"
           />
         ) : null}
@@ -472,7 +535,7 @@ export default function BusinessDetail({ actionData }: Route.ComponentProps) {
             {business.logo_url ? (
               <img
                 src={business.logo_url}
-                alt=""
+                alt={`Logo de ${business.name}`}
                 className="h-full w-full object-cover"
               />
             ) : (
@@ -599,7 +662,7 @@ export default function BusinessDetail({ actionData }: Route.ComponentProps) {
                     {p.cover_url ? (
                       <img
                         src={p.cover_url}
-                        alt=""
+                        alt={p.title}
                         className="h-full w-full object-cover"
                         loading="lazy"
                       />

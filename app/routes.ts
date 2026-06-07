@@ -16,6 +16,9 @@ export default [
 	route("planos", "routes/public/plans.tsx"),
 	route("termos", "routes/public/terms.tsx"),
 
+	route("robots.txt", "routes/seo/robots.txt.ts"),
+	route("sitemap.xml", "routes/seo/sitemap.xml.ts"),
+
 	route("login", "routes/auth/login.tsx"),
 	route("signup", "routes/auth/signup.tsx"),
 	route("logout", "routes/auth/logout.tsx"),

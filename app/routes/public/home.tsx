@@ -6,6 +6,8 @@ import { PromotionCard } from "~/components/promotions/promotion-card";
 import { buttonVariants } from "~/components/ui/button";
 import { getSessionAndProfile } from "~/lib/auth.server";
 import { ACTIVATION_WHATSAPP } from "~/lib/plan";
+import { SITE_NAME, buildMeta } from "~/lib/seo";
+import { canonicalFor, getSiteOrigin } from "~/lib/seo.server";
 import { PROMOTION_IMAGE_BUCKET, getPublicUrl } from "~/lib/storage.server";
 import * as businessesRepo from "~/repositories/businesses";
 import * as categoriesRepo from "~/repositories/categories";
@@ -23,9 +25,7 @@ import {
   Search,
   ShoppingBag,
   Sparkles,
-  Star,
   Store,
-  Tag,
   Users,
 } from "lucide-react";
 import { CategoriesCarousel } from "~/components/categories/categories-carousel";
@@ -152,16 +152,42 @@ function SectionHead({
   );
 }
 
-export const meta: Route.MetaFunction = () => [
-  {
-    title: "JoaoTem — Marketplace de negócios locais",
-  },
-  {
-    name: "description",
-    content:
-      "Descubra negócios locais em Feira de Santana - BA e Orós - CE. Cadastre o seu também.",
-  },
-];
+export const meta: Route.MetaFunction = ({ data }) => {
+  const canonical = data?.canonical;
+  const origin = data?.origin;
+  const title = "João Tem — Marketplace de negócios locais em Orós - CE";
+  const description =
+    "Descubra negócios locais, produtos, serviços e promoções em Orós - CE. Cadastre o seu negócio gratuitamente.";
+
+  return [
+    ...buildMeta({
+      title,
+      description,
+      canonical,
+      image: origin ? `${origin}/oros.jpg` : null,
+    }),
+    {
+      "script:ld+json": {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        name: SITE_NAME,
+        url: origin ?? undefined,
+        ...(origin
+          ? {
+              potentialAction: {
+                "@type": "SearchAction",
+                target: {
+                  "@type": "EntryPoint",
+                  urlTemplate: `${origin}/negocios?q={search_term_string}`,
+                },
+                "query-input": "required name=search_term_string",
+              },
+            }
+          : {}),
+      },
+    },
+  ];
+};
 
 export async function loader({ request }: Route.LoaderArgs) {
   const ctx = await getSessionAndProfile(request);
@@ -205,6 +231,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     : showcaseResult.success;
 
   return {
+    canonical: canonicalFor(request, "/"),
+    origin: getSiteOrigin(request),
     user: ctx.user ? { id: ctx.user.id, email: ctx.user.email ?? null } : null,
     profile: ctx.profile,
     businesses: businesses.success.map((b) => ({
@@ -371,104 +399,55 @@ export default function Home() {
         id="patrocinador-oficial"
         className="mx-auto max-w-6xl px-4 py-7"
       >
-        <div className="relative grid items-center gap-8 overflow-hidden rounded-[2.25rem] bg-[#102A43] p-6 text-white shadow-[0_22px_60px_rgba(16,42,67,0.22)] sm:p-8 lg:min-h-[390px] lg:grid-cols-[1.05fr_0.95fr]">
-          <div className="relative z-10">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/15 px-3.5 py-2 text-xs font-black tracking-wider uppercase backdrop-blur">
-              ⭐ Patrocinador oficial
-            </span>
-            <h2 className="my-4 max-w-[620px] text-[2.35rem] font-black leading-[1.02] tracking-tight sm:text-5xl lg:text-[3.5rem]">
-              Coloque sua marca no ponto mais{" "}
-              <span className="text-[#93C5FD]">estratégico</span> do João Tem
-            </h2>
-            <p className="max-w-xl text-base leading-relaxed text-white/85">
-              Um espaço fixo logo após as categorias, criado para empresas que
-              querem ser vistas primeiro, ganhar autoridade local e aparecer
-              como referência para quem entra procurando onde comprar.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-2.5">
-              {[
-                "Visibilidade premium",
-                "Loja fixa em destaque",
-                "Chamada direta para contato",
-              ].map((p) => (
-                <span
-                  key={p}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/10 px-3 py-2.5 text-[13px] font-bold"
-                >
-                  ✓ {p}
-                </span>
-              ))}
-            </div>
-            <div className="mt-7 flex flex-wrap items-center gap-3">
-              <Link
-                to="/planos"
-                className="inline-flex min-h-12 w-full items-center justify-center rounded-2xl bg-white px-5.5 text-sm font-black text-[#102A43] shadow-[0_16px_34px_rgba(0,0,0,0.18)] transition-all hover:-translate-y-0.5 hover:brightness-95 sm:w-auto"
+        <div className="relative overflow-hidden rounded-[2.25rem] bg-[#102A43] p-5 text-white shadow-[0_22px_60px_rgba(16,42,67,0.22)] sm:p-7">
+          <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-[11px] font-black tracking-wider uppercase text-white/70">
+            Patrocinador oficial
+          </span>
+          <h2 className="mt-4 mb-3 max-w-[620px] text-[1.9rem] font-black leading-[1.05] tracking-tight sm:text-4xl">
+            Sua marca no destaque principal do João Tem
+          </h2>
+          <p className="max-w-xl text-sm leading-relaxed text-white/80 sm:text-base">
+            Um espaço premium para empresas que querem aparecer primeiro e
+            receber clientes direto pelo WhatsApp.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2.5">
+            {["Banner fixo", "Mais visibilidade", "Contato direto"].map((p) => (
+              <span
+                key={p}
+                className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-2 text-[13px] font-bold"
               >
-                Quero ser patrocinador →
-              </Link>
-              <div className="w-full text-center text-[13px] font-bold text-white/80 sm:w-auto sm:text-left">
-                Apareça antes dos destaques comuns
-              </div>
-            </div>
+                ✓ {p}
+              </span>
+            ))}
           </div>
 
-          <div className="relative z-10 flex justify-center">
-            <div className="w-full max-w-[390px] overflow-hidden rounded-[1.75rem] border border-white/20 bg-white text-[#102A43] shadow-[0_24px_65px_rgba(0,0,0,0.28)] transition-transform duration-300 hover:-translate-y-1.5 hover:shadow-[0_28px_70px_rgba(0,0,0,0.32)]">
-              <div className="relative h-36 bg-[linear-gradient(rgba(16,42,67,0.12),rgba(16,42,67,0.22)),url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1200&auto=format&fit=crop')] bg-cover bg-center">
-                <div
-                  aria-hidden
-                  className="absolute inset-0 bg-gradient-to-b from-transparent to-[rgba(16,42,67,0.45)]"
-                />
-                <div className="absolute left-3.5 top-3.5 z-10 inline-flex items-center gap-1.5 rounded-full bg-[#FACC15] px-2.5 py-1.5 text-[11px] font-black text-[#713F12]">
-                  👑 Ouro fixo
-                </div>
-                <div className="absolute right-3.5 top-3.5 z-10 rounded-full bg-white/90 px-2.5 py-1.5 text-[11px] font-black text-[#102A43]">
-                  Destaque
-                </div>
+          <div className="mt-6 overflow-hidden rounded-[1.5rem] bg-white text-[#102A43] shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
+            <div className="grid h-40 place-items-center bg-[#F1F5F9] text-xs font-black tracking-widest uppercase text-[#94A3B8] sm:h-48">
+              Capa premium
+            </div>
+            <div className="flex items-center gap-3 px-4 py-3.5 sm:px-5">
+              <div className="grid size-11 shrink-0 place-items-center rounded-[0.9rem] bg-[#EFF6FF] text-sm font-black text-[#2563EB]">
+                JT
               </div>
-              <div className="px-4.5 pb-4.5">
-                <div className="relative z-10 -mt-[34px] grid size-[68px] place-items-center rounded-[1.25rem] border-[3px] border-white bg-white text-xl font-black text-[#2563EB] shadow-[0_10px_24px_rgba(16,42,67,0.14)]">
-                  LOGO
-                </div>
-                <h3 className="mt-3 mb-1.5 text-lg font-black text-[#102A43]">
-                  Sua loja aqui
+              <div className="min-w-0">
+                <h3 className="text-[15px] font-black leading-tight text-[#102A43]">
+                  Sua empresa aqui
                 </h3>
-                <p className="mb-3 text-[13px] leading-relaxed text-[#64748B]">
-                  Perfil premium com capa, logo, descrição, vitrine e botão
-                  direto para atendimento.
+                <p className="text-[13px] font-medium text-[#64748B]">
+                  Destaque oficial
                 </p>
-                <div className="mb-3 flex flex-wrap gap-1.5">
-                  {["Categoria", "Centro", "Patrocinador"].map((t) => (
-                    <span
-                      key={t}
-                      className="rounded-full bg-[#EFF6FF] px-2.5 py-1 text-[11px] font-bold text-[#2563EB]"
-                    >
-                      {t}
-                    </span>
-                  ))}
-                </div>
-                <a
-                  href={`https://wa.me/${ACTIVATION_WHATSAPP}?text=${encodeURIComponent(
-                    "Olá! Vi sua empresa no João Tem e tenho interesse nos seus produtos/serviços",
-                  )}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex h-11 items-center justify-center gap-2 rounded-[14px] bg-[#2563EB] text-sm font-black text-white"
-                >
-                  💬 Chamar no WhatsApp
-                </a>
-                <div className="mt-3 grid grid-cols-3 gap-2">
-                  {[ShoppingBag, Tag, Star].map((Icon, i) => (
-                    <div
-                      key={i}
-                      className="grid h-[54px] place-items-center rounded-[14px] border border-[#E5E7EB] bg-[#F5F7FA] text-primary"
-                    >
-                      <Icon className="size-5" />
-                    </div>
-                  ))}
-                </div>
               </div>
             </div>
+            <a
+              href={`https://wa.me/${ACTIVATION_WHATSAPP}?text=${encodeURIComponent(
+                "Olá! Tenho interesse no espaço de Patrocinador Oficial do João Tem.",
+              )}`}
+              target="_blank"
+              rel="noreferrer"
+              className="flex h-12 items-center justify-center gap-2 bg-[#2563EB] text-sm font-black text-white transition-colors hover:bg-[#1D4ED8]"
+            >
+              Quero esse espaço →
+            </a>
           </div>
         </div>
       </section>
