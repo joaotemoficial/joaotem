@@ -153,6 +153,25 @@ html {
 
 @theme {
   --animate-bounce-once: bounce-once 0.5s ease-in-out;
+  --animate-jt-float: jt-float 4s ease-in-out infinite;
+  --animate-jt-float-badge: jt-float 4.5s ease-in-out infinite;
+  --animate-jt-spin-slow: jt-spin-slow 32s linear infinite;
+}
+
+@keyframes jt-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes jt-spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes bounce-once {

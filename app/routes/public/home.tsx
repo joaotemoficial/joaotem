@@ -17,42 +17,66 @@ import {
   Eye,
   Frown,
   HeartHandshake,
+  LayoutGrid,
   MapPin,
   MessageCircle,
   Search,
+  ShieldCheck,
   ShoppingBag,
   Sparkles,
   Store,
+  Zap,
 } from "lucide-react";
-import { FaWhatsapp } from "react-icons/fa";
 import { CategoriesCarousel } from "~/components/categories/categories-carousel";
 
-const HOW_IT_WORKS_STEPS = [
+const WHY_FEATURES = [
+  {
+    Icon: Zap,
+    title: "Mais rápido para encontrar",
+    desc: "O cliente encontra lojas, serviços, promoções e contatos sem precisar procurar em vários lugares.",
+  },
+  {
+    Icon: Store,
+    title: "Mais visibilidade para vender",
+    desc: "Empresas ganham uma vitrine organizada para divulgar sua marca, produtos e diferenciais.",
+  },
+  {
+    Icon: HeartHandshake,
+    title: "Mais força para a cidade",
+    desc: "Cada busca valoriza os empreendedores locais e incentiva as pessoas a comprarem em Orós.",
+  },
+  {
+    Icon: ShieldCheck,
+    title: "Mais confiança para escolher",
+    desc: "Perfis com informações, fotos e categorias ajudam o cliente a decidir com mais segurança.",
+  },
+] as const;
+
+const STEPS = [
   {
     n: 1,
     Icon: Search,
-    title: "Pesquise o que precisa",
-    desc: "Digite o que você procura ou navegue pelas categorias",
+    title: "Busque pelo que precisa",
+    desc: "Digite uma loja, serviço, produto ou escolha uma categoria.",
   },
   {
     n: 2,
-    Icon: Store,
-    title: "Encontre negócios locais",
-    desc: "Veja os melhores resultados da sua cidade e bairro",
+    Icon: LayoutGrid,
+    title: "Compare opções locais",
+    desc: "Veja empresas, categorias, destaques e promoções da cidade.",
   },
   {
     n: 3,
     Icon: Eye,
-    title: "Veja a vitrine da loja",
-    desc: "Explore produtos, serviços e informações do negócio",
+    title: "Abra a vitrine",
+    desc: "Confira fotos, informações, descrição e detalhes do negócio.",
   },
-] as const;
-
-const MARKETPLACE_FEATURES = [
-  { Icon: HeartHandshake, title: "Apoie o comércio local" },
-  { Icon: Search, title: "Encontre tudo em um só lugar" },
-  { Icon: FaWhatsapp, title: "Fale direto no WhatsApp" },
-  { Icon: MapPin, title: "Descubra negócios do seu bairro" },
+  {
+    n: 4,
+    Icon: MessageCircle,
+    title: "Fale e resolva",
+    desc: "Entre em contato direto com o negócio e faça seu pedido.",
+  },
 ] as const;
 
 const HERO_FEATURES = [
@@ -61,6 +85,29 @@ const HERO_FEATURES = [
   { Icon: ShoppingBag, label: "Compre no Marketplace Local" },
   { Icon: MapPin, label: "Tudo da sua cidade em um só lugar" },
 ] as const;
+
+function SectionHead({
+  eyebrow,
+  title,
+  subtitle,
+}: {
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+}) {
+  return (
+    <div className="flex flex-col items-center text-center">
+      <span className="text-xs font-black tracking-[2px] text-primary uppercase">
+        {eyebrow}
+      </span>
+      <h2 className="mt-2.5 text-3xl font-black tracking-tight text-[#102A43] sm:text-4xl">
+        {title}
+      </h2>
+      <span className="mt-3 h-1.5 w-23 rounded-full bg-gradient-to-r from-primary to-[#60A5FA] shadow-[0_8px_18px_rgba(37,99,235,0.22)]" />
+      <p className="mt-3 max-w-xl text-base text-[#64748B]">{subtitle}</p>
+    </div>
+  );
+}
 
 export const meta: Route.MetaFunction = () => [
   {
@@ -202,11 +249,12 @@ export default function Home() {
               src="/SVG2.svg"
               alt="João Tem"
               className="animate-in fade-in fill-mode-both mx-auto size-72 object-contain duration-700"
+              style={{ marginBottom: "-18px", transform: "translateY(22px)" }}
             />
 
             <h1 className="animate-in fade-in fill-mode-both mb-8 text-balance text-3xl font-bold leading-tight text-primary-foreground duration-700 [animation-delay:0.1s] sm:text-4xl lg:text-5xl">
-              Encontre negócios e serviços da{" "}
-              <span className="text-blue-400">sua cidade</span> em um só lugar
+              Tudo que você procura em <span className="text-blue-400">Orós</span>
+              , reunido no João Tem
             </h1>
 
             <Form
@@ -262,35 +310,124 @@ export default function Home() {
       </section>
 
       <section id="categorias" className="mx-auto max-w-6xl px-4 py-10">
-        <div className="pb-5">
-          <h2 className="text-2xl font-bold tracking-tight text-slate-700">
-            Categorias populares
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Explore os negócios de Orós por categoria.
-          </p>
+        <div className="pb-6">
+          <SectionHead
+            eyebrow="Explorar"
+            title="Categorias populares"
+            subtitle="Explore os negócios de Orós por categoria."
+          />
         </div>
         <CategoriesCarousel categories={categories} />
+      </section>
+
+      <section
+        id="patrocinador-oficial"
+        className="mx-auto max-w-6xl px-4 py-7"
+      >
+        <div className="relative grid items-center gap-8 overflow-hidden rounded-[2.25rem] bg-[#102A43] bg-[radial-gradient(circle_at_82%_10%,rgba(96,165,250,0.38),transparent_32%),radial-gradient(circle_at_10%_100%,rgba(37,99,235,0.28),transparent_34%),linear-gradient(135deg,#102A43_0%,#123A61_52%,#2563EB_100%)] p-8 text-white shadow-[0_24px_70px_rgba(16,42,67,0.22)] lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="relative z-10">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/15 px-3.5 py-2 text-xs font-black tracking-wider uppercase backdrop-blur">
+              ⭐ Patrocinador oficial
+            </span>
+            <h2 className="my-4 max-w-xl text-3xl font-black leading-[1.02] tracking-tight sm:text-4xl lg:text-5xl">
+              Coloque sua marca no ponto mais{" "}
+              <span className="text-[#93C5FD]">estratégico</span> do João Tem
+            </h2>
+            <p className="max-w-xl text-base leading-relaxed text-white/85">
+              Um espaço fixo logo após as categorias, criado para empresas que
+              querem ser vistas primeiro, ganhar autoridade local e aparecer
+              como referência para quem entra procurando onde comprar.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-2.5">
+              {[
+                "Visibilidade premium",
+                "Loja fixa em destaque",
+                "Chamada direta para contato",
+              ].map((p) => (
+                <span
+                  key={p}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/15 bg-white/10 px-3 py-2.5 text-[13px] font-bold"
+                >
+                  ✓ {p}
+                </span>
+              ))}
+            </div>
+            <div className="mt-7 flex flex-wrap items-center gap-3">
+              <Link
+                to="/planos"
+                className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-white px-5.5 text-sm font-black text-[#102A43] shadow-[0_16px_34px_rgba(0,0,0,0.18)] transition-transform hover:-translate-y-0.5"
+              >
+                Quero ser patrocinador →
+              </Link>
+              <div className="text-[13px] font-bold text-white/80">
+                Apareça antes dos destaques comuns
+              </div>
+            </div>
+          </div>
+
+          <div className="relative z-10 flex justify-center">
+            <div className="w-full max-w-[390px] rotate-1 overflow-hidden rounded-[1.75rem] border border-white/20 bg-white text-[#102A43] shadow-[0_24px_65px_rgba(0,0,0,0.28)] transition-transform duration-300 hover:rotate-0 hover:-translate-y-1">
+              <div className="relative h-36 bg-[linear-gradient(rgba(16,42,67,0.18),rgba(16,42,67,0.18)),url('https://images.unsplash.com/photo-1604719312566-8912e9227c6a?q=80&w=1200&auto=format&fit=crop')] bg-cover bg-center">
+                <div className="absolute left-3.5 top-3.5 inline-flex items-center gap-1.5 rounded-full bg-[#FACC15] px-2.5 py-1.5 text-[11px] font-black text-[#713F12]">
+                  👑 Ouro fixo
+                </div>
+                <div className="absolute right-3.5 top-3.5 rounded-full bg-white/90 px-2.5 py-1.5 text-[11px] font-black text-[#102A43]">
+                  Destaque
+                </div>
+              </div>
+              <div className="px-4.5 pb-4.5">
+                <div className="-mt-8 grid size-16 place-items-center rounded-[1.25rem] border-[3px] border-white bg-white text-xl font-black text-primary shadow-[0_10px_24px_rgba(16,42,67,0.14)]">
+                  LOGO
+                </div>
+                <h3 className="mt-3 mb-1.5 text-lg font-black text-[#102A43]">
+                  Sua loja aqui
+                </h3>
+                <p className="mb-3 text-[13px] leading-relaxed text-[#64748B]">
+                  Perfil premium com capa, logo, descrição, vitrine e botão
+                  direto para atendimento.
+                </p>
+                <div className="mb-3 flex flex-wrap gap-1.5">
+                  {["Categoria", "Centro", "Patrocinador"].map((t) => (
+                    <span
+                      key={t}
+                      className="rounded-lg bg-[#F1F5F9] px-2.5 py-1 text-[11px] font-bold text-[#102A43]"
+                    >
+                      {t}
+                    </span>
+                  ))}
+                </div>
+                <span className="flex h-11 items-center justify-center gap-2 rounded-xl bg-[#25D366] text-sm font-black text-white">
+                  💬 Chamar no WhatsApp
+                </span>
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  {["🛍️", "🏷️", "⭐"].map((e, i) => (
+                    <div
+                      key={i}
+                      className="grid h-12 place-items-center rounded-xl bg-[#F8FAFC] text-lg"
+                    >
+                      {e}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section
         id="empresas-em-destaque"
         className="mx-auto max-w-6xl px-4 py-8"
       >
-        <div className="flex items-baseline justify-between gap-2 pb-3">
-          <div className="space-y-1">
-            <h1 className="text-2xl text-slate-700 font-bold tracking-tight">
-              Negócios em destaque no JoãoTem
-            </h1>
-
-            <h2 className="text-gray-600 text-sm tracking-tight">
-              Conheça os empreendedores locais que fazem parte da nossa
-              comunidade
-            </h2>
-          </div>
+        <div className="relative pb-3">
+          <SectionHead
+            eyebrow="Destaques"
+            title="Negócios em destaque no João Tem"
+            subtitle="Conheça os empreendedores locais que fazem parte da nossa comunidade"
+          />
           <Link
             to="/negocios"
-            className="shrink-0 text-sm font-medium text-primary hover:underline"
+            className="mt-3 block text-center text-sm font-black text-primary hover:underline sm:absolute sm:right-0 sm:top-0 sm:mt-0"
           >
             Ver todos
           </Link>
@@ -326,20 +463,15 @@ export default function Home() {
 
       {promotions.length > 0 ? (
         <section id="promocoes" className=" mx-auto max-w-6xl px-4 py-8">
-          <div className="flex items-baseline justify-between gap-2 pb-3">
-            <div className="space-y-1">
-              <h1 className="text-2xl text-slate-700 font-bold tracking-tight">
-                Promoções de hoje
-              </h1>
-
-              <h2 className="text-gray-600 text-sm tracking-tight">
-                Confira todos os descontos e ofertas especiais disponíveis hoje
-                em Orós!
-              </h2>
-            </div>
+          <div className="relative pb-3">
+            <SectionHead
+              eyebrow="Ofertas"
+              title="Promoções de hoje"
+              subtitle="Confira todos os descontos e ofertas especiais disponíveis hoje em Orós!"
+            />
             <Link
               to="/promocoes"
-              className="shrink-0 text-sm font-medium text-primary hover:underline"
+              className="mt-3 block text-center text-sm font-black text-primary hover:underline sm:absolute sm:right-0 sm:top-0 sm:mt-0"
             >
               Ver todos
             </Link>
@@ -354,138 +486,177 @@ export default function Home() {
         </section>
       ) : null}
 
-      <section
-        id="marketplace"
-        className="border-y border-border/60 bg-secondary/40"
-      >
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 lg:grid-cols-2 lg:py-20">
-          <div className="space-y-6">
-            <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium tracking-wide text-primary uppercase">
-              Marketplace da sua cidade
+      <section id="marketplace" className="py-16">
+        <div className="mx-auto grid max-w-6xl items-center gap-14 px-4 lg:grid-cols-2">
+          <div>
+            <span className="text-[13px] font-black tracking-[1.4px] text-primary uppercase">
+              Por que escolher
             </span>
-            <h2 className="text-3xl font-bold tracking-tight text-slate-700 sm:text-4xl">
-              O João Tem conecta pessoas aos negócios da cidade
+            <h2 className="mt-3.5 mb-4 text-3xl font-black leading-[1.08] tracking-tight text-[#102A43] sm:text-4xl lg:text-5xl">
+              Por que usar o <span className="text-primary">João Tem?</span>
             </h2>
-            <p className="max-w-xl text-base leading-relaxed text-muted-foreground">
-              Aqui você encontra lojas, serviços e empreendedores reais, perto
-              de você. Uma grande vitrine digital para descobrir o melhor da sua
-              cidade.
+            <p className="mb-7 max-w-xl text-base leading-relaxed text-[#64748B] sm:text-lg">
+              Porque ele aproxima quem procura, quem vende e a cidade. Um jeito
+              simples de encontrar negócios locais, divulgar marcas e fortalecer
+              o comércio de Orós.
             </p>
 
-            <ul className="grid gap-4 sm:grid-cols-2">
-              {MARKETPLACE_FEATURES.map(({ Icon, title }) => (
-                <li key={title} className="flex items-center gap-3">
-                  <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-                    <Icon className="size-5" />
+            <div className="grid gap-4 sm:grid-cols-2">
+              {WHY_FEATURES.map(({ Icon, title, desc }) => (
+                <div
+                  key={title}
+                  className="group flex gap-3.5 rounded-2xl p-4 transition-all hover:-translate-y-1 hover:bg-white hover:shadow-[0_18px_40px_rgba(16,42,67,0.08)]"
+                >
+                  <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-[#EAF2FF] text-primary ring-1 ring-[#DBEAFE] transition-all group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
+                    <Icon className="size-6" />
                   </span>
-                  <span className="text-sm font-medium text-foreground">
-                    {title}
-                  </span>
-                </li>
+                  <div>
+                    <h3 className="mb-1 text-base font-black text-[#102A43]">
+                      {title}
+                    </h3>
+                    <p className="text-sm leading-relaxed text-[#64748B]">
+                      {desc}
+                    </p>
+                  </div>
+                </div>
               ))}
-            </ul>
+            </div>
 
             <Link
-              to="/signup"
-              className={buttonVariants({
-                variant: "default",
-                size: "lg",
-                className: "h-11 gap-2 px-6",
-              })}
+              to="/planos"
+              className="mt-8 inline-flex min-h-12 items-center justify-center gap-2.5 rounded-2xl bg-primary px-6 text-sm font-black text-white shadow-[0_14px_34px_rgba(37,99,235,0.24)] transition-transform hover:-translate-y-0.5"
             >
-              <Store className="size-4" />
-              Cadastrar meu negócio
+              Quero cadastrar meu negócio →
             </Link>
           </div>
 
-          <div className="relative">
-            <div className="overflow-hidden rounded-3xl border border-border/60 shadow-xl">
-              <img
-                src="/oros.jpeg"
-                alt="Comércio local de Orós"
-                className="h-[420px] w-full object-cover"
-              />
-            </div>
-            <div className="absolute -top-5 -right-5 flex items-center gap-3 rounded-2xl border border-border/60 bg-card px-4 py-3 shadow-lg">
-              <span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary">
-                <MessageCircle className="size-5" />
-              </span>
-              <div className="text-sm">
-                <p className="font-semibold text-foreground">Negócios reais</p>
-                <p className="text-muted-foreground">perto de você</p>
+          <div className="rounded-[2.125rem] border border-border bg-white p-8 shadow-[0_18px_50px_rgba(16,42,67,0.08)]">
+            <div className="relative aspect-square min-h-[420px]">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="flex size-[82%] animate-jt-spin-slow items-center justify-center rounded-full border border-dashed border-primary/20">
+                  <div className="size-[70%] rounded-full border-2 border-primary/15" />
+                </div>
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <img
+                  src="/SVG2.svg"
+                  alt="João Tem"
+                  className="w-[68%] max-w-[285px] animate-jt-float object-contain drop-shadow-[0_24px_36px_rgba(16,42,67,0.18)]"
+                />
+              </div>
+
+              {[
+                { e: "🏪", pos: "top-1.5 left-1/2 -translate-x-1/2" },
+                { e: "🏢", pos: "top-[18%] -right-0.5" },
+                { e: "👥", pos: "bottom-[18%] right-3" },
+                { e: "🤝", pos: "bottom-1.5 left-1/2 -translate-x-1/2" },
+                { e: "🛍️", pos: "top-[18%] -left-0.5" },
+                { e: "💙", pos: "bottom-[18%] left-3" },
+              ].map(({ e, pos }, i) => (
+                <div
+                  key={i}
+                  className={`absolute z-10 grid size-13 animate-jt-float-badge place-items-center rounded-[1.125rem] border border-border bg-white text-xl shadow-[0_14px_34px_rgba(16,42,67,0.12)] ${pos}`}
+                  style={{ animationDelay: `${i * 0.2}s` }}
+                >
+                  {e}
+                </div>
+              ))}
+
+              <div className="absolute right-0 top-0 z-20 rounded-2xl bg-primary px-3.5 py-2.5 text-xs font-black text-white shadow-[0_12px_28px_rgba(16,42,67,0.12)]">
+                Guia local
+              </div>
+              <div className="absolute bottom-0 left-0 z-20 rounded-2xl bg-white px-3.5 py-2.5 text-xs font-black text-[#102A43] shadow-[0_12px_28px_rgba(16,42,67,0.12)]">
+                Orós conectado
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="como-funciona" className="mx-auto max-w-6xl px-4 py-16">
-        <div className="mx-auto max-w-2xl text-center">
-          <span className="inline-flex items-center rounded-full border border-border bg-muted/50 px-3 py-1 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-            Passo a passo
-          </span>
-          <h2 className="mt-4 text-slate-700 text-3xl font-bold tracking-tight sm:text-4xl">
-            Como funciona?
-          </h2>
-          <p className="mt-3 text-sm text-muted-foreground sm:text-base">
-            Em quatro passos simples você encontra o que precisa em Orós.
-          </p>
-        </div>
+      <section id="como-funciona" className="py-16">
+        <div className="mx-auto max-w-6xl px-4">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-3xl font-black tracking-tight text-[#102A43] sm:text-4xl">
+              Como funciona o <span className="text-primary">João Tem?</span>
+            </h2>
+            <p className="mt-3 text-sm text-[#64748B] sm:text-base">
+              Um caminho simples para encontrar negócios locais e falar direto
+              com quem vende.
+            </p>
+          </div>
 
-        <div className="mt-16 grid gap-y-12 gap-x-6 sm:grid-cols-2 lg:grid-cols-3">
-          {HOW_IT_WORKS_STEPS.map(({ n, Icon, title, desc }) => (
-            <div key={n} className="relative flex flex-col items-center pt-6">
-              <span className="absolute top-0 z-10 grid size-10 place-items-center rounded-full bg-[#2563EB] text-sm font-bold text-white shadow-md">
-                {n}
-              </span>
-
-              <div className="flex h-full w-full flex-col items-center rounded-2xl border border-border/60 bg-card p-6 pt-8 text-center shadow-sm">
-                <span className="grid size-16 place-items-center rounded-full bg-[#2563EB]/10 text-[#2563EB]">
-                  <Icon className="size-7" />
+          <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {STEPS.map(({ n, Icon, title, desc }) => (
+              <div
+                key={n}
+                className="group relative flex flex-col items-start rounded-3xl border border-border bg-white p-6 shadow-[0_10px_28px_rgba(16,42,67,0.06)] transition-all hover:-translate-y-1.5 hover:shadow-[0_20px_48px_rgba(16,42,67,0.12)]"
+              >
+                <span className="absolute right-5 top-5 text-4xl font-black text-primary/10">
+                  {n}
                 </span>
-                <h3 className="mt-5 text-base font-bold tracking-tight text-slate-700 sm:text-lg">
+                <span className="grid size-14 place-items-center rounded-2xl bg-[#EAF2FF] text-primary ring-1 ring-[#DBEAFE] transition-all group-hover:scale-110 group-hover:bg-primary group-hover:text-white">
+                  <Icon className="size-6" />
+                </span>
+                <h3 className="mt-5 text-base font-black text-[#102A43]">
                   {title}
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-blue-900">
+                <p className="mt-2 text-sm leading-relaxed text-[#64748B]">
                   {desc}
                 </p>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
-      <section aria-labelledby="cta-cadastro" className="mt-12">
+      <section aria-labelledby="cta-cadastro" className="py-10">
         <div className="mx-auto max-w-6xl px-4">
-          <div className="grid overflow-hidden rounded-2xl bg-linear-to-t from-sky-600 to-indigo-600 text-primary-foreground md:min-h-[420px] md:grid-cols-2">
-            <div className="flex flex-col items-start justify-center gap-5 px-6 py-10 sm:px-10 md:py-12">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary-foreground/30 bg-primary-foreground/10 px-3 py-1 text-xs font-medium tracking-wide uppercase backdrop-blur-sm">
+          <div className="grid items-center gap-8 overflow-hidden rounded-[2.25rem] border border-border bg-white p-6 shadow-[0_18px_50px_rgba(16,42,67,0.08)] sm:p-8 md:grid-cols-2">
+            <div className="flex flex-col items-start">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EAF2FF] px-3.5 py-2 text-xs font-black tracking-wide text-primary uppercase">
                 <Sparkles className="size-3.5" />
                 Para empreendedores
               </span>
               <h2
                 id="cta-cadastro"
-                className="text-balance text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl"
+                className="mt-4 text-balance text-2xl font-black tracking-tight text-[#102A43] sm:text-3xl lg:text-4xl"
               >
-                Você é empreendedor? Faça parte do João Tem!
+                Seu negócio merece ser{" "}
+                <span className="text-primary">encontrado</span>
               </h2>
-              <p className="max-w-md text-sm leading-relaxed text-primary-foreground/85 sm:text-base">
-                Cadastre seu negócio e ganhe visibilidade na sua cidade. Seja
-                encontrado por milhares de clientes em potencial.
+              <p className="mt-3 max-w-md text-sm leading-relaxed text-[#64748B] sm:text-base">
+                Cadastre sua empresa no João Tem e apareça para clientes que já
+                estão procurando produtos e serviços na sua cidade.
               </p>
+              <div className="mt-5 space-y-2.5">
+                {[
+                  "Página exclusiva para divulgar sua marca",
+                  "Mais visibilidade para seu negócio",
+                  "Promoções e destaque para atrair clientes",
+                ].map((t) => (
+                  <div
+                    key={t}
+                    className="flex items-center gap-2.5 text-sm font-medium text-[#102A43]"
+                  >
+                    <span className="grid size-5 shrink-0 place-items-center rounded-full bg-primary text-xs font-black text-white">
+                      ✓
+                    </span>
+                    {t}
+                  </div>
+                ))}
+              </div>
               <Link
                 to="/planos"
-                className="text-primary inline-flex h-11 items-center gap-2 rounded-lg bg-background px-5 text-sm font-semibold shadow-sm transition-colors hover:bg-background/90"
+                className="mt-7 inline-flex min-h-12 items-center gap-2 rounded-2xl bg-primary px-6 text-sm font-black text-white shadow-[0_14px_34px_rgba(37,99,235,0.24)] transition-transform hover:-translate-y-0.5"
               >
-                <Store className="size-4" />
-                Cadastrar meu negócio
+                Cadastrar meu negócio →
               </Link>
             </div>
 
-            <div className="relative hidden md:block">
+            <div className="relative h-64 overflow-hidden rounded-3xl md:h-full md:min-h-[380px]">
               <img
-                src="/oros.jpg"
-                alt="Orós - CE"
+                src="https://images.unsplash.com/photo-1556740749-887f6717d7e4?q=80&w=1200&auto=format&fit=crop"
+                alt="Empreendedor local"
                 className="absolute inset-0 size-full object-cover"
               />
             </div>
