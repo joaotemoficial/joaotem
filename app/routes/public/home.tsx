@@ -164,7 +164,7 @@ export const meta: Route.MetaFunction = ({ data }) => {
       title,
       description,
       canonical,
-      image: origin ? `${origin}/oros.jpg` : null,
+      image: origin ? `${origin}/plan-cta-callout.jpeg` : null,
     }),
     {
       "script:ld+json": {
@@ -422,13 +422,22 @@ export default function Home() {
           </div>
 
           <div className="mt-6 overflow-hidden rounded-[1.5rem] bg-white text-[#102A43] shadow-[0_20px_50px_rgba(0,0,0,0.25)]">
-            <div className="grid h-40 place-items-center bg-[#F1F5F9] text-xs font-black tracking-widest uppercase text-[#94A3B8] sm:h-48">
-              Capa premium
-            </div>
+            <img
+              src="/sponsor-banner.jpeg"
+              alt="Capa premium do patrocinador oficial"
+              className="h-40 w-full bg-[#102A43] object-contain min-[480px]:hidden"
+            />
+            <img
+              src="/sponsor-banner-desktop.jpeg"
+              alt="Capa premium do patrocinador oficial"
+              className="hidden h-auto w-full bg-[#102A43] object-contain min-[480px]:block"
+            />
             <div className="flex items-center gap-3 px-4 py-3.5 sm:px-5">
-              <div className="grid size-11 shrink-0 place-items-center rounded-[0.9rem] bg-[#EFF6FF] text-sm font-black text-[#2563EB]">
-                JT
-              </div>
+              <img
+                src="/sponsor-logo.jpeg"
+                alt="Logo do patrocinador oficial"
+                className="size-11 shrink-0 rounded-[0.9rem] object-cover"
+              />
               <div className="min-w-0">
                 <h3 className="text-[15px] font-black leading-tight text-[#102A43]">
                   Sua empresa aqui
