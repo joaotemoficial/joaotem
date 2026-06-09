@@ -328,8 +328,8 @@ export default function Home() {
             />
 
             <h1 className="animate-in fade-in fill-mode-both mb-8 text-balance text-3xl font-bold leading-tight text-primary-foreground duration-700 [animation-delay:0.1s] sm:text-4xl lg:text-5xl">
-              Tudo que você procura em <span className="text-blue-400">Orós</span>
-              , reunido no João Tem
+              Tudo que você procura em{" "}
+              <span className="text-blue-400">Orós</span>, reunido no João Tem
             </h1>
 
             <Form
@@ -372,7 +372,7 @@ export default function Home() {
                   className="group flex flex-col items-center gap-3 px-4 text-center transition-transform duration-300 hover:-translate-y-2 sm:px-8"
                 >
                   <span className="grid size-12 place-items-center rounded-full bg-primary text-primary-foreground shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:bg-[#2563EB] group-hover:shadow-[0_18px_30px_rgba(37,99,235,0.25)]">
-                    <Icon className="size-5 transition-transform duration-300 group-hover:-rotate-[8deg]" />
+                    <Icon className="size-5 transition-transform duration-300 group-hover:rotate-[-8deg]" />
                   </span>
                   <span className="max-w-[9rem] text-sm font-medium leading-snug text-primary-foreground/90">
                     {label}
@@ -397,9 +397,9 @@ export default function Home() {
 
       <section
         id="patrocinador-oficial"
-        className="mx-auto max-w-6xl px-4 py-7"
+        className="mx-auto max-w-6xl px-0 py-7 min-[480px]:px-4"
       >
-        <div className="relative overflow-hidden rounded-[2.25rem] bg-[#102A43] p-5 text-white shadow-[0_22px_60px_rgba(16,42,67,0.22)] sm:p-7">
+        <div className="relative overflow-hidden rounded-none bg-[#102A43] p-5 text-white shadow-[0_22px_60px_rgba(16,42,67,0.22)] min-[480px]:rounded-[2.25rem] sm:p-7">
           <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-[11px] font-black tracking-wider uppercase text-white/70">
             Patrocinador oficial
           </span>
@@ -425,7 +425,7 @@ export default function Home() {
             <img
               src="/sponsor-banner.jpeg"
               alt="Capa premium do patrocinador oficial"
-              className="h-40 w-full bg-[#102A43] object-contain min-[480px]:hidden"
+              className="h-40 w-full bg-[#102A43] object-cover min-[480px]:hidden"
             />
             <img
               src="/sponsor-banner-desktop.jpeg"
@@ -698,7 +698,9 @@ export default function Home() {
                     {paths}
                   </svg>
                 </span>
-                <h3 className="text-[17px] font-black text-[#102A43]">{title}</h3>
+                <h3 className="text-[17px] font-black text-[#102A43]">
+                  {title}
+                </h3>
                 <p className="mt-2 text-sm leading-relaxed text-[#64748B]">
                   {desc}
                 </p>
