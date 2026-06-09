@@ -1,6 +1,6 @@
 import { reactRouter } from "@react-router/dev/vite";
 import tailwindcss from "@tailwindcss/vite";
-import basicSsl from "@vitejs/plugin-basic-ssl";
+// import basicSsl from "@vitejs/plugin-basic-ssl";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
@@ -11,7 +11,7 @@ export default defineConfig({
     host: true,
   },
   plugins: [
-    basicSsl(),
+    // basicSsl(),
     tailwindcss(),
     reactRouter(),
     VitePWA({

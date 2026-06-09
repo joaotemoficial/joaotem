@@ -14,9 +14,10 @@ import {
   X,
 } from "lucide-react";
 import { FaInstagram, FaWhatsapp } from "react-icons/fa";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Form, Link, data, useFetcher, useLoaderData } from "react-router";
 import { PlanBadge } from "~/components/business/plan-badge";
+import { PromotionCard } from "~/components/promotions/promotion-card";
 import { SiteFooter } from "~/components/nav/site-footer";
 import { SiteHeader } from "~/components/nav/site-header";
 import { Badge } from "~/components/ui/badge";
@@ -512,80 +513,89 @@ export default function BusinessDetail({ actionData }: Route.ComponentProps) {
   );
 
   return (
-    <div className="min-h-svh bg-background">
+    <div className="min-h-svh bg-[#F5F7FA] text-[#1F2937]">
       <SiteHeader user={user} role={profile?.role} />
 
       {/* Cover */}
-      <div className="relative h-32 w-full overflow-hidden bg-muted sm:h-44 md:h-52">
+      <div className="relative h-[198px] w-full overflow-hidden bg-[#102A43] sm:h-[255px]">
         {business.cover_url ? (
           <img
             src={business.cover_url}
             alt={`Foto de capa de ${business.name}`}
             fetchPriority="high"
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover saturate-[1.05] contrast-[1.02]"
           />
         ) : null}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-b from-transparent to-background" />
+        {/* Navy gradient darkening toward the bottom */}
+        <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-[#102A43]/75 via-[#102A43]/40 to-[#102A43]/5" />
+        {/* Soft fade into the page background */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[70px] bg-linear-to-t from-[#F5F7FA] to-transparent" />
       </div>
 
       {/* Business header */}
-      <header className="mx-auto max-w-4xl px-4 pt-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <div className="size-24 shrink-0 overflow-hidden rounded-2xl border border-border/60 bg-muted shadow-sm">
-            {business.logo_url ? (
-              <img
-                src={business.logo_url}
-                alt={`Logo de ${business.name}`}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="grid h-full w-full place-items-center text-2xl font-semibold text-muted-foreground">
-                {business.name.charAt(0).toUpperCase()}
-              </div>
-            )}
-          </div>
-
-          <div className="flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-semibold tracking-tight">
-                {business.name}
-              </h1>
-              {showSeloOuro ? <PlanBadge tier="ouro" variant="solid" /> : null}
+      <header className="relative z-[5] mx-auto -mt-11 max-w-[1180px] px-3 pb-[18px] sm:-mt-[54px] sm:px-4">
+        <div className="rounded-[20px] border border-[#E5E7EB]/85 bg-white/[0.88] p-3.5 backdrop-blur-[14px] sm:rounded-3xl sm:p-[18px]">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+            <div className="size-[76px] shrink-0 overflow-hidden rounded-[18px] border-[3px] border-white bg-[#EEF3F8] sm:size-[90px] sm:rounded-[22px]">
+              {business.logo_url ? (
+                <img
+                  src={business.logo_url}
+                  alt={`Logo de ${business.name}`}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="grid h-full w-full place-items-center text-2xl font-semibold text-muted-foreground">
+                  {business.name.charAt(0).toUpperCase()}
+                </div>
+              )}
             </div>
-            <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-sm text-muted-foreground">
-              {business.category?.name ? (
-                <span className="font-medium text-foreground">
-                  {business.category.name}
-                </span>
-              ) : null}
-              <span>·</span>
-              <span className="inline-flex items-center gap-1">
-                <MapPin className="size-3.5" />
-                {business.neighborhood?.name}, {business.city?.name} -{" "}
-                {business.city?.state}
-              </span>
-            </p>
-            {business.offers_delivery ? (
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <Badge
-                  variant="secondary"
-                  className="gap-1 bg-emerald-50 text-emerald-700"
-                >
-                  <Truck className="size-3.5" />
-                  Faz entrega
-                </Badge>
+
+            <div className="flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-2xl font-black tracking-[-0.04em] text-[#102A43]">
+                  {business.name}
+                </h1>
+                {showSeloOuro ? (
+                  <PlanBadge tier="ouro" variant="solid" />
+                ) : null}
               </div>
-            ) : null}
+              {/* Accent underline */}
+              <div className="mt-[7px] h-[3px] w-[38px] rounded-full bg-[#2563EB]" />
+              <p className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-sm text-[#64748B]">
+                {business.category?.name ? (
+                  <span className="font-semibold text-[#102A43]">
+                    {business.category.name}
+                  </span>
+                ) : null}
+                <span>·</span>
+                <span className="inline-flex items-center gap-1">
+                  <MapPin className="size-3.5" />
+                  {business.neighborhood?.name}, {business.city?.name} -{" "}
+                  {business.city?.state}
+                </span>
+              </p>
+              {business.offers_delivery ? (
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <Badge
+                    variant="secondary"
+                    className="gap-1 bg-emerald-50 text-emerald-700"
+                  >
+                    <Truck className="size-3.5" />
+                    Faz entrega
+                  </Badge>
+                </div>
+              ) : null}
+            </div>
           </div>
         </div>
 
         {business.short_description ? (
-          <p className="mt-4 text-sm text-muted-foreground">
+          <p className="mt-4 ml-2 text-sm text-[#64748B]">
             {business.short_description}
           </p>
         ) : null}
 
-        <div className="mt-4 flex flex-wrap items-center gap-2">
+        <div className="mt-4 ml-2 flex flex-wrap items-center gap-2">
           <a
             href={whatsappLink}
             target="_blank"
@@ -618,118 +628,50 @@ export default function BusinessDetail({ actionData }: Route.ComponentProps) {
         ) : null}
       </header>
 
-      {/* Sticky section tabs */}
-      {promotions.length > 0 || products.length > 0 ? (
-        <SectionTabs
-          tabs={[
-            ...(promotions.length > 0
-              ? [{ id: "promocoes", label: "Promoções" }]
-              : []),
-            { id: "cardapio", label: "Cardápio" },
-          ]}
-        />
-      ) : null}
-
-      <main className="mx-auto max-w-4xl px-4 pb-32">
+      <main className="mx-auto max-w-[1180px] px-3 pt-1.5 pb-[120px] sm:px-4">
         {products.length > 0 ? (
           <div className="pt-6">
             <div className="relative">
-              <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[#64748B]" />
               <Input
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Buscar produto…"
-                className="h-10 pl-9"
+                className="h-12 rounded-2xl border-[#E5E7EB] bg-white pl-9 focus-visible:border-[#2563EB] focus-visible:ring-[#2563EB]/10"
               />
             </div>
           </div>
         ) : null}
 
-        {promotions.length > 0 ? (
-          <section id="promocoes" className="scroll-mt-28 pt-6">
-            <h2 className="pb-3 text-lg font-semibold tracking-tight text-slate-700">
-              Promoções de hoje
+        <section id="cardapio" className="scroll-mt-28 pt-[18px]">
+          {/* Storefront title */}
+          <div className="mb-4">
+            <span className="inline-flex items-center rounded-full bg-[#2563EB]/[0.09] px-2.5 py-1.5 text-[11px] font-extrabold tracking-[0.04em] text-[#2563EB] uppercase">
+              Vitrine da loja
+            </span>
+            <h2 className="mt-2.5 text-[clamp(22px,4vw,32px)] leading-none font-black tracking-[-0.05em] text-[#102A43]">
+              Produtos disponíveis
             </h2>
-
-            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {promotions.map((p) => (
-                <li
-                  key={p.id}
-                  className="flex flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm"
-                >
-                  <div className="aspect-square w-full overflow-hidden bg-muted">
-                    {p.cover_url ? (
-                      <img
-                        src={p.cover_url}
-                        alt={p.title}
-                        className="h-full w-full object-cover"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="grid h-full w-full place-items-center text-xs text-muted-foreground">
-                        <ImageOff className="size-5" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex flex-1 flex-col space-y-1 p-3">
-                    <p className="text-sm font-semibold">{p.title}</p>
-                    {p.description ? (
-                      <p className="line-clamp-3 text-xs text-muted-foreground">
-                        {p.description}
-                      </p>
-                    ) : null}
-                    {p.schedule_note ? (
-                      <p className="text-xs text-muted-foreground">
-                        {p.schedule_note}
-                      </p>
-                    ) : null}
-                  </div>
-                  <div className="px-3 pb-3">
-                    <Button
-                      size="sm"
-                      className="w-full"
-                      onClick={() =>
-                        addToCart({
-                          key: buildCartKey(p.id, [], ""),
-                          productId: p.id,
-                          name: p.title,
-                          imageUrl: p.cover_url,
-                          unitPriceCents: 0,
-                          selections: [],
-                          notes: "",
-                          quantity: 1,
-                        })
-                      }
-                    >
-                      <ShoppingBag className="size-4" />
-                      Adicionar na sacola
-                    </Button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
-
-        <section id="cardapio" className="scroll-mt-28 pt-8">
-          <h2 className="pb-3 text-lg font-semibold tracking-tight">
-            Produtos
-          </h2>
+            <p className="mt-2 max-w-[560px] text-sm text-[#64748B]">
+              Veja os produtos da loja e adicione à sacola para finalizar o
+              pedido direto pelo João Tem.
+            </p>
+          </div>
           {products.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border/70 px-6 py-10 text-center">
-              <p className="text-sm text-muted-foreground">
+            <div className="rounded-2xl border border-dashed border-[#E5E7EB] bg-white px-6 py-10 text-center">
+              <p className="text-sm text-[#64748B]">
                 Este negócio ainda não cadastrou produtos.
               </p>
             </div>
           ) : filteredProducts.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border/70 px-6 py-10 text-center">
-              <p className="text-sm text-muted-foreground">
+            <div className="rounded-2xl border border-dashed border-[#E5E7EB] bg-white px-6 py-10 text-center">
+              <p className="text-sm text-[#64748B]">
                 Nenhum produto encontrado para "{query.trim()}".
               </p>
             </div>
           ) : (
-            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
               {filteredProducts.map((p) => (
                 <ProductCard
                   key={p.id}
@@ -740,6 +682,47 @@ export default function BusinessDetail({ actionData }: Route.ComponentProps) {
             </ul>
           )}
         </section>
+
+        {promotions.length > 0 ? (
+          <section id="promocoes" className="scroll-mt-28 pt-12">
+            <div className="mb-4">
+              <span className="inline-flex items-center rounded-full bg-[#2563EB]/[0.09] px-2.5 py-1.5 text-[11px] font-extrabold tracking-[0.04em] text-[#2563EB] uppercase">
+                Ofertas
+              </span>
+              <h2 className="mt-2.5 text-[clamp(22px,4vw,32px)] leading-none font-black tracking-[-0.05em] text-[#102A43]">
+                Promoções de hoje
+              </h2>
+              <p className="mt-2 max-w-[560px] text-sm text-[#64748B]">
+                Aproveite as ofertas da loja e chame no WhatsApp para garantir a
+                sua.
+              </p>
+            </div>
+            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+              {promotions.map((p) => (
+                <li key={p.id}>
+                  <PromotionCard
+                    promotion={{
+                      id: p.id,
+                      title: p.title,
+                      description: p.description,
+                      schedule_note: p.schedule_note,
+                      cover_url: p.cover_url,
+                      business: {
+                        handle: business.handle,
+                        name: business.name,
+                        logo_url: business.logo_url,
+                        whatsapp: business.whatsapp,
+                        city: business.city,
+                        neighborhood: business.neighborhood,
+                      },
+                    }}
+                    whatsappMessage={`Olá! Tenho interesse na promoção "${p.title}" da ${business.name}. Pode me passar mais detalhes? 😊`}
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
         <div className="pt-10 text-center">
           <Link
@@ -797,54 +780,6 @@ export default function BusinessDetail({ actionData }: Route.ComponentProps) {
   );
 }
 
-// ---------------- sticky tabs ----------------
-
-function SectionTabs({ tabs }: { tabs: { id: string; label: string }[] }) {
-  const [active, setActive] = useState(tabs[0]?.id ?? "");
-
-  useEffect(() => {
-    const elements = tabs
-      .map((t) => document.getElementById(t.id))
-      .filter((el): el is HTMLElement => !!el);
-    if (elements.length === 0) return;
-
-    const obs = new IntersectionObserver(
-      (entries) => {
-        // Pick the topmost section currently intersecting.
-        const visible = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-        if (visible[0]) setActive(visible[0].target.id);
-      },
-      { rootMargin: "-120px 0px -60% 0px", threshold: 0 },
-    );
-    elements.forEach((el) => obs.observe(el));
-    return () => obs.disconnect();
-  }, [tabs]);
-
-  if (tabs.length <= 1) return null;
-
-  return (
-    <div className="sticky top-14 z-20 border-b border-border/60 bg-background/90 backdrop-blur">
-      <nav className="mx-auto flex max-w-4xl gap-1 overflow-x-auto px-4">
-        {tabs.map((t) => (
-          <a
-            key={t.id}
-            href={`#${t.id}`}
-            onClick={() => setActive(t.id)}
-            className={`relative whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition-colors ${active === t.id
-                ? "border-primary text-foreground"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
-          >
-            {t.label}
-          </a>
-        ))}
-      </nav>
-    </div>
-  );
-}
-
 // ---------------- product row ----------------
 
 function ProductCard({
@@ -870,36 +805,38 @@ function ProductCard({
     anyPriced && variantPrices.length > 1 && new Set(variantPrices).size > 1;
 
   return (
-    <li className="group flex flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+    <li className="group flex flex-col overflow-hidden rounded-[17px] border border-[#E5E7EB] bg-white transition-all duration-200 hover:-translate-y-0.5 hover:border-[#2563EB]/45 sm:rounded-[20px]">
       <button
         type="button"
         onClick={onClick}
         className="flex flex-1 flex-col text-left"
       >
-        <div className="aspect-square w-full overflow-hidden bg-muted">
+        <div className="aspect-square w-full overflow-hidden bg-[#EEF3F8]">
           {cover?.url ? (
             <img
               src={cover.url}
               alt={cover.alt_text ?? product.name}
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
               loading="lazy"
             />
           ) : (
-            <div className="grid h-full w-full place-items-center text-muted-foreground">
+            <div className="grid h-full w-full place-items-center text-[#64748B]">
               <ImageOff className="size-6" />
             </div>
           )}
         </div>
-        <div className="flex flex-1 flex-col gap-1.5 p-3">
-          <p className="line-clamp-1 text-sm font-bold">{product.name}</p>
+        <div className="flex flex-1 flex-col gap-1.5 p-2.5">
+          <p className="line-clamp-1 text-xs font-extrabold tracking-[-0.02em] text-[#1F2937] sm:text-[13px]">
+            {product.name}
+          </p>
           {product.description ? (
-            <p className="line-clamp-2 text-xs text-muted-foreground">
+            <p className="line-clamp-2 text-xs text-[#64748B]">
               {product.description}
             </p>
           ) : null}
-          <p className="mt-auto pt-1 text-base font-bold text-primary">
+          <p className="mt-auto pt-1 text-sm font-black text-[#2563EB] sm:text-[15px]">
             {showFrom ? (
-              <span className="text-xs font-normal text-muted-foreground">
+              <span className="text-xs font-normal text-[#64748B]">
                 a partir de{" "}
               </span>
             ) : null}
@@ -907,11 +844,15 @@ function ProductCard({
           </p>
         </div>
       </button>
-      <div className="px-3 pb-3">
-        <Button onClick={onClick} className="w-full" size="sm">
+      <div className="px-2.5 pb-2.5">
+        <button
+          type="button"
+          onClick={onClick}
+          className="inline-flex h-[34px] w-full items-center justify-center gap-1 rounded-[13px] border-[1.5px] border-[#2563EB] bg-transparent px-1.5 text-[11px] font-extrabold text-[#2563EB] transition-all duration-200 hover:bg-[#2563EB] hover:text-white sm:h-[37px] sm:text-sm"
+        >
           <Plus className="size-4" />
           Adicionar
-        </Button>
+        </button>
       </div>
     </li>
   );
@@ -1148,12 +1089,12 @@ function FloatingCartBar({
         <button
           type="button"
           onClick={onOpen}
-          className="pointer-events-auto flex w-full items-center justify-between gap-3 rounded-2xl bg-primary px-4 py-3 text-primary-foreground shadow-lg shadow-primary/30 transition-transform hover:-translate-y-0.5"
+          className="pointer-events-auto flex w-full items-center justify-between gap-3 rounded-[18px] bg-[#2563EB] px-4 py-3 text-white transition-all hover:-translate-y-0.5 hover:bg-[#1D4ED8]"
         >
           <span className="inline-flex items-center gap-2.5">
             <span className="relative">
               <ShoppingBag className="size-5" />
-              <span className="absolute -top-1.5 -right-1.5 grid size-4 place-items-center rounded-full bg-background text-[10px] font-semibold text-primary">
+              <span className="absolute -top-1.5 -right-1.5 grid size-4 place-items-center rounded-full bg-white text-[10px] font-semibold text-[#2563EB]">
                 {itemCount}
               </span>
             </span>
@@ -1435,9 +1376,9 @@ function BusinessResponsibilityFooter({
     .join(", ");
 
   return (
-    <section className="bg-muted/40 px-4 py-8">
+    <section className="border-t border-[#E5E7EB] bg-[#F5F7FA] px-4 py-8">
       <div className="mx-auto max-w-2xl text-center">
-        <p className="text-xs font-semibold tracking-wide text-primary">
+        <p className="text-xs font-semibold tracking-wide text-[#2563EB]">
           Dados do lojista responsável pela venda
         </p>
         <div className="mt-3 space-y-1.5">

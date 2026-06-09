@@ -17,10 +17,19 @@ export type PromotionCardData = {
   } | null;
 };
 
-export function PromotionCard({ promotion }: { promotion: PromotionCardData }) {
+export function PromotionCard({
+  promotion,
+  whatsappMessage,
+}: {
+  promotion: PromotionCardData;
+  /** When set, the WhatsApp button opens a chat pre-filled with this message. */
+  whatsappMessage?: string;
+}) {
   const p = promotion;
   const whatsappLink = p.business?.whatsapp
-    ? `https://wa.me/55${p.business.whatsapp}`
+    ? `https://wa.me/55${p.business.whatsapp}${
+        whatsappMessage ? `?text=${encodeURIComponent(whatsappMessage)}` : ""
+      }`
     : null;
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-xl border border-border/70 bg-card transition-all hover:border-foreground/20 hover:shadow-sm">
