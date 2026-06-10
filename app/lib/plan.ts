@@ -48,7 +48,7 @@ export function subscriptionStatus(business: {
 export const ACTIVATION_WHATSAPP = "5588921822102";
 
 export const PLAN_PRICING: Record<PlanTier, { name: string; price: string }> = {
-	ouro: { name: "Plano ouro", price: "R$ 79,90" },
+	ouro: { name: "Plano Ouro", price: "R$ 79,90" },
 	basico: { name: "Plano Básico", price: "R$ 29,90" },
 };
 
