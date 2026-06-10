@@ -21,5 +21,7 @@ export default defineConfig({
       padding: 0,
     },
   },
-  images: ["public/joao-tem-favicon.png"],
+  // Source image lives outside public/ so the 2.5 MB original is never copied
+  // into the build or precached by Workbox — only the generated icons ship.
+  images: ["assets/joao-tem-favicon.png"],
 });
