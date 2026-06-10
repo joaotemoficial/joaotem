@@ -2,6 +2,7 @@ import {
 	Building2,
 	CreditCard,
 	Inbox,
+	MapPin,
 	PlusCircle,
 	Replace,
 	ToggleRight,
@@ -36,6 +37,7 @@ const NAV_GROUPS = [
 	{
 		label: "Configurações",
 		items: [
+			{ to: "/admin/locations", label: "Cidades e bairros", icon: MapPin },
 			{ to: "/admin/feature-flags", label: "Recursos", icon: ToggleRight },
 			{ to: "/admin/search-synonyms", label: "Sinônimos", icon: Replace },
 		],

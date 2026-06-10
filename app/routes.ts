@@ -62,5 +62,6 @@ export default [
 		route("admin/reclaims", "routes/admin/reclaims.tsx"),
 		route("admin/feature-flags", "routes/admin/feature-flags.tsx"),
 		route("admin/search-synonyms", "routes/admin/search-synonyms.tsx"),
+		route("admin/locations", "routes/admin/locations.tsx"),
 	]),
 ] satisfies RouteConfig;
