@@ -35,6 +35,8 @@ export function BusinessCard({
   hasShowcaseItems?: boolean;
 }) {
   const isOuro = business.plan_tier === "ouro";
+  // Only Ouro businesses have a public profile page. Básico cards must not
+  // navigate anywhere on click — they expose only the WhatsApp/Instagram CTAs.
   const businessLink = `/negocio/${business.handle}`;
   const whatsappLink = business.whatsapp
     ? `https://wa.me/55${business.whatsapp}`
@@ -44,13 +46,12 @@ export function BusinessCard({
     ? `https://instagram.com/${instagramHandle}`
     : null;
 
-  return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md">
-      <Link
-        to={businessLink}
-        className="flex flex-1 flex-col focus-visible:outline-2 focus-visible:outline-ring"
-      >
-        <div className="relative aspect-video w-full overflow-hidden bg-muted">
+  // Ouro cards link to the public profile; Básico cards are inert containers.
+  const wrapperClass =
+    "flex flex-1 flex-col focus-visible:outline-2 focus-visible:outline-ring";
+  const inner = (
+    <>
+      <div className="relative aspect-video w-full overflow-hidden bg-muted">
           {coverUrl ? (
             <img
               src={coverUrl}
@@ -129,7 +130,18 @@ export function BusinessCard({
             </p>
           ) : null}
         </div>
-      </Link>
+    </>
+  );
+
+  return (
+    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md">
+      {isOuro ? (
+        <Link to={businessLink} className={wrapperClass}>
+          {inner}
+        </Link>
+      ) : (
+        <div className={wrapperClass}>{inner}</div>
+      )}
 
       <div className="flex items-stretch gap-2 px-4 pb-4">
         {whatsappLink ? (

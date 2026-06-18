@@ -16,18 +16,26 @@ import { Button, buttonVariants } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { Textarea } from "~/components/ui/textarea";
 import { requireAdmin } from "~/lib/auth.server";
-import { BUSINESS_STATUS_LABELS } from "~/lib/constants";
+import {
+	ACCEPTED_IMAGE_TYPES,
+	BUSINESS_STATUS_LABELS,
+	MAX_IMAGE_BYTES,
+} from "~/lib/constants";
 import {
 	daysUntilExpiry,
 	effectivePlanTier,
 	planLabel,
 } from "~/lib/plan";
-import { getPublicUrl } from "~/lib/storage.server";
+import {
+	getPublicUrl,
+	uploadBusinessImage,
+	type BusinessImageBucket,
+} from "~/lib/storage.server";
 import { planUpdateSchema } from "~/lib/validation/plan";
 import * as adminRepo from "~/repositories/admin";
 import * as businessesRepo from "~/repositories/businesses";
 import * as featureFlagsRepo from "~/repositories/feature-flags";
-import { isError } from "~/types";
+import { type Either, isError } from "~/types";
 import type { Route } from "./+types/business-detail";
 
 export const meta: Route.MetaFunction = () => [
@@ -124,7 +132,7 @@ export async function action({ params, request }: Route.ActionArgs) {
 	const intent = formData.get("intent");
 	const reason = formData.get("reason");
 
-	let result;
+	let result: Either<string, unknown>;
 	switch (intent) {
 		case "update-plan": {
 			const submission = parseWithZod(formData, { schema: planUpdateSchema });
@@ -245,6 +253,71 @@ export async function action({ params, request }: Route.ActionArgs) {
 			}
 			throw redirect(`/admin/businesses/${params.id}`, { headers: ctx.headers });
 		}
+		case "update-images": {
+			const businessRes = await adminRepo.getBusinessById({
+				supabase: ctx.supabase,
+				id: params.id,
+			});
+			if (isError(businessRes)) {
+				return Response.json({ imageError: businessRes.error }, { status: 500 });
+			}
+			if (!businessRes.success) {
+				return Response.json(
+					{ imageError: "Negócio não encontrado" },
+					{ status: 404 },
+				);
+			}
+			const ownerId = businessRes.success.user_id;
+
+			const validateImage = (file: File) => {
+				if (file.size > MAX_IMAGE_BYTES) {
+					return `Imagem deve ter no máximo ${MAX_IMAGE_BYTES / (1024 * 1024)}MB`;
+				}
+				if (!(ACCEPTED_IMAGE_TYPES as readonly string[]).includes(file.type)) {
+					return "Formato de imagem não suportado";
+				}
+				return null;
+			};
+
+			const uploads: Array<{ field: string; bucket: BusinessImageBucket }> = [
+				{ field: "logo", bucket: "business-logos" },
+				{ field: "cover", bucket: "business-covers" },
+			];
+			const patch: { logo_path?: string; cover_path?: string } = {};
+			for (const { field, bucket } of uploads) {
+				const file = formData.get(field);
+				if (!(file instanceof File) || file.size === 0) continue;
+				const invalid = validateImage(file);
+				if (invalid) {
+					return Response.json({ imageError: invalid }, { status: 400 });
+				}
+				const upload = await uploadBusinessImage({
+					supabase: ctx.supabase,
+					bucket,
+					userId: ownerId,
+					businessId: params.id,
+					file,
+				});
+				if (isError(upload)) {
+					return Response.json({ imageError: upload.error }, { status: 500 });
+				}
+				if (field === "logo") patch.logo_path = upload.success.path;
+				else patch.cover_path = upload.success.path;
+			}
+
+			if (Object.keys(patch).length === 0) {
+				return Response.json(
+					{ imageError: "Selecione ao menos uma imagem" },
+					{ status: 400 },
+				);
+			}
+			result = await businessesRepo.adminUpdate({
+				supabase: ctx.supabase,
+				id: params.id,
+				values: patch,
+			});
+			break;
+		}
 		default:
 			return Response.json({ error: "Ação inválida" }, { status: 400 });
 	}
@@ -265,6 +338,10 @@ export default function AdminBusinessDetail() {
 	const featureErrors =
 		actionData && "featureErrors" in actionData
 			? actionData.featureErrors
+			: undefined;
+	const imageError =
+		actionData && "imageError" in actionData
+			? String(actionData.imageError)
 			: undefined;
 
 	const expiryLabel =
@@ -354,6 +431,77 @@ export default function AdminBusinessDetail() {
 					</div>
 				) : null}
 			</dl>
+
+			<section className="mt-6 rounded-2xl border border-border/70 bg-card p-5">
+				<div className="pb-3">
+					<h2 className="text-base font-semibold">Imagens</h2>
+					<p className="text-sm text-muted-foreground">
+						Atualize o logo e a capa do negócio. Envie apenas o que quiser
+						trocar.
+					</p>
+				</div>
+				<Form
+					method="post"
+					encType="multipart/form-data"
+					className="flex flex-col gap-4"
+				>
+					<input type="hidden" name="intent" value="update-images" />
+					<div className="grid gap-4 sm:grid-cols-2">
+						<div className="flex flex-col gap-2">
+							<Label htmlFor="logo-file">Logo</Label>
+							<div className="flex items-center gap-3">
+								<div className="size-16 shrink-0 overflow-hidden rounded-xl border border-border bg-muted">
+									{business.logo_url ? (
+										<img
+											src={business.logo_url}
+											alt=""
+											className="h-full w-full object-cover"
+										/>
+									) : null}
+								</div>
+								<input
+									id="logo-file"
+									type="file"
+									name="logo"
+									accept={ACCEPTED_IMAGE_TYPES.join(",")}
+									className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
+								/>
+							</div>
+						</div>
+						<div className="flex flex-col gap-2">
+							<Label htmlFor="cover-file">Capa</Label>
+							<div className="flex flex-col gap-2">
+								<div className="aspect-16/6 w-full overflow-hidden rounded-xl border border-border bg-muted">
+									{business.cover_url ? (
+										<img
+											src={business.cover_url}
+											alt=""
+											className="h-full w-full object-cover"
+										/>
+									) : null}
+								</div>
+								<input
+									id="cover-file"
+									type="file"
+									name="cover"
+									accept={ACCEPTED_IMAGE_TYPES.join(",")}
+									className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-primary-foreground hover:file:bg-primary/90"
+								/>
+							</div>
+						</div>
+					</div>
+					{imageError ? (
+						<p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+							{imageError}
+						</p>
+					) : null}
+					<div>
+						<Button type="submit" disabled={submitting} className="self-start">
+							Salvar imagens
+						</Button>
+					</div>
+				</Form>
+			</section>
 
 			<section className="mt-6 rounded-2xl border border-border/70 bg-card p-5">
 				<div className="flex flex-wrap items-center justify-between gap-3 pb-3">

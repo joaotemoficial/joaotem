@@ -611,7 +611,10 @@ export default function Plans() {
         <div
           aria-hidden
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: "url(/oros.jpeg)" }}
+          style={{
+            backgroundImage:
+              "url(/WhatsApp%20Image%202026-05-25%20at%2015.01.17.jpeg)",
+          }}
         />
         <div
           aria-hidden
@@ -660,9 +663,12 @@ export default function Plans() {
           </p>
         </div>
 
-        <div className="mt-12 grid items-stretch gap-x-6 gap-y-8 lg:grid-cols-3">
+        <div className="mt-12 -mx-4 flex snap-x snap-mandatory items-stretch gap-x-6 overflow-x-auto px-4 pb-4 [scrollbar-width:none] lg:mx-0 lg:grid lg:grid-cols-3 lg:gap-y-8 lg:overflow-visible lg:px-0 lg:pb-0 [&::-webkit-scrollbar]:hidden">
           {SHOWCASE_CARDS.map(({ Card, title, desc }) => (
-            <div key={title} className="flex flex-col">
+            <div
+              key={title}
+              className="flex w-[82%] shrink-0 snap-start flex-col sm:w-[60%] lg:w-auto"
+            >
               <Card />
               <div className="mt-5 px-1 text-center lg:text-left">
                 <h3 className="text-sm font-semibold text-foreground">
@@ -779,8 +785,8 @@ export default function Plans() {
           </p>
         </div>
 
-        <div className="mt-12 grid items-start gap-6 lg:grid-cols-3">
-          <div className="flex flex-col">
+        <div className="mt-12 -mx-4 flex snap-x snap-mandatory items-start gap-6 overflow-x-auto px-4 pb-4 [scrollbar-width:none] lg:mx-0 lg:grid lg:grid-cols-3 lg:overflow-visible lg:px-0 lg:pb-0 [&::-webkit-scrollbar]:hidden">
+          <div className="flex w-[82%] shrink-0 snap-start flex-col sm:w-[60%] lg:w-auto">
             <div className="rounded-2xl border border-border/60 bg-[#FBFBF8] p-3 shadow-sm">
               <DemoVitrine />
             </div>
@@ -794,7 +800,7 @@ export default function Plans() {
             </div>
           </div>
 
-          <div className="flex flex-col">
+          <div className="flex w-[82%] shrink-0 snap-start flex-col sm:w-[60%] lg:w-auto">
             <div className="overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm">
               <DemoSacola />
             </div>
@@ -808,7 +814,7 @@ export default function Plans() {
             </div>
           </div>
 
-          <div className="flex flex-col">
+          <div className="flex w-[82%] shrink-0 snap-start flex-col sm:w-[60%] lg:w-auto">
             <div className="rounded-2xl border border-border/60 bg-[#FBFBF8] p-3 shadow-sm">
               <DemoResumo />
             </div>
@@ -1006,50 +1012,6 @@ export default function Plans() {
         </div>
       </section>
 
-      <section className="border-y border-border/60 bg-card/60">
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:py-20">
-          <div className="mx-auto max-w-2xl text-center">
-            <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
-              <Users className="size-4" />
-              Comunidade João Tem
-            </span>
-            <h2 className="mt-4 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-              Veja o que dizem por aí
-            </h2>
-            <p className="mt-3 text-sm text-muted-foreground sm:text-base">
-              Histórias de quem usa o João Tem para ser encontrado e vender mais.
-            </p>
-          </div>
-
-          <div className="mt-12 grid gap-6 sm:grid-cols-3">
-            {TESTIMONIALS.map((t) => (
-              <div
-                key={t.name}
-                className="flex flex-col rounded-2xl border border-border/60 bg-card p-6 shadow-sm"
-              >
-                <Quote className="size-7 text-primary/25" />
-                <p className="mt-3 flex-1 text-sm leading-relaxed text-foreground">
-                  {t.quote}
-                </p>
-                <div className="mt-5 flex items-center gap-3">
-                  <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-                    {t.initials}
-                  </span>
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">
-                      {t.name}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {t.business}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <section className="mx-auto max-w-3xl px-4 py-16 sm:py-20">
         <div className="text-center">
           <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
@@ -1072,30 +1034,6 @@ export default function Plans() {
               </p>
             </details>
           ))}
-        </div>
-      </section>
-
-      <section
-        className="relative overflow-hidden py-16 sm:py-20"
-        style={{
-          background: "#102A43",
-        }}
-      >
-        <div className="mx-auto max-w-2xl px-4 text-center">
-          <h2 className="text-balance text-2xl font-bold tracking-tight text-primary-foreground sm:text-3xl">
-            Comece hoje a ser encontrado em Orós
-          </h2>
-          <p className="mx-auto mt-3 max-w-xl text-sm text-primary-foreground/85 sm:text-base">
-            Comece na busca do WhatsApp e, quando quiser, suba para o Plano Ouro
-            com vitrine, destaque e mais chances de vender na cidade.
-          </p>
-          <div className="mt-8 flex justify-center">
-            <Link to="#planos" className={ctaWhite}>
-              <ShieldCheck className="size-[18px]" />
-              Cadastrar meu negócio
-              <ArrowRight className="size-[18px]" />
-            </Link>
-          </div>
         </div>
       </section>
 

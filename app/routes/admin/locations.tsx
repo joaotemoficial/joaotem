@@ -21,8 +21,16 @@ export const meta: Route.MetaFunction = () => [
 	{ title: "Admin — Cidades e bairros" },
 ];
 
-function parseSortOrder(raw: FormDataEntryValue | null): number {
-	const n = Number.parseInt(String(raw ?? ""), 10);
+type AdminCtx = Awaited<ReturnType<typeof requireAdmin>>;
+
+// FormData values are `string | File`; coerce to a plain string safely.
+function field(formData: FormData, key: string): string {
+	const value = formData.get(key);
+	return typeof value === "string" ? value : "";
+}
+
+function parseSortOrder(raw: string): number {
+	const n = Number.parseInt(raw, 10);
 	return Number.isFinite(n) ? n : 0;
 }
 
@@ -54,140 +62,129 @@ export async function loader({ request }: Route.LoaderArgs) {
 	return { cities, selectedCity, neighborhoods };
 }
 
+const badRequest = (error: string) => data({ error }, { status: 400 });
+
+async function deleteCity(formData: FormData, ctx: AdminCtx) {
+	const id = field(formData, "id");
+	const deps = await citiesRepo.countDependents({ supabase: ctx.supabase, id });
+	if (isError(deps)) return badRequest(deps.error);
+	const blocking = deps.success.neighborhoods + deps.success.businesses;
+	if (blocking > 0) {
+		return badRequest(
+			`Não é possível excluir: ${deps.success.neighborhoods} bairro(s) e ${deps.success.businesses} negócio(s) usam esta cidade. Desative-a em vez de excluir.`,
+		);
+	}
+	const result = await citiesRepo.remove({ supabase: ctx.supabase, id });
+	if (isError(result)) return badRequest(result.error);
+	throw redirect("/admin/locations", { headers: ctx.headers });
+}
+
+async function upsertCity(intent: string, formData: FormData, ctx: AdminCtx) {
+	const name = field(formData, "name").trim();
+	const state = field(formData, "state").trim().toUpperCase().slice(0, 2);
+	const slug = slugify(field(formData, "slug") || name);
+	const isActive = formData.get("is_active") === "on";
+
+	if (!name) return badRequest("Informe o nome da cidade.");
+	if (!state) return badRequest("Informe o estado (UF).");
+	if (!slug) return badRequest("Não foi possível gerar o slug.");
+
+	const values = {
+		name,
+		state,
+		slug,
+		sort_order: parseSortOrder(field(formData, "sort_order")),
+		is_active: isActive,
+	};
+
+	if (intent === "city-create") {
+		const result = await citiesRepo.create({ supabase: ctx.supabase, values });
+		if (isError(result)) return badRequest(result.error);
+		throw redirect("/admin/locations", { headers: ctx.headers });
+	}
+
+	const id = field(formData, "id");
+	const result = await citiesRepo.update({ supabase: ctx.supabase, id, patch: values });
+	if (isError(result)) return badRequest(result.error);
+	throw redirect(`/admin/locations?city=${encodeURIComponent(id)}`, {
+		headers: ctx.headers,
+	});
+}
+
+async function deleteNeighborhood(formData: FormData, ctx: AdminCtx, backTo: string) {
+	const id = field(formData, "id");
+	const deps = await neighborhoodsRepo.countBusinesses({
+		supabase: ctx.supabase,
+		id,
+	});
+	if (isError(deps)) return badRequest(deps.error);
+	if (deps.success > 0) {
+		return badRequest(
+			`Não é possível excluir: ${deps.success} negócio(s) usam este bairro. Desative-o em vez de excluir.`,
+		);
+	}
+	const result = await neighborhoodsRepo.remove({ supabase: ctx.supabase, id });
+	if (isError(result)) return badRequest(result.error);
+	throw redirect(backTo, { headers: ctx.headers });
+}
+
+async function upsertNeighborhood(
+	intent: string,
+	formData: FormData,
+	ctx: AdminCtx,
+	cityId: string,
+	backTo: string,
+) {
+	if (!cityId) return badRequest("Selecione uma cidade.");
+
+	const name = field(formData, "name").trim();
+	const slug = slugify(field(formData, "slug") || name);
+	const isActive = formData.get("is_active") === "on";
+
+	if (!name) return badRequest("Informe o nome do bairro.");
+	if (!slug) return badRequest("Não foi possível gerar o slug.");
+
+	const sortOrder = parseSortOrder(field(formData, "sort_order"));
+
+	if (intent === "neighborhood-create") {
+		const result = await neighborhoodsRepo.create({
+			supabase: ctx.supabase,
+			values: { city_id: cityId, name, slug, sort_order: sortOrder, is_active: isActive },
+		});
+		if (isError(result)) return badRequest(result.error);
+		throw redirect(backTo, { headers: ctx.headers });
+	}
+
+	const id = field(formData, "id");
+	const result = await neighborhoodsRepo.update({
+		supabase: ctx.supabase,
+		id,
+		patch: { name, slug, sort_order: sortOrder, is_active: isActive },
+	});
+	if (isError(result)) return badRequest(result.error);
+	throw redirect(backTo, { headers: ctx.headers });
+}
+
 export async function action({ request }: Route.ActionArgs) {
 	const ctx = await requireAdmin(request);
 	const formData = await request.formData();
-	const intent = String(formData.get("intent") ?? "");
+	const intent = field(formData, "intent");
 
-	// ---- Cities ----
-	if (intent.startsWith("city-")) {
-		if (intent === "city-delete") {
-			const id = String(formData.get("id") ?? "");
-			const deps = await citiesRepo.countDependents({
-				supabase: ctx.supabase,
-				id,
-			});
-			if (isError(deps)) return data({ error: deps.error }, { status: 400 });
-			if (deps.success.neighborhoods > 0 || deps.success.businesses > 0) {
-				return data(
-					{
-						error: `Não é possível excluir: ${deps.success.neighborhoods} bairro(s) e ${deps.success.businesses} negócio(s) usam esta cidade. Desative-a em vez de excluir.`,
-					},
-					{ status: 400 },
-				);
-			}
-			const result = await citiesRepo.remove({ supabase: ctx.supabase, id });
-			if (isError(result)) return data({ error: result.error }, { status: 400 });
-			throw redirect("/admin/locations", { headers: ctx.headers });
-		}
+	if (intent === "city-delete") return deleteCity(formData, ctx);
+	if (intent === "city-create" || intent === "city-update")
+		return upsertCity(intent, formData, ctx);
 
-		const name = String(formData.get("name") ?? "").trim();
-		const state = String(formData.get("state") ?? "")
-			.trim()
-			.toUpperCase()
-			.slice(0, 2);
-		const slug = slugify(String(formData.get("slug") ?? "") || name);
-		const sortOrder = parseSortOrder(formData.get("sort_order"));
-		const isActive = formData.get("is_active") === "on";
-
-		if (!name) return data({ error: "Informe o nome da cidade." }, { status: 400 });
-		if (!state) return data({ error: "Informe o estado (UF)." }, { status: 400 });
-		if (!slug)
-			return data({ error: "Não foi possível gerar o slug." }, { status: 400 });
-
-		if (intent === "city-create") {
-			const result = await citiesRepo.create({
-				supabase: ctx.supabase,
-				values: { name, state, slug, sort_order: sortOrder, is_active: isActive },
-			});
-			if (isError(result)) return data({ error: result.error }, { status: 400 });
-			throw redirect("/admin/locations", { headers: ctx.headers });
-		}
-
-		if (intent === "city-update") {
-			const id = String(formData.get("id") ?? "");
-			const result = await citiesRepo.update({
-				supabase: ctx.supabase,
-				id,
-				patch: { name, state, slug, sort_order: sortOrder, is_active: isActive },
-			});
-			if (isError(result)) return data({ error: result.error }, { status: 400 });
-			throw redirect(`/admin/locations?city=${encodeURIComponent(id)}`, {
-				headers: ctx.headers,
-			});
-		}
-	}
-
-	// ---- Neighborhoods ----
 	if (intent.startsWith("neighborhood-")) {
-		const cityId = String(formData.get("city_id") ?? "");
+		const cityId = field(formData, "city_id");
 		const backTo = cityId
 			? `/admin/locations?city=${encodeURIComponent(cityId)}`
 			: "/admin/locations";
-
-		if (intent === "neighborhood-delete") {
-			const id = String(formData.get("id") ?? "");
-			const deps = await neighborhoodsRepo.countBusinesses({
-				supabase: ctx.supabase,
-				id,
-			});
-			if (isError(deps)) return data({ error: deps.error }, { status: 400 });
-			if (deps.success > 0) {
-				return data(
-					{
-						error: `Não é possível excluir: ${deps.success} negócio(s) usam este bairro. Desative-o em vez de excluir.`,
-					},
-					{ status: 400 },
-				);
-			}
-			const result = await neighborhoodsRepo.remove({
-				supabase: ctx.supabase,
-				id,
-			});
-			if (isError(result)) return data({ error: result.error }, { status: 400 });
-			throw redirect(backTo, { headers: ctx.headers });
-		}
-
-		if (!cityId)
-			return data({ error: "Selecione uma cidade." }, { status: 400 });
-
-		const name = String(formData.get("name") ?? "").trim();
-		const slug = slugify(String(formData.get("slug") ?? "") || name);
-		const sortOrder = parseSortOrder(formData.get("sort_order"));
-		const isActive = formData.get("is_active") === "on";
-
-		if (!name) return data({ error: "Informe o nome do bairro." }, { status: 400 });
-		if (!slug)
-			return data({ error: "Não foi possível gerar o slug." }, { status: 400 });
-
-		if (intent === "neighborhood-create") {
-			const result = await neighborhoodsRepo.create({
-				supabase: ctx.supabase,
-				values: {
-					city_id: cityId,
-					name,
-					slug,
-					sort_order: sortOrder,
-					is_active: isActive,
-				},
-			});
-			if (isError(result)) return data({ error: result.error }, { status: 400 });
-			throw redirect(backTo, { headers: ctx.headers });
-		}
-
-		if (intent === "neighborhood-update") {
-			const id = String(formData.get("id") ?? "");
-			const result = await neighborhoodsRepo.update({
-				supabase: ctx.supabase,
-				id,
-				patch: { name, slug, sort_order: sortOrder, is_active: isActive },
-			});
-			if (isError(result)) return data({ error: result.error }, { status: 400 });
-			throw redirect(backTo, { headers: ctx.headers });
-		}
+		if (intent === "neighborhood-delete")
+			return deleteNeighborhood(formData, ctx, backTo);
+		return upsertNeighborhood(intent, formData, ctx, cityId, backTo);
 	}
 
-	return data({ error: "Ação inválida" }, { status: 400 });
+	return badRequest("Ação inválida");
 }
 
 export default function AdminLocations() {
@@ -365,12 +362,7 @@ export default function AdminLocations() {
 					) : null}
 				</h2>
 
-				{!selectedCity ? (
-					<p className="text-sm text-muted-foreground">
-						Selecione uma cidade acima (em "Gerenciar bairros") para ver e editar
-						os bairros dela.
-					</p>
-				) : (
+				{selectedCity ? (
 					<>
 						{/* Novo bairro */}
 						<Form
@@ -477,6 +469,11 @@ export default function AdminLocations() {
 							)}
 						</div>
 					</>
+				) : (
+					<p className="text-sm text-muted-foreground">
+						Selecione uma cidade acima (em "Gerenciar bairros") para ver e editar
+						os bairros dela.
+					</p>
 				)}
 			</section>
 		</main>

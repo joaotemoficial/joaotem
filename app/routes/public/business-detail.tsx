@@ -147,6 +147,12 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     !isError(ownerResult) && ownerResult.success?.user_id === SYSTEM_USER_ID;
 
   const effTier = effectivePlanTier(business);
+  // Only Ouro businesses have a public profile page. Básico (or expired/no
+  // plan) businesses are not browsable by handle and must 404.
+  if (effTier !== "ouro") {
+    throw new Response("Negócio não encontrado", { status: 404 });
+  }
+
   const flags = await resolveFlagsForBusiness({
     supabase: ctx.supabase,
     businessId: business.id,

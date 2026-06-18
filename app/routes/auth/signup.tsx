@@ -4,6 +4,7 @@ import { Form, Link, redirect, useLoaderData, useNavigation } from "react-router
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { PasswordInput } from "~/components/ui/password-input";
 import { signupSchema } from "~/lib/validation/business";
 import { signUpWithPassword } from "~/repositories/auth";
 import { isError } from "~/types";
@@ -59,7 +60,7 @@ export default function Signup({ actionData }: Route.ComponentProps) {
 				<img
 					src="/joao-tem-logo.svg"
 					alt="João Tem"
-					className="mx-auto mb-5 h-auto w-[90px]"
+					className="mx-auto mb-5 h-11 w-auto object-contain"
 				/>
 
 				<h1 className="text-center text-3xl font-black tracking-tighter text-accent">
@@ -99,7 +100,7 @@ export default function Signup({ actionData }: Route.ComponentProps) {
 						>
 							Senha
 						</Label>
-						<Input
+						<PasswordInput
 							{...getInputProps(fields.password, { type: "password" })}
 							placeholder="Digite sua senha"
 							autoComplete="new-password"

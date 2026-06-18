@@ -1,6 +1,8 @@
 import { Form, Link, useLoaderData, useSearchParams } from "react-router";
 import { Badge } from "~/components/ui/badge";
 import { buttonVariants } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
+import { Pagination } from "~/components/ui/pagination";
 import { requireAdmin } from "~/lib/auth.server";
 import { BUSINESS_STATUS_LABELS } from "~/lib/constants";
 import { getPublicUrl } from "~/lib/storage.server";
@@ -12,6 +14,8 @@ import type { Route } from "./+types/businesses-index";
 export const meta: Route.MetaFunction = () => [
 	{ title: "Admin — Negócios" },
 ];
+
+const PAGE_SIZE = 20;
 
 const STATUSES = ["all", "pending", "approved", "rejected", "suspended"] as const;
 type StatusFilter = (typeof STATUSES)[number];
@@ -33,40 +37,64 @@ export async function loader({ request }: Route.LoaderArgs) {
 		? (statusParam as StatusFilter)
 		: "all";
 	const cityId = url.searchParams.get("city") ?? undefined;
+	const q = url.searchParams.get("q")?.trim() || undefined;
+	const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
 
-	const [items, cities] = await Promise.all([
+	const [result, cities] = await Promise.all([
 		adminRepo.listBusinesses({
 			supabase: ctx.supabase,
 			status: status === "all" ? "all" : status,
 			cityId: cityId || undefined,
+			q,
+			page,
+			perPage: PAGE_SIZE,
 		}),
 		citiesRepo.listActive({ supabase: ctx.supabase }),
 	]);
 
-	if (isError(items)) throw new Response(items.error, { status: 500 });
+	if (isError(result)) throw new Response(result.error, { status: 500 });
 	if (isError(cities)) throw new Response(cities.error, { status: 500 });
 
+	const totalPages = Math.max(1, Math.ceil(result.success.total / PAGE_SIZE));
+
 	return {
-		items: items.success.map((b) => ({
+		items: result.success.items.map((b) => ({
 			...b,
 			logo_url: getPublicUrl(ctx.supabase, "business-logos", b.logo_path),
 		})),
 		cities: cities.success,
-		filters: { status, cityId: cityId ?? "" },
+		filters: { status, cityId: cityId ?? "", q: q ?? "" },
+		total: result.success.total,
+		page,
+		totalPages,
 	};
 }
 
 export default function AdminBusinesses() {
-	const { items, cities, filters } = useLoaderData<typeof loader>();
+	const { items, cities, filters, total, page, totalPages } =
+		useLoaderData<typeof loader>();
 	const [params] = useSearchParams();
 
 	return (
 		<main className="mx-auto max-w-6xl px-4 py-8">
-			<div className="pb-4">
+			<div className="flex items-baseline justify-between pb-4">
 				<h1 className="text-xl font-semibold tracking-tight">Todos os negócios</h1>
+				<span className="text-sm text-muted-foreground">
+					{total} {total === 1 ? "resultado" : "resultados"}
+				</span>
 			</div>
 
 			<Form method="get" className="flex flex-wrap items-end gap-3 pb-6">
+				<label className="flex flex-col gap-1 text-sm">
+					<span className="font-medium">Buscar</span>
+					<Input
+						type="search"
+						name="q"
+						defaultValue={filters.q}
+						placeholder="Nome ou @handle"
+						className="h-9 w-56 rounded-lg"
+					/>
+				</label>
 				<label className="flex flex-col gap-1 text-sm">
 					<span className="font-medium">Status</span>
 					<select
@@ -178,6 +206,8 @@ export default function AdminBusinesses() {
 					</table>
 				</div>
 			)}
+
+			<Pagination page={page} totalPages={totalPages} />
 		</main>
 	);
 }

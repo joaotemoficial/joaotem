@@ -35,22 +35,38 @@ export async function listBusinesses({
 	supabase,
 	status,
 	cityId,
+	q,
+	page = 1,
+	perPage,
 }: {
 	supabase: Supabase;
 	status?: Status | "all";
 	cityId?: string;
+	q?: string;
+	page?: number;
+	perPage?: number;
 }) {
 	let query = supabase
 		.from("businesses")
-		.select(ADMIN_BUSINESS_FIELDS)
+		.select(ADMIN_BUSINESS_FIELDS, { count: "exact" })
 		.is("deleted_at", null);
 	if (status && status !== "all") query = query.eq("status", status);
 	if (cityId) query = query.eq("city_id", cityId);
-	const { data, error: queryError } = await query.order("created_at", {
-		ascending: false,
-	});
+	const term = q?.trim();
+	if (term) query = query.or(`name.ilike.%${term}%,handle.ilike.%${term}%`);
+
+	query = query.order("created_at", { ascending: false });
+	if (perPage && perPage > 0) {
+		const offset = (Math.max(1, page) - 1) * perPage;
+		query = query.range(offset, offset + perPage - 1);
+	}
+
+	const { data, error: queryError, count } = await query;
 	if (queryError) return error(queryError.message);
-	return success(await attachOwners(supabase, data ?? []));
+	return success({
+		items: await attachOwners(supabase, data ?? []),
+		total: count ?? 0,
+	});
 }
 
 // Approved businesses whose subscription is either missing or expired.
