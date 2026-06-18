@@ -82,6 +82,7 @@ export function BusinessOnboardingForm({
 		short_description: AnyField;
 		whatsapp: AnyField;
 		instagram: AnyField;
+		google_maps_url: AnyField;
 		offers_delivery: AnyField;
 		logo: AnyField;
 		cover: AnyField;
@@ -326,6 +327,17 @@ export function BusinessOnboardingForm({
 							<Input
 								{...getInputProps(fields.instagram, { type: "text" })}
 								placeholder="@seunegocio"
+							/>
+						</Field>
+
+						<Field
+							label="Link do Google Maps"
+							error={fields.google_maps_url.errors?.[0]}
+							hint="Cole o link do local no Google Maps para mostrar o botão “Como chegar”."
+						>
+							<Input
+								{...getInputProps(fields.google_maps_url, { type: "url" })}
+								placeholder="https://www.google.com/maps/place/..."
 							/>
 						</Field>
 

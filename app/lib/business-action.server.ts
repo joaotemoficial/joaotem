@@ -86,6 +86,7 @@ export async function handleBusinessSubmission({
 				short_description: v.short_description?.trim() || null,
 				whatsapp: v.whatsapp,
 				instagram: v.instagram?.trim() || null,
+				google_maps_url: v.google_maps_url?.trim() || null,
 				offers_delivery: v.offers_delivery,
 			},
 		});
@@ -110,6 +111,7 @@ export async function handleBusinessSubmission({
 				short_description: v.short_description?.trim() || null,
 				whatsapp: v.whatsapp,
 				instagram: v.instagram?.trim() || null,
+				google_maps_url: v.google_maps_url?.trim() || null,
 				offers_delivery: v.offers_delivery,
 			},
 		});

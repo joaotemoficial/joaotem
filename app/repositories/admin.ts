@@ -5,7 +5,7 @@ import { error, success } from "~/types";
 type Status = Database["public"]["Enums"]["business_status"];
 
 const ADMIN_BUSINESS_FIELDS = `
-  id, user_id, handle, name, short_description, whatsapp, instagram,
+  id, user_id, handle, name, short_description, whatsapp, instagram, google_maps_url,
   offers_delivery, logo_path, cover_path, status, rejection_reason,
   reviewed_at, reviewed_by, created_at, updated_at,
   plan_tier, plan_started_at, plan_expires_at, plan_notes,

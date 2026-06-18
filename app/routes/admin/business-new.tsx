@@ -188,6 +188,7 @@ export default function AdminBusinessNew({
 						short_description: fields.short_description,
 						whatsapp: fields.whatsapp,
 						instagram: fields.instagram,
+						google_maps_url: fields.google_maps_url,
 						offers_delivery: fields.offers_delivery,
 						logo: fields.logo,
 						cover: fields.cover,

@@ -1,7 +1,8 @@
-import { Crown, Eye, ImageOff, MapPin, Truck } from "lucide-react";
+import { Crown, Eye, ImageOff, MapPin, Navigation, Truck } from "lucide-react";
 import { FaInstagram, FaWhatsapp } from "react-icons/fa";
 import { Link } from "react-router";
 import { Badge } from "~/components/ui/badge";
+import { buildDirectionsUrl } from "~/lib/maps";
 import type { PlanTier } from "~/lib/plan";
 
 type BusinessCardData = {
@@ -15,6 +16,7 @@ type BusinessCardData = {
   plan_expires_at?: string | null;
   whatsapp?: string | null;
   instagram?: string | null;
+  google_maps_url?: string | null;
   category: { name: string; slug: string } | null;
   city: { name: string; state: string; slug: string } | null;
   neighborhood: { name: string; slug: string } | null;
@@ -45,6 +47,7 @@ export function BusinessCard({
   const instagramLink = instagramHandle
     ? `https://instagram.com/${instagramHandle}`
     : null;
+  const directionsLink = buildDirectionsUrl(business.google_maps_url);
 
   // Ouro cards link to the public profile; Básico cards are inert containers.
   const wrapperClass =
@@ -79,6 +82,17 @@ export function BusinessCard({
               <Crown className="size-3.5" />
               Ouro
             </span>
+          ) : null}
+          {directionsLink ? (
+            <a
+              href={directionsLink}
+              target="_blank"
+              rel="noreferrer"
+              className="absolute bottom-3 right-3 z-20 inline-flex items-center gap-1 rounded-md bg-background/95 px-2 py-1 text-[11px] font-semibold text-foreground shadow-sm backdrop-blur transition-colors hover:bg-background"
+            >
+              <Navigation className="size-3.5" />
+              Como chegar
+            </a>
           ) : null}
         </div>
 
@@ -134,14 +148,20 @@ export function BusinessCard({
   );
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md">
-      {isOuro ? (
-        <Link to={businessLink} className={wrapperClass}>
-          {inner}
-        </Link>
-      ) : (
-        <div className={wrapperClass}>{inner}</div>
-      )}
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm transition-all hover:-translate-y-0.5 hover:border-foreground/20 hover:shadow-md">
+      <div className={`${wrapperClass} relative`}>
+        {/* Stretched link: only Ouro cards navigate to the profile. Kept as an
+            empty overlay (not wrapping `inner`) so the directions chip — which
+            sits above it at z-20 — stays an independent, valid anchor. */}
+        {isOuro ? (
+          <Link
+            to={businessLink}
+            aria-label={business.name}
+            className="absolute inset-0 z-10"
+          />
+        ) : null}
+        {inner}
+      </div>
 
       <div className="flex items-stretch gap-2 px-4 pb-4">
         {whatsappLink ? (

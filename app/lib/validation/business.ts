@@ -67,6 +67,20 @@ export const businessFormSchema = z.object({
 		.max(60, "Máximo 60 caracteres")
 		.optional()
 		.or(z.literal("")),
+	google_maps_url: z
+		.string()
+		.trim()
+		.max(2000, "URL muito longa")
+		.refine(
+			(v) =>
+				v === "" ||
+				/^https?:\/\/(www\.)?(google\.[^/]+\/maps|maps\.google\.|maps\.app\.goo\.gl)/.test(
+					v,
+				),
+			"Cole um link do Google Maps",
+		)
+		.optional()
+		.or(z.literal("")),
 	offers_delivery: z
 		.union([z.literal("on"), z.literal("true"), z.literal("")])
 		.optional()

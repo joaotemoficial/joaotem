@@ -4,6 +4,7 @@ import {
   ImageOff,
   MapPin,
   Minus,
+  Navigation,
   Phone,
   Plus,
   Search,
@@ -42,6 +43,7 @@ import {
   hasFeature,
   resolveFlagsForBusiness,
 } from "~/lib/feature-flags.server";
+import { buildDirectionsUrl } from "~/lib/maps";
 import { effectivePlanTier } from "~/lib/plan";
 import {
   PRODUCT_IMAGE_BUCKET,
@@ -458,6 +460,7 @@ export default function BusinessDetail({ actionData }: Route.ComponentProps) {
   const instagramLink = instagramHandle
     ? `https://instagram.com/${instagramHandle}`
     : null;
+  const directionsLink = buildDirectionsUrl(business.google_maps_url);
 
   const [openProduct, setOpenProduct] = useState<PublicProduct | null>(null);
   const [cart, setCart] = useState<CartItem[]>(initialCart);
@@ -620,6 +623,17 @@ export default function BusinessDetail({ actionData }: Route.ComponentProps) {
             >
               <FaInstagram className="size-4" />
               Instagram
+            </a>
+          ) : null}
+          {directionsLink ? (
+            <a
+              href={directionsLink}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#102A43] px-3 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#1b3a5c]"
+            >
+              <Navigation className="size-4" />
+              Como chegar
             </a>
           ) : null}
         </div>

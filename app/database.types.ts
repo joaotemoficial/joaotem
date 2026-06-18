@@ -403,6 +403,7 @@ export type Database = {
           cover_path: string | null
           created_at: string
           deleted_at: string | null
+          google_maps_url: string | null
           handle: string
           id: string
           instagram: string | null
@@ -431,6 +432,7 @@ export type Database = {
           cover_path?: string | null
           created_at?: string
           deleted_at?: string | null
+          google_maps_url?: string | null
           handle: string
           id?: string
           instagram?: string | null
@@ -459,6 +461,7 @@ export type Database = {
           cover_path?: string | null
           created_at?: string
           deleted_at?: string | null
+          google_maps_url?: string | null
           handle?: string
           id?: string
           instagram?: string | null
@@ -784,6 +787,7 @@ export type Database = {
           cover_path: string | null
           created_at: string
           deleted_at: string | null
+          google_maps_url: string | null
           handle: string
           id: string
           instagram: string | null
@@ -827,6 +831,7 @@ export type Database = {
           cover_path: string | null
           created_at: string
           deleted_at: string | null
+          google_maps_url: string | null
           handle: string
           id: string
           instagram: string | null
@@ -875,6 +880,7 @@ export type Database = {
           cover_path: string | null
           created_at: string
           deleted_at: string | null
+          google_maps_url: string | null
           handle: string
           id: string
           instagram: string | null

@@ -12,6 +12,7 @@ import {
 	ImageIcon,
 	ImagePlus,
 	MapPin,
+	Navigation,
 	Phone,
 	Store,
 	Tag,
@@ -39,6 +40,7 @@ type Defaults = {
 	short_description?: string | null;
 	whatsapp?: string | null;
 	instagram?: string | null;
+	google_maps_url?: string | null;
 	offers_delivery?: boolean | null;
 	logo_url?: string | null;
 	cover_url?: string | null;
@@ -86,6 +88,7 @@ export function BusinessForm({
 		short_description: AnyField;
 		whatsapp: AnyField;
 		instagram: AnyField;
+		google_maps_url: AnyField;
 		offers_delivery: AnyField;
 		logo: AnyField;
 		cover: AnyField;
@@ -263,6 +266,23 @@ export function BusinessForm({
 									{...getInputProps(fields.instagram, { type: "text" })}
 									defaultValue={defaults.instagram ?? ""}
 									placeholder="@seunegocio"
+									className="pl-9"
+								/>
+							</InputWithIcon>
+						</Field>
+					</div>
+
+					<div className="sm:col-span-2">
+						<Field
+							label="Link do Google Maps"
+							error={fields.google_maps_url.errors?.[0]}
+							hint="Abra o local no Google Maps e cole o link aqui para mostrar o botão “Como chegar”."
+						>
+							<InputWithIcon icon={Navigation}>
+								<Input
+									{...getInputProps(fields.google_maps_url, { type: "url" })}
+									defaultValue={defaults.google_maps_url ?? ""}
+									placeholder="https://www.google.com/maps/place/..."
 									className="pl-9"
 								/>
 							</InputWithIcon>

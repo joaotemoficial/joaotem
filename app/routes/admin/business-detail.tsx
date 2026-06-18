@@ -401,6 +401,20 @@ export default function AdminBusinessDetail() {
 				</Item>
 				<Item label="WhatsApp">{business.whatsapp}</Item>
 				<Item label="Instagram">{business.instagram ?? "—"}</Item>
+					<Item label="Google Maps">
+						{business.google_maps_url ? (
+							<a
+								href={business.google_maps_url}
+								target="_blank"
+								rel="noreferrer"
+								className="text-primary underline-offset-4 hover:underline break-all"
+							>
+								Ver no Google Maps
+							</a>
+						) : (
+							"—"
+						)}
+					</Item>
 				<Item label="Categoria">{business.category?.name ?? "—"}</Item>
 				<Item label="Cidade">
 					{business.city?.name} - {business.city?.state}
