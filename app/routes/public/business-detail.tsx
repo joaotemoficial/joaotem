@@ -537,14 +537,12 @@ export default function BusinessDetail({ actionData }: Route.ComponentProps) {
         ) : null}
         {/* Navy gradient darkening toward the bottom */}
         <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-[#102A43]/75 via-[#102A43]/40 to-[#102A43]/5" />
-        {/* Soft fade into the page background */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[70px] bg-linear-to-t from-[#F5F7FA] to-transparent" />
       </div>
 
       {/* Business header */}
       <header className="relative z-[5] mx-auto -mt-11 max-w-[1180px] px-3 pb-[18px] sm:-mt-[54px] sm:px-4">
         <div className="rounded-[20px] border border-[#E5E7EB]/85 bg-white/[0.88] p-3.5 backdrop-blur-[14px] sm:rounded-3xl sm:p-[18px]">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="flex flex-row items-center gap-4">
             <div className="size-[76px] shrink-0 overflow-hidden rounded-[18px] border-[3px] border-white bg-[#EEF3F8] sm:size-[90px] sm:rounded-[22px]">
               {business.logo_url ? (
                 <img
@@ -840,8 +838,10 @@ function ProductCard({
               loading="lazy"
             />
           ) : (
-            <div className="grid h-full w-full place-items-center text-[#64748B]">
-              <ImageOff className="size-6" />
+            <div className="grid h-full w-full place-items-center bg-gradient-to-br from-[#2563EB] to-[hsl(219,50%,35%)] transition-transform duration-300 group-hover:scale-[1.03]">
+              <span className="select-none text-5xl font-bold text-white/70">
+                {product.name.charAt(0).toUpperCase()}
+              </span>
             </div>
           )}
         </div>

@@ -46,8 +46,10 @@ export function PromotionCard({
               loading="lazy"
             />
           ) : (
-            <div className="grid h-full w-full place-items-center text-[10px] text-muted-foreground">
-              sem imagem
+            <div className="grid h-full w-full place-items-center bg-gradient-to-br from-primary to-[hsl(219,50%,35%)] transition-transform duration-300 group-hover:scale-[1.02]">
+              <span className="select-none text-4xl font-bold text-white/70">
+                {p.title.charAt(0).toUpperCase()}
+              </span>
             </div>
           )}
         </div>

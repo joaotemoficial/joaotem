@@ -9,7 +9,7 @@ export type BusinessRow = Database["public"]["Tables"]["businesses"]["Row"];
 export type PlanTier = Database["public"]["Enums"]["plan_tier"];
 
 const PUBLIC_BUSINESS_FIELDS = `
-  id, handle, name, short_description, whatsapp, instagram, google_maps_url,
+  id, user_id, handle, name, short_description, whatsapp, instagram, google_maps_url,
   offers_delivery, logo_path, cover_path, status, created_at,
   plan_tier, plan_expires_at,
   category:business_categories!inner(id, name, slug),

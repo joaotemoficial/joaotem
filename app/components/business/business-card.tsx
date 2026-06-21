@@ -1,11 +1,14 @@
-import { Crown, Eye, ImageOff, MapPin, Navigation, Truck } from "lucide-react";
+import { Crown, Eye, MapPin, Truck, UserRoundCheck } from "lucide-react";
 import { FaInstagram, FaWhatsapp } from "react-icons/fa";
 import { Link } from "react-router";
+import { GoogleMapsPin } from "~/components/icons/google-maps-pin";
 import { Badge } from "~/components/ui/badge";
 import { buildDirectionsUrl } from "~/lib/maps";
 import type { PlanTier } from "~/lib/plan";
+import { SYSTEM_USER_ID } from "~/lib/system-user";
 
 type BusinessCardData = {
+  user_id?: string | null;
   handle: string;
   name: string;
   short_description: string | null;
@@ -48,6 +51,8 @@ export function BusinessCard({
     ? `https://instagram.com/${instagramHandle}`
     : null;
   const directionsLink = buildDirectionsUrl(business.google_maps_url);
+  // Unclaimed (system-owned) businesses can be claimed by their real owner.
+  const isClaimable = business.user_id === SYSTEM_USER_ID;
 
   // Ouro cards link to the public profile; Básico cards are inert containers.
   const wrapperClass =
@@ -63,9 +68,10 @@ export function BusinessCard({
               loading="lazy"
             />
           ) : (
-            <div className="grid h-full w-full place-items-center gap-1 text-xs text-muted-foreground">
-              <ImageOff className="size-6 opacity-50" />
-              Sem capa
+            <div className="grid h-full w-full place-items-center bg-gradient-to-br from-primary to-[hsl(219,50%,35%)] transition-transform duration-500 group-hover:scale-105">
+              <span className="select-none text-6xl font-bold text-white/70">
+                {business.name.charAt(0).toUpperCase()}
+              </span>
             </div>
           )}
           {business.offers_delivery ? (
@@ -83,16 +89,29 @@ export function BusinessCard({
               Ouro
             </span>
           ) : null}
-          {directionsLink ? (
-            <a
-              href={directionsLink}
-              target="_blank"
-              rel="noreferrer"
-              className="absolute bottom-3 right-3 z-20 inline-flex items-center gap-1 rounded-md bg-background/95 px-2 py-1 text-[11px] font-semibold text-foreground shadow-sm backdrop-blur transition-colors hover:bg-background"
-            >
-              <Navigation className="size-3.5" />
-              Como chegar
-            </a>
+          {isClaimable || directionsLink ? (
+            <div className="absolute bottom-3 right-3 z-20 flex flex-col items-end gap-2">
+              {isClaimable ? (
+                <Link
+                  to={`/negocio/${business.handle}/sou-dono`}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-amber-400 px-3 py-1.5 text-xs font-semibold text-amber-950 shadow-sm transition-colors hover:bg-amber-300"
+                >
+                  <UserRoundCheck className="size-3.5" />
+                  Sou dono
+                </Link>
+              ) : null}
+              {directionsLink ? (
+                <a
+                  href={directionsLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[#4285F4] bg-white px-3 py-1.5 text-xs font-medium text-[#4285F4] shadow-sm transition-colors"
+                >
+                  <GoogleMapsPin className="size-4" />
+                  Como chegar
+                </a>
+              ) : null}
+            </div>
           ) : null}
         </div>
 

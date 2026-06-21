@@ -11,11 +11,13 @@ import {
 import { FeatureOverridesFields } from "~/components/admin/feature-overrides-fields";
 import { PlanFormFields } from "~/components/admin/plan-form";
 import { PlanBadge } from "~/components/business/plan-badge";
+import { GoogleMapsPin } from "~/components/icons/google-maps-pin";
 import { Badge } from "~/components/ui/badge";
 import { Button, buttonVariants } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { Textarea } from "~/components/ui/textarea";
 import { requireAdmin } from "~/lib/auth.server";
+import { buildDirectionsUrl } from "~/lib/maps";
 import {
 	ACCEPTED_IMAGE_TYPES,
 	BUSINESS_STATUS_LABELS,
@@ -404,12 +406,13 @@ export default function AdminBusinessDetail() {
 					<Item label="Google Maps">
 						{business.google_maps_url ? (
 							<a
-								href={business.google_maps_url}
+								href={buildDirectionsUrl(business.google_maps_url) ?? business.google_maps_url}
 								target="_blank"
 								rel="noreferrer"
-								className="text-primary underline-offset-4 hover:underline break-all"
+								className="inline-flex items-center gap-1.5 rounded-full border border-[#4285F4] bg-white px-3 py-1.5 text-xs font-medium text-[#4285F4] shadow-sm transition-colors hover:bg-[#4285F4]/5"
 							>
-								Ver no Google Maps
+								<GoogleMapsPin className="size-4" />
+								Como chegar
 							</a>
 						) : (
 							"—"
