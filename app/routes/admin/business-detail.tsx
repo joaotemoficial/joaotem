@@ -14,6 +14,7 @@ import { PlanBadge } from "~/components/business/plan-badge";
 import { GoogleMapsPin } from "~/components/icons/google-maps-pin";
 import { Badge } from "~/components/ui/badge";
 import { Button, buttonVariants } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Textarea } from "~/components/ui/textarea";
 import { requireAdmin } from "~/lib/auth.server";
@@ -255,6 +256,32 @@ export async function action({ params, request }: Route.ActionArgs) {
 			}
 			throw redirect(`/admin/businesses/${params.id}`, { headers: ctx.headers });
 		}
+		case "update-maps": {
+			const raw = String(formData.get("google_maps_url") ?? "").trim();
+			if (
+				raw !== "" &&
+				!/^https?:\/\/(www\.)?(google\.[^/]+\/maps|maps\.google\.|maps\.app\.goo\.gl)/.test(
+					raw,
+				)
+			) {
+				return Response.json(
+					{ mapsError: "Cole um link do Google Maps" },
+					{ status: 400 },
+				);
+			}
+			if (raw.length > 2000) {
+				return Response.json(
+					{ mapsError: "URL muito longa" },
+					{ status: 400 },
+				);
+			}
+			result = await businessesRepo.adminUpdate({
+				supabase: ctx.supabase,
+				id: params.id,
+				values: { google_maps_url: raw === "" ? null : raw },
+			});
+			break;
+		}
 		case "update-images": {
 			const businessRes = await adminRepo.getBusinessById({
 				supabase: ctx.supabase,
@@ -344,6 +371,10 @@ export default function AdminBusinessDetail() {
 	const imageError =
 		actionData && "imageError" in actionData
 			? String(actionData.imageError)
+			: undefined;
+	const mapsError =
+		actionData && "mapsError" in actionData
+			? String(actionData.mapsError)
 			: undefined;
 
 	const expiryLabel =
@@ -515,6 +546,53 @@ export default function AdminBusinessDetail() {
 					<div>
 						<Button type="submit" disabled={submitting} className="self-start">
 							Salvar imagens
+						</Button>
+					</div>
+				</Form>
+			</section>
+
+			<section className="mt-6 rounded-2xl border border-border/70 bg-card p-5">
+				<div className="pb-3">
+					<h2 className="text-base font-semibold">Localização (Google Maps)</h2>
+					<p className="text-sm text-muted-foreground">
+						Cole o link do Google Maps do negócio. Deixe em branco para
+						remover.
+					</p>
+				</div>
+				<Form method="post" className="flex flex-col gap-3">
+					<input type="hidden" name="intent" value="update-maps" />
+					<div className="flex flex-col gap-2">
+						<Label htmlFor="google_maps_url">Link do Google Maps</Label>
+						<Input
+							id="google_maps_url"
+							name="google_maps_url"
+							type="url"
+							placeholder="https://maps.app.goo.gl/..."
+							defaultValue={business.google_maps_url ?? ""}
+						/>
+						{business.google_maps_url ? (
+							<a
+								href={
+									buildDirectionsUrl(business.google_maps_url) ??
+									business.google_maps_url
+								}
+								target="_blank"
+								rel="noreferrer"
+								className="inline-flex w-fit items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+							>
+								<GoogleMapsPin className="size-4" />
+								Abrir link atual
+							</a>
+						) : null}
+					</div>
+					{mapsError ? (
+						<p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+							{mapsError}
+						</p>
+					) : null}
+					<div>
+						<Button type="submit" disabled={submitting} className="self-start">
+							Salvar localização
 						</Button>
 					</div>
 				</Form>

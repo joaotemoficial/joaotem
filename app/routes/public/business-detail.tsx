@@ -17,6 +17,7 @@ import {
 import { FaInstagram, FaWhatsapp } from "react-icons/fa";
 import { useMemo, useState } from "react";
 import { Form, Link, data, useFetcher, useLoaderData } from "react-router";
+import { BusinessCard } from "~/components/business/business-card";
 import { PlanBadge } from "~/components/business/plan-badge";
 import { PromotionCard } from "~/components/promotions/promotion-card";
 import { SiteFooter } from "~/components/nav/site-footer";
@@ -164,7 +165,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   const showPromotions = hasFeature(flags, "promocoes_semana");
   const showSeloOuro = hasFeature(flags, "selo_ouro");
 
-  const [productsResult, promotionsResult] = await Promise.all([
+  const [productsResult, promotionsResult, similarResult] = await Promise.all([
     showProducts
       ? productsRepo.listPublicByBusiness({
         supabase: ctx.supabase,
@@ -177,9 +178,23 @@ export async function loader({ params, request }: Route.LoaderArgs) {
         businessId: business.id,
       })
       : Promise.resolve({ success: [] as never[] }),
+    businessesRepo.listPublicGoldFirstThenBasico({
+      supabase: ctx.supabase,
+      categoryId: business.category?.id,
+      cityId: business.city?.id,
+      limit: 9,
+    }),
   ]);
   const products = isError(productsResult) ? [] : productsResult.success;
   const promotions = isError(promotionsResult) ? [] : promotionsResult.success;
+  const similar = (isError(similarResult) ? [] : similarResult.success)
+    .filter((b) => b.id !== business.id)
+    .slice(0, 8)
+    .map((b) => ({
+      ...b,
+      logo_url: getPublicUrl(ctx.supabase, "business-logos", b.logo_path),
+      cover_url: getPublicUrl(ctx.supabase, "business-covers", b.cover_path),
+    }));
 
   let alreadyRequested = false;
   if (ctx.user && isSystemOwned) {
@@ -237,6 +252,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     alreadyRequested,
     showSeloOuro,
     initialCart,
+    similar,
     business: {
       ...business,
       logo_url: getPublicUrl(
@@ -453,6 +469,7 @@ export default function BusinessDetail({ actionData }: Route.ComponentProps) {
     alreadyRequested,
     showSeloOuro,
     initialCart,
+    similar,
   } = useLoaderData<typeof loader>();
 
   const whatsappLink = `https://wa.me/55${business.whatsapp}`;
@@ -735,6 +752,34 @@ export default function BusinessDetail({ actionData }: Route.ComponentProps) {
                       },
                     }}
                     whatsappMessage={`Olá! Tenho interesse na promoção "${p.title}" da ${business.name}. Pode me passar mais detalhes? 😊`}
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
+        {similar.length > 0 ? (
+          <section id="similares" className="scroll-mt-28 pt-12">
+            <div className="mb-4">
+              <span className="inline-flex items-center rounded-full bg-[#2563EB]/[0.09] px-2.5 py-1.5 text-[11px] font-extrabold tracking-[0.04em] text-[#2563EB] uppercase">
+                Similares
+              </span>
+              <h2 className="mt-2.5 text-[clamp(22px,4vw,32px)] leading-none font-black tracking-[-0.05em] text-[#102A43]">
+                Negócios parecidos
+              </h2>
+              <p className="mt-2 max-w-[560px] text-sm text-[#64748B]">
+                Veja outros negócios de {business.category?.name} em{" "}
+                {business.city?.name}.
+              </p>
+            </div>
+            <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {similar.map((b) => (
+                <li key={b.id}>
+                  <BusinessCard
+                    business={b}
+                    logoUrl={b.logo_url}
+                    coverUrl={b.cover_url}
                   />
                 </li>
               ))}
