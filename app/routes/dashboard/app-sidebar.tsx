@@ -102,7 +102,7 @@ function BusinessGlyph({
 }
 
 const TRIGGER_CLASS =
-  "flex h-12 w-full items-center gap-2.5 overflow-hidden rounded-xl px-2 text-left outline-hidden ring-sidebar-ring transition-colors hover:bg-sidebar-accent focus-visible:ring-2 aria-expanded:bg-sidebar-accent data-[popup-open]:bg-sidebar-accent group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:justify-center"
+  "flex h-12 w-full items-center gap-2.5 overflow-hidden rounded-xl px-2 text-left outline-hidden ring-sidebar-ring transition-colors hover:bg-sidebar-accent focus-visible:ring-2 aria-expanded:bg-sidebar-accent data-[popup-open]:bg-sidebar-accent"
 
 export function AppSidebar({
   user,
@@ -125,23 +125,18 @@ export function AppSidebar({
     : null
 
   return (
-    <Sidebar collapsible="icon" className="border-sidebar-border">
+    <Sidebar collapsible="offcanvas" className="border-sidebar-border">
       <SidebarHeader className="gap-2.5 border-b border-sidebar-border/70 pb-2.5">
         {/* Brand lockup */}
         <Link
           to="/dashboard"
           aria-label="João Tem — Painel"
-          className="flex items-center justify-center rounded-xl px-1.5 py-1 outline-hidden ring-sidebar-ring transition-colors focus-visible:ring-2 group-data-[collapsible=icon]:px-0"
+          className="flex items-center justify-center rounded-xl px-1.5 py-1 outline-hidden ring-sidebar-ring transition-colors focus-visible:ring-2"
         >
           <img
             src="/joao-tem-logo.svg"
             alt="João Tem"
-            className="h-8 w-auto object-contain group-data-[collapsible=icon]:hidden"
-          />
-          <img
-            src="/SVG2.svg"
-            alt="João Tem"
-            className="mx-auto hidden size-8 shrink-0 object-contain group-data-[collapsible=icon]:block"
+            className="h-8 w-auto object-contain"
           />
         </Link>
 
@@ -157,7 +152,7 @@ export function AppSidebar({
             <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary ring-1 ring-inset ring-primary/15">
               <Plus className="size-4" strokeWidth={2.25} />
             </span>
-            <span className="flex min-w-0 flex-col group-data-[collapsible=icon]:hidden">
+            <span className="flex min-w-0 flex-col">
               <span className="truncate text-sm font-semibold text-sidebar-foreground">
                 Cadastrar negócio
               </span>
@@ -172,7 +167,7 @@ export function AppSidebar({
               render={<button type="button" className={TRIGGER_CLASS} />}
             >
               <BusinessGlyph business={activeBusiness} />
-              <span className="flex min-w-0 flex-1 flex-col group-data-[collapsible=icon]:hidden">
+              <span className="flex min-w-0 flex-1 flex-col">
                 <span className="truncate text-sm font-semibold leading-tight text-sidebar-foreground">
                   {activeBusiness ? activeBusiness.name : "Selecionar negócio"}
                 </span>
@@ -182,7 +177,7 @@ export function AppSidebar({
                     : `${businesses.length} ${businesses.length === 1 ? "negócio" : "negócios"}`}
                 </span>
               </span>
-              <ChevronsUpDown className="size-4 shrink-0 text-sidebar-foreground/45 group-data-[collapsible=icon]:hidden" />
+              <ChevronsUpDown className="size-4 shrink-0 text-sidebar-foreground/45" />
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="start"
@@ -310,7 +305,7 @@ export function AppSidebar({
                   <Sparkles />
                   <span>Plano</span>
                   {activeBusiness.effective_tier === null ? (
-                    <span className="ml-auto size-1.5 rounded-full bg-destructive group-data-[collapsible=icon]:hidden" />
+                    <span className="ml-auto size-1.5 rounded-full bg-destructive" />
                   ) : null}
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -348,7 +343,7 @@ export function AppSidebar({
             <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-secondary text-xs font-semibold text-accent ring-1 ring-border">
               {initials(profile?.full_name, displayEmail)}
             </span>
-            <span className="flex min-w-0 flex-1 flex-col group-data-[collapsible=icon]:hidden">
+            <span className="flex min-w-0 flex-1 flex-col">
               <span className="truncate text-sm font-semibold leading-tight text-sidebar-foreground">
                 {displayName}
               </span>
@@ -356,7 +351,7 @@ export function AppSidebar({
                 {displayEmail}
               </span>
             </span>
-            <ChevronsUpDown className="size-4 shrink-0 text-sidebar-foreground/45 group-data-[collapsible=icon]:hidden" />
+            <ChevronsUpDown className="size-4 shrink-0 text-sidebar-foreground/45" />
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"

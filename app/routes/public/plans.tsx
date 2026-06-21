@@ -25,6 +25,11 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Link, useLoaderData } from "react-router";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "~/components/ui/carousel";
 import { SiteFooter } from "~/components/nav/site-footer";
 import { SiteHeader } from "~/components/nav/site-header";
 import { PlanPricingCard } from "~/components/pricing/plan-pricing-card";
@@ -255,7 +260,24 @@ const SEARCH_RESULTS = [
 // business-checkout.tsx, so the example behaves like the real product.
 function DemoVitrine() {
   return (
-    <ul className="grid grid-cols-2 gap-2.5">
+    <div className="flex flex-col gap-2.5">
+      <div className="flex items-center gap-2.5 px-0.5">
+        <div className="grid size-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-[#2563EB] text-sm font-black text-white">
+          AÇ
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="line-clamp-1 text-sm font-extrabold tracking-[-0.02em] text-[#1F2937]">
+            Açaí da Praça
+          </p>
+          <p className="line-clamp-1 text-xs text-[#64748B]">
+            Sobremesas · Centro, Orós
+          </p>
+        </div>
+        <span className="inline-flex items-center gap-1 rounded-full bg-[#16A34A]/10 px-2 py-0.5 text-[11px] font-bold text-[#16A34A]">
+          Aberto
+        </span>
+      </div>
+      <ul className="grid grid-cols-2 gap-2.5">
       {DEMO_ACAI.map((p) => (
         <li
           key={p.name}
@@ -288,7 +310,8 @@ function DemoVitrine() {
           </div>
         </li>
       ))}
-    </ul>
+      </ul>
+    </div>
   );
 }
 
@@ -425,6 +448,28 @@ function DemoResumo() {
     </section>
   );
 }
+
+// Steps for the "Sua vitrine na prática" flow — carousel on mobile, grid on desktop.
+const VITRINE_STEPS = [
+  {
+    Demo: DemoVitrine,
+    wrap: "rounded-2xl border border-border/60 bg-[#FBFBF8] p-3 shadow-sm",
+    title: "1. Escolhe os produtos",
+    desc: "O cliente navega pela sua vitrine e adiciona os itens à sacola.",
+  },
+  {
+    Demo: DemoSacola,
+    wrap: "overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm",
+    title: "2. Monta a sacola",
+    desc: "Ajusta as quantidades e confere o total antes de finalizar.",
+  },
+  {
+    Demo: DemoResumo,
+    wrap: "rounded-2xl border border-border/60 bg-[#FBFBF8] p-3 shadow-sm",
+    title: "3. Envia o pedido",
+    desc: "Confere o resumo e o pedido chega pronto no seu WhatsApp.",
+  },
+] as const;
 
 // ---- Section A: coded showcase cards (site search, vitrine, repost) ----
 function DemoSearch() {
@@ -663,14 +708,37 @@ export default function Plans() {
           </p>
         </div>
 
-        <div className="mt-12 -mx-4 flex snap-x snap-mandatory items-stretch gap-x-6 overflow-x-auto px-4 pb-4 [scrollbar-width:none] lg:mx-0 lg:grid lg:grid-cols-3 lg:gap-y-8 lg:overflow-visible lg:px-0 lg:pb-0 [&::-webkit-scrollbar]:hidden">
+        <Carousel
+          opts={{ align: "start" }}
+          className="mt-12 -mx-4 px-4 lg:hidden"
+        >
+          <CarouselContent className="ml-0 items-stretch gap-6">
+            {SHOWCASE_CARDS.map(({ Card, title, desc }) => (
+              <CarouselItem
+                key={title}
+                className="basis-[82%] pl-0 sm:basis-[60%]"
+              >
+                <div className="flex h-full flex-col">
+                  <Card />
+                  <div className="mt-5 px-1 text-center">
+                    <h3 className="text-sm font-semibold text-foreground">
+                      {title}
+                    </h3>
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                      {desc}
+                    </p>
+                  </div>
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
+
+        <div className="mt-12 hidden gap-x-6 gap-y-8 lg:grid lg:grid-cols-3">
           {SHOWCASE_CARDS.map(({ Card, title, desc }) => (
-            <div
-              key={title}
-              className="flex w-[82%] shrink-0 snap-start flex-col sm:w-[60%] lg:w-auto"
-            >
+            <div key={title} className="flex flex-col">
               <Card />
-              <div className="mt-5 px-1 text-center lg:text-left">
+              <div className="mt-5 px-1 text-left">
                 <h3 className="text-sm font-semibold text-foreground">
                   {title}
                 </h3>
@@ -785,48 +853,48 @@ export default function Plans() {
           </p>
         </div>
 
-        <div className="mt-12 -mx-4 flex snap-x snap-mandatory items-start gap-6 overflow-x-auto px-4 pb-4 [scrollbar-width:none] lg:mx-0 lg:grid lg:grid-cols-3 lg:overflow-visible lg:px-0 lg:pb-0 [&::-webkit-scrollbar]:hidden">
-          <div className="flex w-[82%] shrink-0 snap-start flex-col sm:w-[60%] lg:w-auto">
-            <div className="rounded-2xl border border-border/60 bg-[#FBFBF8] p-3 shadow-sm">
-              <DemoVitrine />
-            </div>
-            <div className="mt-4 px-1 text-center lg:text-left">
-              <h3 className="text-sm font-semibold text-foreground">
-                1. Escolhe os produtos
-              </h3>
-              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                O cliente navega pela sua vitrine e adiciona os itens à sacola.
-              </p>
-            </div>
-          </div>
+        <Carousel
+          opts={{ align: "start" }}
+          className="mt-12 -mx-4 px-4 lg:hidden"
+        >
+          <CarouselContent className="ml-0 items-start gap-6">
+            {VITRINE_STEPS.map(({ Demo, wrap, title, desc }) => (
+              <CarouselItem
+                key={title}
+                className="basis-[82%] pl-0 sm:basis-[60%]"
+              >
+                <div className={wrap}>
+                  <Demo />
+                </div>
+                <div className="mt-4 px-1 text-center">
+                  <h3 className="text-sm font-semibold text-foreground">
+                    {title}
+                  </h3>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                    {desc}
+                  </p>
+                </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
 
-          <div className="flex w-[82%] shrink-0 snap-start flex-col sm:w-[60%] lg:w-auto">
-            <div className="overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm">
-              <DemoSacola />
+        <div className="mt-12 hidden items-start gap-6 lg:grid lg:grid-cols-3">
+          {VITRINE_STEPS.map(({ Demo, wrap, title, desc }) => (
+            <div key={title}>
+              <div className={wrap}>
+                <Demo />
+              </div>
+              <div className="mt-4 px-1 text-left">
+                <h3 className="text-sm font-semibold text-foreground">
+                  {title}
+                </h3>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                  {desc}
+                </p>
+              </div>
             </div>
-            <div className="mt-4 px-1 text-center lg:text-left">
-              <h3 className="text-sm font-semibold text-foreground">
-                2. Monta a sacola
-              </h3>
-              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                Ajusta as quantidades e confere o total antes de finalizar.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex w-[82%] shrink-0 snap-start flex-col sm:w-[60%] lg:w-auto">
-            <div className="rounded-2xl border border-border/60 bg-[#FBFBF8] p-3 shadow-sm">
-              <DemoResumo />
-            </div>
-            <div className="mt-4 px-1 text-center lg:text-left">
-              <h3 className="text-sm font-semibold text-foreground">
-                3. Envia o pedido
-              </h3>
-              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                Confere o resumo e o pedido chega pronto no seu WhatsApp.
-              </p>
-            </div>
-          </div>
+          ))}
         </div>
 
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-8">
