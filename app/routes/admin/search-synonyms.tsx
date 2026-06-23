@@ -89,12 +89,26 @@ export default function AdminSearchSynonyms() {
 			<div className="pb-4">
 				<h1 className="text-xl font-semibold tracking-tight">Sinônimos de busca</h1>
 				<p className="text-sm text-muted-foreground">
-					Mapeie um termo para palavras relacionadas. Ao buscar o termo, os negócios
-					que casam com qualquer sinônimo também aparecem. Ex.:{" "}
+					Agrupe um termo com palavras relacionadas. Ex.:{" "}
 					<span className="font-medium">mercado</span> → supermercado, atacarejo,
 					atacado. Os termos são normalizados (sem acento, minúsculas)
 					automaticamente.
 				</p>
+				<div className="mt-3 rounded-xl border border-border/70 bg-muted/40 px-3 py-2.5 text-sm text-muted-foreground">
+					<p className="mb-1 font-medium text-foreground">
+						A busca funciona nos dois sentidos
+					</p>
+					<p>
+						Todas as palavras de uma linha viram sinônimos entre si. Não importa a
+						ordem: buscar o <span className="font-medium">termo</span> traz os
+						negócios dos sinônimos, e buscar qualquer{" "}
+						<span className="font-medium">sinônimo</span> também traz os do termo.
+						Ex.: com <span className="font-medium">sacole</span> → dindin, buscar
+						"sacole" acha negócios "dindin"{" "}
+						<span className="font-medium">e</span> buscar "dindin" acha "sacole".
+						Não precisa cadastrar a linha invertida.
+					</p>
+				</div>
 			</div>
 
 			{actionData?.error ? (
