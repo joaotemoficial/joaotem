@@ -1,4 +1,5 @@
 import { parseWithZod } from "@conform-to/zod";
+import type { PostHogContext } from "~/lib/posthog-middleware";
 import { MessageCircle, RefreshCw, ShieldCheck } from "lucide-react";
 import { data, Link, redirect, useLoaderData } from "react-router";
 import { BusinessSuccess } from "~/components/business/business-success";
@@ -112,7 +113,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 	);
 }
 
-export async function action({ request }: Route.ActionArgs) {
+export async function action({ request, context }: Route.ActionArgs) {
 	const ctx = await requireUser(request);
 	const formData = await request.formData();
 
@@ -165,6 +166,18 @@ export async function action({ request }: Route.ActionArgs) {
 		return {
 			submission: submission.reply({ formErrors: [result.error] }),
 		};
+	}
+
+	const posthog = (context as PostHogContext).posthog;
+	if (posthog) {
+		posthog.capture({
+			distinctId: ctx.user.id,
+			event: "plan_upgrade_requested",
+			properties: {
+				business_id: submission.value.business_id,
+				requested_plan: submission.value.requested_plan,
+			},
+		});
 	}
 
 	throw redirect("/dashboard/upgrade?submitted=1", { headers: ctx.headers });

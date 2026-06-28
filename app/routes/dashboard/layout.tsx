@@ -1,3 +1,5 @@
+import { usePostHog } from "@posthog/react";
+import { useEffect } from "react";
 import { Outlet, data, useLoaderData } from "react-router";
 import {
 	parseActiveBusinessId,
@@ -68,6 +70,16 @@ export async function loader({ request }: Route.LoaderArgs) {
 export default function DashboardLayout() {
 	const { user, profile, businesses, activeBusiness } =
 		useLoaderData<typeof loader>();
+	const posthog = usePostHog();
+
+	useEffect(() => {
+		if (user?.id) {
+			posthog?.identify(user.id, {
+				email: profile?.email ?? user.email ?? undefined,
+				name: profile?.full_name ?? undefined,
+			});
+		}
+	}, [user?.id]);
 
 	return (
 		<TooltipProvider delay={120}>

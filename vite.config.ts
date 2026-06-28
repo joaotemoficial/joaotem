@@ -9,6 +9,26 @@ export default defineConfig({
   // a LAN IP from a phone. host: true exposes it on the network.
   server: {
     host: true,
+    proxy: {
+      "/ingest/static": {
+        target: "https://us-assets.i.posthog.com",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/ingest/, ""),
+      },
+      "/ingest/array": {
+        target: "https://us-assets.i.posthog.com",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/ingest/, ""),
+      },
+      "/ingest": {
+        target: "https://us.i.posthog.com",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/ingest/, ""),
+      },
+    },
+  },
+  ssr: {
+    noExternal: ["posthog-js", "@posthog/react"],
   },
   plugins: [
     // basicSsl(),

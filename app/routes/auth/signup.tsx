@@ -5,6 +5,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { PasswordInput } from "~/components/ui/password-input";
+import type { PostHogContext } from "~/lib/posthog-middleware";
 import { signupSchema } from "~/lib/validation/business";
 import { signUpWithPassword } from "~/repositories/auth";
 import { isError } from "~/types";
@@ -19,7 +20,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 	return { plan: plan === "basico" || plan === "ouro" ? plan : null };
 }
 
-export async function action({ request }: Route.ActionArgs) {
+export async function action({ request, context }: Route.ActionArgs) {
 	const formData = await request.formData();
 	const submission = parseWithZod(formData, { schema: signupSchema });
 	if (submission.status !== "success") return submission.reply();
@@ -31,6 +32,15 @@ export async function action({ request }: Route.ActionArgs) {
 	});
 	if (isError(result)) {
 		return submission.reply({ formErrors: [result.error] });
+	}
+
+	const posthog = (context as PostHogContext).posthog;
+	if (posthog && result.success.data.user) {
+		posthog.capture({
+			distinctId: result.success.data.user.id,
+			event: "user_signed_up",
+			properties: { email: submission.value.email },
+		});
 	}
 
 	const plan = formData.get("plan");

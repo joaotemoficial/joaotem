@@ -7,11 +7,15 @@ import {
   ScrollRestoration,
 } from "react-router";
 
+import { usePostHog } from "@posthog/react";
 import { InstallPrompt } from "~/components/pwa/InstallPrompt";
+import { posthogMiddleware } from "~/lib/posthog-middleware";
 import { RegisterPWA } from "~/components/pwa/RegisterPWA";
 import { Toaster } from "~/components/ui/sonner";
 import type { Route } from "./+types/root";
 import "./app.css";
+
+export const middleware: Route.MiddlewareFunction[] = [posthogMiddleware];
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -64,6 +68,9 @@ export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   let message = "Oops!";
   let details = "An unexpected error occurred.";
   let stack: string | undefined;
+
+  const posthog = usePostHog();
+  posthog?.captureException(error);
 
   if (isRouteErrorResponse(error)) {
     message = error.status === 404 ? "404" : "Error";

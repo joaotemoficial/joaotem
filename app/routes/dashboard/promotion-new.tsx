@@ -28,6 +28,7 @@ import {
 	daysToMask,
 	promotionFormSchema,
 } from "~/lib/validation/business";
+import type { PostHogContext } from "~/lib/posthog-middleware";
 import * as businessesRepo from "~/repositories/businesses";
 import * as promotionsRepo from "~/repositories/promotions";
 import { isError } from "~/types";
@@ -52,7 +53,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 	return { business: { id: business.id, name: business.name } };
 }
 
-export async function action({ params, request }: Route.ActionArgs) {
+export async function action({ params, request, context }: Route.ActionArgs) {
 	const ctx = await requireUser(request);
 	const formData = await request.formData();
 	const submission = parseWithZod(formData, { schema: promotionFormSchema });
@@ -117,6 +118,20 @@ export async function action({ params, request }: Route.ActionArgs) {
 	});
 	if (isError(created)) {
 		return submission.reply({ formErrors: [created.error] });
+	}
+
+	const posthog = (context as PostHogContext).posthog;
+	if (posthog) {
+		posthog.capture({
+			distinctId: ctx.user.id,
+			event: "promotion_created",
+			properties: {
+				business_id: business.id,
+				promotion_id: created.success.id,
+				promotion_title: submission.value.title,
+				plan_tier: effTier,
+			},
+		});
 	}
 
 	throw redirect(

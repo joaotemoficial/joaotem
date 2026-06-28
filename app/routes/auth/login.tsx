@@ -5,6 +5,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { PasswordInput } from "~/components/ui/password-input";
+import type { PostHogContext } from "~/lib/posthog-middleware";
 import { authSchema } from "~/lib/validation/business";
 import { signInWithPassword } from "~/repositories/auth";
 import { isError } from "~/types";
@@ -12,7 +13,7 @@ import type { Route } from "./+types/login";
 
 export const meta: Route.MetaFunction = () => [{ title: "Entrar — JoaoTem" }];
 
-export async function action({ request }: Route.ActionArgs) {
+export async function action({ request, context }: Route.ActionArgs) {
 	const formData = await request.formData();
 	const submission = parseWithZod(formData, { schema: authSchema });
 	if (submission.status !== "success") return submission.reply();
@@ -24,6 +25,15 @@ export async function action({ request }: Route.ActionArgs) {
 	});
 	if (isError(result)) {
 		return submission.reply({ formErrors: [result.error] });
+	}
+
+	const posthog = (context as PostHogContext).posthog;
+	if (posthog) {
+		posthog.capture({
+			distinctId: result.success.data.user.id,
+			event: "user_logged_in",
+			properties: { email: submission.value.email },
+		});
 	}
 
 	throw redirect("/dashboard", { headers: result.success.headers });

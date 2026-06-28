@@ -1,5 +1,7 @@
 import { type SubmissionResult, useForm } from "@conform-to/react";
 import { parseWithZod } from "@conform-to/zod";
+import { usePostHog } from "@posthog/react";
+import { useEffect } from "react";
 import { useLoaderData, useNavigation } from "react-router";
 import { BusinessOnboardingForm } from "~/components/business/business-onboarding-form";
 import { BusinessSuccess } from "~/components/business/business-success";
@@ -79,10 +81,21 @@ export async function action({ request }: Route.ActionArgs) {
 export default function BusinessNew({ actionData }: Route.ComponentProps) {
 	const { categories, cities, neighborhoods, requestedPlan, planLocked } =
 		useLoaderData<typeof loader>();
+	const posthog = usePostHog();
 
 	// On a successful submission the action returns the confirmation payload
 	// (instead of redirecting) so we can render the "Cadastro iniciado!" screen.
 	const success = actionData && "ok" in actionData ? actionData : null;
+
+	useEffect(() => {
+		if (success) {
+			posthog?.capture("business_created", {
+				business_id: success.business.id,
+				business_name: success.business.name,
+				requested_plan: success.business.requestedPlan,
+			});
+		}
+	}, [success?.business?.id]);
 	// Everything below only concerns the form; isolate the SubmissionResult.
 	const formResult = (success ? undefined : actionData) as
 		| SubmissionResult<string[]>

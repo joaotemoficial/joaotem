@@ -29,6 +29,7 @@ import {
 	priceToCents,
 	productFormSchema,
 } from "~/lib/validation/business";
+import type { PostHogContext } from "~/lib/posthog-middleware";
 import * as businessesRepo from "~/repositories/businesses";
 import * as productsRepo from "~/repositories/products";
 import { isError } from "~/types";
@@ -55,7 +56,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 	};
 }
 
-export async function action({ params, request }: Route.ActionArgs) {
+export async function action({ params, request, context }: Route.ActionArgs) {
 	const ctx = await requireUser(request);
 	const formData = await request.formData();
 	const submission = parseWithZod(formData, { schema: productFormSchema });
@@ -131,6 +132,20 @@ export async function action({ params, request }: Route.ActionArgs) {
 		if (isError(optionsResult)) {
 			return submission.reply({ formErrors: [optionsResult.error] });
 		}
+	}
+
+	const posthog = (context as PostHogContext).posthog;
+	if (posthog) {
+		posthog.capture({
+			distinctId: ctx.user.id,
+			event: "product_created",
+			properties: {
+				business_id: business.id,
+				product_id: created.success.id,
+				product_name: submission.value.name,
+				plan_tier: effTier,
+			},
+		});
 	}
 
 	throw redirect(

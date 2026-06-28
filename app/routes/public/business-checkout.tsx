@@ -1,6 +1,7 @@
+import { usePostHog } from "@posthog/react";
 import { ChevronLeft, ImageOff, ShoppingBag } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Link,
   data,
@@ -109,6 +110,15 @@ export async function action({ params, request }: Route.ActionArgs) {
 export default function BusinessCheckout() {
   const { user, profile, business, items } = useLoaderData<typeof loader>();
   const clearFetcher = useFetcher();
+  const posthog = usePostHog();
+
+  useEffect(() => {
+    posthog?.capture("checkout_started", {
+      business_handle: business.handle,
+      business_name: business.name,
+      item_count: items.reduce((s, i) => s + i.quantity, 0),
+    });
+  }, []);
 
   const [coupon, setCoupon] = useState("");
   const [couponApplied, setCouponApplied] = useState<string | null>(null);
@@ -169,6 +179,16 @@ export default function BusinessCheckout() {
       delivery,
       notes,
       coupon: couponApplied ?? "",
+    });
+
+    posthog?.capture("order_sent_to_whatsapp", {
+      business_handle: business.handle,
+      business_name: business.name,
+      delivery_mode: mode,
+      payment_method: payment,
+      item_count: itemCount,
+      total_cents: totalCents,
+      coupon: couponApplied ?? undefined,
     });
 
     window.open(url, "_blank", "noopener");
